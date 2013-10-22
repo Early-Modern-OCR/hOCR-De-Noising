@@ -29,7 +29,7 @@ else
       then
          # there is work in the emop job_queue. Schedule the controller
          # to process these jobs
-         qsub emop.pbs
+         qsub -v EMOP_HOME="${EMOP_HOME}" emop.pbs
       fi
    fi
 fi
