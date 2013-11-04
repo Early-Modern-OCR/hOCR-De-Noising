@@ -1,8 +1,8 @@
 #PBS -q background
-#PBS -l nodes=1:ppn=8
-#PBS -l walltime=00:30:00
-#PBS -l mem=16GB
-#PBS -N emop_controller
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=1900mb
+
+HEAP_SIZE="$HEAP_SIZE"
 
 # load required modules
 . /etc/profile.d/modules.sh
@@ -12,7 +12,7 @@ module load java/sun-jre-1.6
 
 export JUXTA_HOME=$HOME/emop/juxta-cl-1.0
 export RETAS_HOME=$HOME/emop/retas
-if [ -z $EMOP_HOME ]; then
+if [ -z "$EMOP_HOME" ]; then
         export EMOP_HOME=$HOME/emop/emop-controller-1.0
 else
         export EMOP_HOME=$EMOP_HOME
@@ -23,17 +23,12 @@ export TESSDATA_PREFIX=/dh/data/shared/
 echo "$PBS_JOBID started on $(hostname) at $(date)"
 echo "-=-"
 
-# launch  instances of the controller. they run until killed or no jobs remain
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
-java -Xms128M -Xmx128M -jar $EMOP_HOME/emop-controller.jar &
+# Set umask so directories can be read/written by others
+#TODO: Won't have an effect until static chmods are removed from java code
+umask 002
 
-wait # wait for the above background jobs to finish
+# launch instance of the controller which runs until killed or no jobs remain
+java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar
 
 # Done; print the end time and host.
 echo "-=-"
