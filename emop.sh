@@ -7,7 +7,7 @@ export PATH=$PATH:/usr/local/bin
 # launched 
 cd $(dirname $0)
 EMOP_HOME=$(pwd)
-HEAP_SIZE="768M"
+HEAP_SIZE="256M"
 APP_NAME="emop_controller"
 
 Q_LIMIT=130

@@ -28,7 +28,7 @@ echo "-=-"
 umask 002
 
 # launch instance of the controller which runs until killed or no jobs remain
-java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar
+java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar &> $EMOP_HOME/logs/emop-controller-${PBS_JOBID}.out
 
 # Done; print the end time and host.
 echo "-=-"
