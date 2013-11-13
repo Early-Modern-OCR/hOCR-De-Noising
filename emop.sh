@@ -7,10 +7,11 @@ export PATH=$PATH:/usr/local/bin
 # launched 
 cd $(dirname $0)
 EMOP_HOME=$(pwd)
-HEAP_SIZE="256M"
+HEAP_SIZE="128M"
 APP_NAME="emop_controller"
 
-Q_LIMIT=130
+Q="bgscrt"
+Q_LIMIT=640
 Q_TOTAL=`qselect -N ${APP_NAME} | wc -l`
 Q_PENDING=`qselect -N ${APP_NAME} -s HQ | wc -l`
 
@@ -49,7 +50,7 @@ check_queue_limit() {
 
 # there is work in the emop job_queue. Schedule the controller to process these jobs
 qsub_job() {
-  cmd="qsub -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $EMOP_HOME/logs -o $EMOP_HOME/logs emop.pbs"
+  cmd="qsub -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $EMOP_HOME/logs -o $EMOP_HOME/logs emop.pbs"
   echo "Executing: ${cmd}"
   eval ${cmd}
 }
