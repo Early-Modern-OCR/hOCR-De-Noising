@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 export PATH=$PATH:/usr/local/bin
 
@@ -13,15 +13,9 @@ APP_NAME="emop_controller"
 Q="bgscrt"
 Q_LIMIT=640
 Q_TOTAL=`qselect -N ${APP_NAME} | wc -l`
-Q_PENDING=`qselect -N ${APP_NAME} -s HQ | wc -l`
+Q_AVAIL=`echo "$Q_LIMIT - $Q_TOTAL"|bc`
 
 JOB_CNT=0
-
-# Deletes jobs from queue that have not started
-empty_queue() {
-  echo "Killing ${Q_PENDING} jobs that are still queued"
-  qselect -N ${APP_NAME} -s HQ | xargs qdel
-}
 
 # ensure that there is work to do before scheduling
 check_job_cnt() {
@@ -35,7 +29,6 @@ check_job_cnt() {
 
   if [ $JOB_CNT -eq 0 ]; then
     echo "No work to be done"
-    [ $Q_PENDING -gt 0 ] && empty_queue
     exit 0
   fi
 }
@@ -49,10 +42,19 @@ check_queue_limit() {
 }
 
 # there is work in the emop job_queue. Schedule the controller to process these jobs
+# If more jobs exist in database than available brazos job slots, then fill up Brazos queue
 qsub_job() {
-  cmd="qsub -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $EMOP_HOME/logs -o $EMOP_HOME/logs emop.pbs"
-  echo "Executing: ${cmd}"
-  eval ${cmd}
+  QSUB_CMD="qsub -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $EMOP_HOME/logs -o $EMOP_HOME/logs emop.pbs"
+
+  if [ $JOB_CNT -gt $Q_AVAIL ]; then
+    echo "Executing ${Q_AVAIL} times: ${QSUB_CMD}"
+    for i in $(seq 1 $Q_AVAIL); do
+      eval ${QSUB_CMD}
+    done
+  else
+    echo "Executing: ${QSUB_CMD}"
+    eval ${QSUB_CMD}
+  fi
 }
 
 check_queue_limit
