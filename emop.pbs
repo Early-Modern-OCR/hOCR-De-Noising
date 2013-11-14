@@ -7,7 +7,7 @@ HEAP_SIZE="$HEAP_SIZE"
 . /etc/profile.d/modules.sh
 module load use.own
 module load emop/tesseract
-module load java/sun-jre-1.6
+module load emop/sun-jdk-1.7
 
 export JUXTA_HOME=$HOME/emop/juxta-cl-1.0
 export RETAS_HOME=$HOME/emop/retas
@@ -23,7 +23,6 @@ echo "$PBS_JOBID started on $(hostname) at $(date)"
 echo "-=-"
 
 # Set umask so directories can be read/written by others
-#TODO: Won't have an effect until static chmods are removed from java code
 umask 002
 
 # launch instance of the controller which runs until killed or no jobs remain
