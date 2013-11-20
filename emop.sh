@@ -1,5 +1,59 @@
 #!/bin/bash
 
+DEBUG=0
+
+usage () {
+
+cat << EOF
+usage: $(basename $0) [OPTIONS]
+
+This script submits emop.pbs jobs to the Torque resource manager.
+
+ARGUMENTS:
+  None
+
+OPTIONS:
+
+  -h, --help      Show this message
+  -d, --debug     Show debug output
+
+EXAMPLE:
+
+$(basename $0)
+
+EOF
+}
+
+ARGS=`getopt -o hd -l help,debug -n "$0" -- "$@"`
+
+[ $? -ne 0 ] && { usage; exit 1; }
+
+eval set -- "${ARGS}"
+
+while true; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -d|--debug)
+      DEBUG=1
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [ $DEBUG -eq 1 ]; then
+  set -x
+fi
+
 export PATH=$PATH:/usr/local/bin
 
 # this script lives in the root directory of the emop controller
