@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DEBUG=0
+NOOP=0
 
 usage () {
 
@@ -14,8 +15,10 @@ ARGUMENTS:
 
 OPTIONS:
 
-  -h, --help      Show this message
-  -d, --debug     Show debug output
+  -h, --help      Show this message.
+  -d, --debug     Show debug output.
+  -n, --noop      Perform dry-run.
+                  Script executes without submitting jobs to Torque.
 
 EXAMPLE:
 
@@ -24,7 +27,7 @@ $(basename $0)
 EOF
 }
 
-ARGS=`getopt -o hd -l help,debug -n "$0" -- "$@"`
+ARGS=`getopt -o hdn -l help,debug,noop -n "$0" -- "$@"`
 
 [ $? -ne 0 ] && { usage; exit 1; }
 
@@ -38,6 +41,10 @@ while true; do
       ;;
     -d|--debug)
       DEBUG=1
+      shift
+      ;;
+    -n|--noop)
+      NOOP=1
       shift
       ;;
     --)
@@ -64,10 +71,12 @@ EMOP_HOME=$(pwd)
 HEAP_SIZE="128M"
 APP_NAME="emop_controller"
 
-Q="bgscrt"
-Q_LIMIT=640
-Q_TOTAL=`qselect -N ${APP_NAME} | wc -l`
+Q="idhmc"
+Q_LIMIT=128
+Q_TOTAL=`qselect -q ${Q} -N ${APP_NAME} | wc -l`
 Q_AVAIL=`echo "$Q_LIMIT - $Q_TOTAL"|bc`
+
+[ $NOOP -eq 1 ] && NOOP_PREFIX="(NOOP) " || NOOP_PREFIX=""
 
 JOB_CNT=0
 
@@ -87,7 +96,7 @@ check_job_cnt() {
   fi
 }
 
-# only allow 130 emop_controller jobs to be schedulated at a time
+# only allow 128 emop_controller jobs to be schedulated at a time
 check_queue_limit() {
   if [ $Q_TOTAL -ge $Q_LIMIT ];then
     echo "${Q_LIMIT} instances of ${APP_NAME} is already running."
@@ -101,13 +110,17 @@ qsub_job() {
   QSUB_CMD="qsub -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $EMOP_HOME/logs -o $EMOP_HOME/logs emop.pbs"
 
   if [ $JOB_CNT -gt $Q_AVAIL ]; then
-    echo "Executing ${Q_AVAIL} times: ${QSUB_CMD}"
+    echo "${NOOP_PREFIX}Executing ${Q_AVAIL} times: ${QSUB_CMD}"
     for i in $(seq 1 $Q_AVAIL); do
-      eval ${QSUB_CMD}
+      if [ $NOOP -eq 1 ]; then
+        echo -n ""
+      else
+        eval ${QSUB_CMD}
+      fi
     done
   else
-    echo "Executing: ${QSUB_CMD}"
-    eval ${QSUB_CMD}
+    echo "${NOOP_PREFIX}Executing: ${QSUB_CMD}"
+    [ $NOOP -eq 0 ] && eval ${QSUB_CMD}
   fi
 }
 

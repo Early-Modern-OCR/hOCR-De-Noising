@@ -12,7 +12,7 @@ module load emop/sun-jdk-1.7
 export JUXTA_HOME=$HOME/emop/juxta-cl-1.0
 export RETAS_HOME=$HOME/emop/retas
 if [ -z "$EMOP_HOME" ]; then
-        export EMOP_HOME=$HOME/emop/emop-controller-1.0
+        export EMOP_HOME=$HOME/emop/emop-controller
 else
         export EMOP_HOME=$EMOP_HOME
 fi
