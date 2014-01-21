@@ -105,23 +105,11 @@ check_queue_limit() {
 }
 
 # there is work in the emop job_queue. Schedule the controller to process these jobs
-# If more jobs exist in database than available brazos job slots, then fill up Brazos queue
 qsub_job() {
   QSUB_CMD="qsub -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $EMOP_HOME/logs -o $EMOP_HOME/logs emop.pbs"
 
-  if [ $JOB_CNT -gt $Q_AVAIL ]; then
-    echo "${NOOP_PREFIX}Executing ${Q_AVAIL} times: ${QSUB_CMD}"
-    for i in $(seq 1 $Q_AVAIL); do
-      if [ $NOOP -eq 1 ]; then
-        echo -n ""
-      else
-        eval ${QSUB_CMD}
-      fi
-    done
-  else
-    echo "${NOOP_PREFIX}Executing: ${QSUB_CMD}"
-    [ $NOOP -eq 0 ] && eval ${QSUB_CMD}
-  fi
+  echo "${NOOP_PREFIX}Executing: ${QSUB_CMD}"
+  [ $NOOP -eq 0 ] && eval ${QSUB_CMD}
 }
 
 check_queue_limit
