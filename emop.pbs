@@ -25,8 +25,10 @@ echo "-=-"
 # Set umask so directories can be read/written by others
 umask 002
 
+PROC_ID="$(echo $PBS_JOBID | cut -d'.' -f1)"
+
 # launch instance of the controller which runs until killed or no jobs remain
-java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar &> $EMOP_HOME/logs/emop-controller-${PBS_JOBID}.out
+java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar -mode run -procid ${PROC_ID} &> $EMOP_HOME/logs/emop-controller-${PROC_ID}.out
 
 # Done; print the end time and host.
 echo "-=-"
