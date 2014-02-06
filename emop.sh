@@ -221,7 +221,7 @@ local_test() {
     PAGE_CNT=$pagecnt
     for qavail in 1 10 30 50 75 128; do
       Q_AVAIL=$qavail
-      echo_verbose "## TEST PAGE_CNT ${PAGE_CNT} , Q_AVAIL ${Q_AVAIL} ##"
+      echo "## TEST PAGE_CNT ${PAGE_CNT} , Q_AVAIL ${Q_AVAIL} ##"
       optimize
       
       if [ $NUM_JOBS -gt $Q_LIMIT ]; then
@@ -234,6 +234,10 @@ local_test() {
   exit 0
 }
 
+if [ $TEST -eq 1 ]; then
+  local_test
+fi
+
 # Check queue limits
 check_queue_limit
 echo_verbose "Available queue slots: ${Q_AVAIL}"
@@ -241,10 +245,6 @@ echo_verbose "Available queue slots: ${Q_AVAIL}"
 # Check if actual pages to OCR
 check_page_cnt
 echo_verbose "Page count: ${PAGE_CNT}"
-
-if [ $TEST -eq 1 ]; then
-  local_test
-fi
 
 # Run optimization function
 optimize
