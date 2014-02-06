@@ -94,6 +94,8 @@ export PATH=$PATH:/usr/local/bin
 # launched 
 cd $(dirname $0)
 EMOP_HOME=$(pwd)
+MODULES_SRC_DIR="${EMOP_HOME}/emop-modules/emop"
+MODULES_DIR="${HOME}/privatemodules/emop"
 HEAP_SIZE="128M"
 APP_NAME="emop_controller"
 
@@ -116,6 +118,13 @@ echo_verbose() {
   local msg="$1"
   if [ $VERBOSE -eq 1 ]; then
     echo $msg
+  fi
+}
+
+bootstrap_modules() {
+  if [ ! -L $MODULES_DIR ]; then
+    echo_verbose "${NOOP_PREFIX}Creating symbolic link ${MODULES_SRC_DIR} -> ${MODULES_DIR}"
+    ln -sn ${MODULES_SRC_DIR} ${MODULES_DIR}
   fi
 }
 
@@ -237,6 +246,9 @@ local_test() {
 if [ $TEST -eq 1 ]; then
   local_test
 fi
+
+# Bootstrap setup for jobs to run
+bootstrap_modules
 
 # Check queue limits
 check_queue_limit
