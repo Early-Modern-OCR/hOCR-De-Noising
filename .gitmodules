@@ -1,0 +1,3 @@
+[submodule "emop-modules"]
+	path = emop-modules
+	url = git@gitlab.tamu.edu:emop/emop-modules.git
