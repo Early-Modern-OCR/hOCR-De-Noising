@@ -1,3 +1,4 @@
 emop.properties
-logs/
+logs/*
+!logs/.gitkeep
 emop.sh.log

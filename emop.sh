@@ -202,30 +202,25 @@ optimize() {
   runOptionB=`echo "$MAX_JOB_RUNTIME / $AVG_PAGE_RUNTIME"|bc`
   runOptionC=`echo "$MIN_JOB_RUNTIME / $AVG_PAGE_RUNTIME"|bc`
 
-  if [ $runOptionA -lt 1 ]; then
-    NUM_JOBS=1
+  if [ $runOptionA -gt $runOptionB ]; then
+    NUM_JOBS=$Q_AVAIL
+    PAGES_PER_JOB=$runOptionB
+  elif [ $PAGE_CNT -lt $runOptionC ]; then
+    NUM_JOBS=$((PAGE_CNT / runOptionC))
     PAGES_PER_JOB=$PAGE_CNT
+  elif [ $runOptionA -lt $runOptionC ]; then
+    NUM_JOBS=$((PAGE_CNT / runOptionC))
+    PAGES_PER_JOB=$runOptionC
   else
-    if [ $runOptionA -gt $runOptionB ]; then
-      NUM_JOBS=$Q_AVAIL
-      PAGES_PER_JOB=$runOptionB
-    elif [ $PAGE_CNT -lt $runOptionC ]; then
-      NUM_JOBS=$((PAGE_CNT / runOptionC))
-      PAGES_PER_JOB=$PAGE_CNT
-    elif [ $runOptionA -lt $runOptionC ]; then
-      NUM_JOBS=$((PAGE_CNT / runOptionC))
-      PAGES_PER_JOB=$runOptionC
-    else
-      NUM_JOBS=$((PAGE_CNT / runOptionA))
-      PAGES_PER_JOB=$runOptionA
-    fi
-
-    [ $NUM_JOBS -lt 1 ] && NUM_JOBS=1
-
-    # Calculate expected runtime of a job based on average runtime
-    expected_runtime=`echo "$PAGES_PER_JOB * $AVG_PAGE_RUNTIME"|bc`
-    echo_verbose "Expected job runtime: ${expected_runtime} seconds"
+    NUM_JOBS=$((PAGE_CNT / runOptionA))
+    PAGES_PER_JOB=$runOptionA
   fi
+
+  [ $NUM_JOBS -lt 1 ] && NUM_JOBS=1
+
+  # Calculate expected runtime of a job based on average runtime
+  expected_runtime=`echo "$PAGES_PER_JOB * $AVG_PAGE_RUNTIME"|bc`
+  echo_verbose "Expected job runtime: ${expected_runtime} seconds"
 
   TOTAL_PAGES_TO_RUN=$((NUM_JOBS * PAGES_PER_JOB))
 
