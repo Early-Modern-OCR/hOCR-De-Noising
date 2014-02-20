@@ -9,13 +9,14 @@ module load use.own
 module load emop/tesseract
 module load emop/sun-jdk-1.7
 
-export JUXTA_HOME=$HOME/emop/juxta-cl-1.0
-export RETAS_HOME=$HOME/emop/retas
 if [ -z "$EMOP_HOME" ]; then
         export EMOP_HOME=$HOME/emop/emop-controller
 else
         export EMOP_HOME=$EMOP_HOME
 fi
+export JUXTA_HOME=${EMOP_HOME}/lib/juxta-cl-1.0
+export RETAS_HOME=${EMOP_HOME}/lib/retas
+export SEASR_HOME=${EMOP_HOME}/lib/seasr
 export TESSDATA_PREFIX=/dh/data/shared/
 
 # Print out the starting time and host.

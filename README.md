@@ -21,6 +21,7 @@ Depends on several environment variables as well. They are:
 
 * JUXTA_HOME - Root directory for JuxtaCL
 * RETAS_HOME - Root directory for RETAS
+* SEASR_HOME - Root directory for SEASR post-processing tools
 
 For multiple users to run this controller on the same file structure the umask must be set to at least 002.
 
