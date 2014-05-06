@@ -98,6 +98,7 @@ MODULES_SRC_DIR="${EMOP_HOME}/emop-modules/emop"
 MODULES_DIR="${HOME}/privatemodules/emop"
 HEAP_SIZE="128M"
 APP_NAME="emop_controller"
+LOG_FILES="/fdata/scratch/mchristy/logs"
 
 Q="idhmc"
 Q_LIMIT=128
@@ -169,7 +170,7 @@ qsub_job() {
   local jobID=0
   # Set a delay of 1 minute for all jobs to allow reservation to complete
   local qsub_delay=$(date --date="-1 minutes ago" +%H%M)
-  QSUB_CMD="qsub -a ${qsub_delay} -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $EMOP_HOME/logs -o $EMOP_HOME/logs emop.pbs"
+  QSUB_CMD="qsub -a ${qsub_delay} -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $LOG_FILES -o $LOG_FILES emop.pbs"
 
   echo_verbose "${NOOP_PREFIX}Executing: ${QSUB_CMD}"
   if [ $NOOP -eq 0 ]; then
