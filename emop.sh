@@ -94,11 +94,15 @@ export PATH=$PATH:/usr/local/bin
 # launched 
 cd $(dirname $0)
 EMOP_HOME=$(pwd)
+
+[ -f ${EMOP_HOME}/emop.conf ] && source ${EMOP_HOME}/emop.conf
+
+LOGDIR=${LOGDIR-${EMOP_HOME}/logs}
+
 MODULES_SRC_DIR="${EMOP_HOME}/emop-modules/emop"
 MODULES_DIR="${HOME}/privatemodules/emop"
 HEAP_SIZE="128M"
 APP_NAME="emop_controller"
-LOG_FILES="/fdata/scratch/mchristy/logs"
 
 Q="idhmc"
 Q_LIMIT=128
@@ -127,6 +131,13 @@ bootstrap_modules() {
   if [ ! -L $MODULES_DIR ]; then
     echo_verbose "${NOOP_PREFIX}Creating symbolic link ${MODULES_SRC_DIR} -> ${MODULES_DIR}"
     ln -sn ${MODULES_SRC_DIR} ${MODULES_DIR}
+  fi
+}
+
+ensure_environment() {
+  if [ ! -d $LOGDIR ]; then
+    echo_verbose "Creating LOGDIR: ${LOGDIR}"
+    mkdir -p ${LOGDIR}
   fi
 }
 
@@ -170,7 +181,7 @@ qsub_job() {
   local jobID=0
   # Set a delay of 1 minute for all jobs to allow reservation to complete
   local qsub_delay=$(date --date="-1 minutes ago" +%H%M)
-  QSUB_CMD="qsub -a ${qsub_delay} -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e $LOG_FILES -o $LOG_FILES emop.pbs"
+  QSUB_CMD="qsub -a ${qsub_delay} -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e ${LOGDIR} -o ${LOGDIR} emop.pbs"
 
   echo_verbose "${NOOP_PREFIX}Executing: ${QSUB_CMD}"
   if [ $NOOP -eq 0 ]; then
@@ -250,6 +261,10 @@ local_test() {
 if [ $TEST -eq 1 ]; then
   local_test
 fi
+
+# Run commands to ensure various necessary
+# directories and paths exist
+ensure_environment
 
 # Bootstrap setup for jobs to run
 bootstrap_modules

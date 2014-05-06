@@ -1,0 +1,8 @@
+#
+# emop.conf
+#
+# Configuration parameters used to configure eMOP cluster jobs
+#
+
+# Directory path for job output to be written
+LOGDIR=${HOME}/emop/emop-controller/logs

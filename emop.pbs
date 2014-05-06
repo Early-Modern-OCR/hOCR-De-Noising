@@ -2,8 +2,6 @@
 #PBS -l mem=1900mb
 
 HEAP_SIZE="$HEAP_SIZE"
-LOG_FILES="/fdata/scratch/mchristy/logs"
-
 
 # load required modules
 . /etc/profile.d/modules.sh
@@ -21,6 +19,10 @@ export RETAS_HOME=${EMOP_HOME}/lib/retas
 export SEASR_HOME=${EMOP_HOME}/lib/seasr
 export TESSDATA_PREFIX=/dh/data/shared/
 
+[ -f ${EMOP_HOME}/emop.conf ] && source ${EMOP_HOME}/emop.conf
+
+LOGDIR=${LOGDIR-${EMOP_HOME}/logs}
+
 # Print out the starting time and host.
 echo "$PBS_JOBID started on $(hostname) at $(date)"
 echo "-=-"
@@ -31,7 +33,7 @@ umask 002
 PROC_ID="$(echo $PBS_JOBID | cut -d'.' -f1)"
 
 # launch instance of the controller which runs until killed or no jobs remain
-java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar -mode run -procid ${PROC_ID} &> $LOG_FILES/emop-controller-${PROC_ID}.out
+java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar -mode run -procid ${PROC_ID} &> ${LOGDIR}/emop-controller-${PROC_ID}.out
 
 # Done; print the end time and host.
 echo "-=-"
