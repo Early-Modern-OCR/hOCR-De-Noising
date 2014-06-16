@@ -18,6 +18,7 @@ export JUXTA_HOME=${EMOP_HOME}/lib/juxta-cl
 export RETAS_HOME=${EMOP_HOME}/lib/retas
 export SEASR_HOME=${EMOP_HOME}/lib/seasr
 export TESSDATA_PREFIX=/dh/data/shared/
+export DENOISE_HOME=$(EMOP_HOME)/lib/denoise
 
 [ -f ${EMOP_HOME}/emop.conf ] && source ${EMOP_HOME}/emop.conf
 
