@@ -14,9 +14,10 @@ import time
 from math import pi, log
 from scipy import fft, ifft
 from scipy.optimize import curve_fit
+#from memory_profiler import profile
 
-    
-def deNoise(filePath,fileName):
+#@profile    
+def deNoise(filePath,fileName,debugFlag):
     def _datacheck_peakdetect(x_axis, y_axis):
         if x_axis is None:
             x_axis = range(len(y_axis))    
@@ -889,7 +890,10 @@ def deNoise(filePath,fileName):
     #    pl.plot(intersectionCountProfile)
         # 75th percentile of intersection profile for normalizing 
         prcOutputMovAvg = np.float16(np.percentile(intersectionCountProfile,80))
-        negIntersectionCountProfile = -np.float16(intersectionCountProfile/prcOutputMovAvg);
+        if prcOutputMovAvg>0.0:
+            negIntersectionCountProfile = -np.float16(intersectionCountProfile/prcOutputMovAvg);
+        else:
+            negIntersectionCountProfile = -np.float16(intersectionCountProfile)
         
         # Find CutPoints
         #NOTE : For future work below code can be generalized to handle any number of columns. Right now it can handle upto 4 columns on a page image
@@ -1250,15 +1254,15 @@ if __name__ == "__main__":
     parser = parser_opt.OptionParser()
     parser.add_option('-p', '--path',action="store", dest="filePath",help="hOCR file path", default="")
     parser.add_option('-n', '--name',action="store", dest="fileName",help="hOCR file name", default="")
-    parser.add_option('-b', '--batchNumber',action="store", dest="batchNum",help="Current Batch Number", default="Not Given")
+    parser.add_option('-d', '--debug',action="store", dest="debugFlag",help="For debugging purpose", default="0")
     options, args = parser.parse_args()
    # f = open("%s_logFile_PSI_PostProcessing.txt"%(options.fileName.replace('.xml','')),'a')
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S');  
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
-    deNoise(options.filePath,options.fileName)
-    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'1.xml')
+    deNoise(options.filePath,options.fileName,options.debugFlag)
+    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'1_error.xml','0')
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
