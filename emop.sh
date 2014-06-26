@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export _JAVA_OPTIONS="-Xmx64m -Xms64m"
+
 DEBUG=0
 VERBOSE=0
 QUIET=0
@@ -83,7 +85,6 @@ LOGDIR=${LOGDIR-${EMOP_HOME}/logs}
 
 MODULES_SRC_DIR="${EMOP_HOME}/emop-modules/emop"
 MODULES_DIR="${HOME}/privatemodules/emop"
-HEAP_SIZE="128M"
 APP_NAME="emop_controller"
 
 Q="idhmc"
@@ -123,7 +124,7 @@ ensure_environment() {
 
 # ensure that there is work to do before scheduling
 check_page_cnt() {
-  PAGE_CNT=$(env EMOP_HOME=$EMOP_HOME java -Xms128M -Xmx128M -jar emop-controller.jar -mode check)
+  PAGE_CNT=$(env EMOP_HOME=$EMOP_HOME java -jar emop-controller.jar -mode check)
   if [ $? -ne 0 ];then
     # do not submit a new controller if there were  errors checking count
     echo "Unable to determine job count. Not launching eMOP controller"
@@ -161,7 +162,7 @@ qsub_job() {
   local jobID=0
   # Set a delay of 1 minute for all jobs to allow reservation to complete
   local qsub_delay=$(date --date="-1 minutes ago" +%H%M)
-  QSUB_CMD="qsub -a ${qsub_delay} -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME',HEAP_SIZE='$HEAP_SIZE' -e ${LOGDIR} -o ${LOGDIR} emop.pbs"
+  QSUB_CMD="qsub -a ${qsub_delay} -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME' -e ${LOGDIR} -o ${LOGDIR} emop.pbs"
 
   echo_verbose "${NOOP_PREFIX}Executing: ${QSUB_CMD}"
   if [ $NOOP -eq 0 ]; then
@@ -173,7 +174,7 @@ qsub_job() {
     return
   fi
 
-  JOB_RESERVED_CNT=$(env EMOP_HOME=$EMOP_HOME java -Xms128M -Xmx128M -jar emop-controller.jar -mode reserve -procid $jobID -numpages $numpages)
+  JOB_RESERVED_CNT=$(env EMOP_HOME=$EMOP_HOME java -jar emop-controller.jar -mode reserve -procid $jobID -numpages $numpages)
   # If the reservation fails, delete the job that was just submitted
   if [ $? -ne 0 ]; then
     echo "Failed to reserve ${numpages} pages for jobID: ${jobID}"

@@ -2,8 +2,6 @@
 #PBS -l mem=1900mb
 #PBS -j oe
 
-HEAP_SIZE="$HEAP_SIZE"
-
 # load required modules
 . /etc/profile.d/modules.sh
 module load use.own &>/dev/null
@@ -15,6 +13,8 @@ module load lapack/3.5.0/gcc/64 &>/dev/null
 module load numpy/python-2.7.3/1.8.1 &>/dev/null
 module load scipy/python-2.7.3/0.14.0 &>/dev/null
 module load emop/beautifulsoup4 &>/dev/null
+
+export _JAVA_OPTIONS="-Xmx64m -Xms64m"
 
 if [ -z "$EMOP_HOME" ]; then
         export EMOP_HOME=$HOME/emop/emop-controller
@@ -41,7 +41,7 @@ umask 002
 PROC_ID="$(echo $PBS_JOBID | cut -d'.' -f1)"
 
 # launch instance of the controller which runs until killed or no jobs remain
-java -Xms${HEAP_SIZE} -Xmx${HEAP_SIZE} -jar $EMOP_HOME/emop-controller.jar -mode run -procid ${PROC_ID} &> ${LOGDIR}/emop-controller-${PROC_ID}.out
+java -jar $EMOP_HOME/emop-controller.jar -mode run -procid ${PROC_ID} &> ${LOGDIR}/emop-controller-${PROC_ID}.out
 
 # Done; print the end time and host.
 echo "-=-"
