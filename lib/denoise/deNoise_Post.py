@@ -1239,8 +1239,6 @@ def deNoise(filePath,fileName,debugFlag):
         f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
         f.write(soup.encode())
         f.close()
-        
-        toDel = np.ix_(MLFilter==0)[0]
         soup1 = bs4.BeautifulSoup(open(fileName1))
         f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
         f.write(soup1.encode())
