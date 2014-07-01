@@ -1,5 +1,5 @@
 #PBS -l nodes=1:ppn=1
-#PBS -l mem=1900mb
+#PBS -l mem=3900mb
 #PBS -j oe
 
 # load required modules
@@ -14,7 +14,7 @@ module load numpy/python-2.7.3/1.8.1 &>/dev/null
 module load scipy/python-2.7.3/0.14.0 &>/dev/null
 module load emop/beautifulsoup4 &>/dev/null
 
-export _JAVA_OPTIONS="-Xmx64m -Xms64m"
+export _JAVA_OPTIONS="-Xmx32m -Xms16m"
 
 if [ -z "$EMOP_HOME" ]; then
         export EMOP_HOME=$HOME/emop/emop-controller

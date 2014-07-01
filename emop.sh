@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export _JAVA_OPTIONS="-Xmx64m -Xms64m"
+export _JAVA_OPTIONS="-Xmx32m -Xms16m"
 
 DEBUG=0
 VERBOSE=0

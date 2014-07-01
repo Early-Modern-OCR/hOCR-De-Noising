@@ -5,7 +5,7 @@
 #sys.path.append('/home/anshulg/PythonPackages/lib/python')
 
 import bs4
-import numpy as np;
+import numpy as np
 #import matplotlib.pyplot as pl
 #import peaks_find as pks
 import optparse as parser_opt
