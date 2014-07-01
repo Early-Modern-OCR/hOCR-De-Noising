@@ -859,377 +859,389 @@ def deNoise(filePath,fileName,debugFlag):
             finalFilter = tempFilter
         preFilteredData = wordInfo[finalFilter,:]
         
-        # Calculate page bounds after preDenoising
-        max_x = np.float16(np.max(wordInfo[finalFilter,3]));
-        max_y = np.float16(np.max(wordInfo[finalFilter,2]));
-        min_x = np.float16(np.min(wordInfo[finalFilter,1]));
-        min_y = np.float(np.min(wordInfo[finalFilter,4]));
-        
-        #Number of bounding boxes after preDenoising
-        numBbox = np.size(np.ix_(finalFilter))
-        
-        # Page Splitting algorithm
-        # 1. x_Intersection profile
-        xPointsUp = np.float16(np.arange(min_x,max_x,np.float16((max_x-min_x)/1000)))#min_x:(max_x-min_x)/1000:max_x;
-        stepFromTop=np.float16(0.2*(max_y-min_y)) # range to consider. Removing top and bottom 20% bboxes
-        indexToConsider = preFilteredData[:,2]<np.float16((max_y-stepFromTop))
-        indexToConsiderTemp = preFilteredData[:,4]>np.float16((min_y+stepFromTop))
-        indexToConsider = indexToConsider & indexToConsiderTemp;    
-        xProfileFunc = np.vectorize(find_X_Profile)
-        intersectionCountProfile = xProfileFunc(xPointsUp,min_x,min_y)
-        
-        # Smooth the signal
-        zerosIndex = np.ix_(intersectionCountProfile==0);
-        for intIndex in range(1,(np.size(zerosIndex)-1)):
-            if(intersectionCountProfile[zerosIndex[0][intIndex]+1]!=0 and intersectionCountProfile[zerosIndex[0][intIndex]-1]!=0):
-                intersectionCountProfile[zerosIndex[0][intIndex]] = intersectionCountProfile[zerosIndex[0][intIndex]-1];
-        
-        # Smoothing intersection profile by taking 20 point moving average.
-        intersectionCountProfile=movingaverage(intersectionCountProfile,20)
-    #    pl.figure()        
-    #    pl.plot(intersectionCountProfile)
-        # 75th percentile of intersection profile for normalizing 
-        prcOutputMovAvg = np.float16(np.percentile(intersectionCountProfile,80))
-        if prcOutputMovAvg>0.0:
-            negIntersectionCountProfile = -np.float16(intersectionCountProfile/prcOutputMovAvg);
-        else:
-            negIntersectionCountProfile = -np.float16(intersectionCountProfile)
-        
-        # Find CutPoints
-        #NOTE : For future work below code can be generalized to handle any number of columns. Right now it can handle upto 4 columns on a page image
-    
-        max_,min_ = peakdetect(negIntersectionCountProfile,lookahead=150,delta=np.diff(negIntersectionCountProfile).max() * 2)
-        print max_, type(max_)       
-        peakThreshold = -0.1
-        acceptedPeaks = [];
-        for pk in max_:
-            if pk[1]>peakThreshold:
-                if np.any(pk[0]==np.arange(199,799)):
-                    acceptedPeaks.append(pk)
-        
-        cutPoints=np.array([-1.0,-1.0,-1.0]);
-        if np.any(negIntersectionCountProfile[199:398]==0):
-            temp = np.arange(199,398)
-            tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[199:398]==0]]
-            cutPoints[0]=np.float16(np.mean(100*tempCutPoints))/100.0
-        else:
-            ix_ = calculateCutPointIx(acceptedPeaks,np.arange(199,399))
-            if ix_!=-1:
-                cutPoints[0] = xPointsUp[ix_]
+        if np.any(finalFilter):
+            # Calculate page bounds after preDenoising
+            max_x = np.float16(np.max(wordInfo[finalFilter,3]));
+            max_y = np.float16(np.max(wordInfo[finalFilter,2]));
+            min_x = np.float16(np.min(wordInfo[finalFilter,1]));
+            min_y = np.float(np.min(wordInfo[finalFilter,4]));
             
+            #Number of bounding boxes after preDenoising
+            numBbox = np.size(np.ix_(finalFilter))
             
-        if np.any(negIntersectionCountProfile[400:599]==0):
-            temp = np.arange(400,599)
-            tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[400:599]==0]];
-            cutPoints[1] =np.float16(np.mean(100*tempCutPoints))/100.0
-        else:
-            ix_ = calculateCutPointIx(acceptedPeaks,np.arange(400,599))
-            if ix_!=-1:
-                cutPoints[1] = xPointsUp[ix_]
-    
-        if np.any(negIntersectionCountProfile[600:799]==0):
-            temp = np.arange(600,799)
-            tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[600:799]==0]];
-            cutPoints[2] = np.float16(np.mean(100*tempCutPoints))/100.0
-        else:
-            ix_ = calculateCutPointIx(acceptedPeaks,np.arange(600,799))
-            if ix_!=-1:
-                cutPoints[2] = xPointsUp[ix_]
-        if (np.size(np.ix_(negIntersectionCountProfile==0))/float(np.size(negIntersectionCountProfile)))>=0.5:
-            temp = np.arange(399,599)
-            cutPoints[2] =np.float16(np.mean(100*tempCutPoints))/100.0
-        # Filter each coloumn
-        numCutPoints = np.size(np.ix_(cutPoints!=-1));
-        if numCutPoints==0:
-            numCutPoints=1
-            cutPointsLocs = cutPoints[cutPoints!=-1]
-        else: 
-            cutPointsLocs = cutPoints[cutPoints!=-1];
-            numCutPoints = numCutPoints +1;
-        
-        predictedLabelMachineLearning = np.array([])
-        confVal = np.ones(finalFilter.shape);
-        for cutPointIdx in range(0,numCutPoints):
-            tempCutPoint = 0.0;
-            if np.size(cutPointsLocs)==0:
-                indexToConsider = preFilteredData[:,1]<=max_x;
-                actualIndexToConsider = wordInfo[:,1]<=1;
-                tempCutPoint=np.copy(max_x);
+            # Page Splitting algorithm
+            # 1. x_Intersection profile
+            xPointsUp = np.float16(np.arange(min_x,max_x,np.float16((max_x-min_x)/1000)))#min_x:(max_x-min_x)/1000:max_x;
+            stepFromTop=np.float16(0.2*(max_y-min_y)) # range to consider. Removing top and bottom 20% bboxes
+            indexToConsider = preFilteredData[:,2]<np.float16((max_y-stepFromTop))
+            indexToConsiderTemp = preFilteredData[:,4]>np.float16((min_y+stepFromTop))
+            indexToConsider = indexToConsider & indexToConsiderTemp;    
+            xProfileFunc = np.vectorize(find_X_Profile)
+            intersectionCountProfile = xProfileFunc(xPointsUp,min_x,min_y)
+            
+            # Smooth the signal
+            zerosIndex = np.ix_(intersectionCountProfile==0);
+            for intIndex in range(1,(np.size(zerosIndex)-1)):
+                if(intersectionCountProfile[zerosIndex[0][intIndex]+1]!=0 and intersectionCountProfile[zerosIndex[0][intIndex]-1]!=0):
+                    intersectionCountProfile[zerosIndex[0][intIndex]] = intersectionCountProfile[zerosIndex[0][intIndex]-1];
+            
+            # Smoothing intersection profile by taking 20 point moving average.
+            intersectionCountProfile=movingaverage(intersectionCountProfile,20)
+        #    pl.figure()        
+        #    pl.plot(intersectionCountProfile)
+            # 75th percentile of intersection profile for normalizing 
+            prcOutputMovAvg = np.float16(np.percentile(intersectionCountProfile,80))
+            if prcOutputMovAvg>0.0:
+                negIntersectionCountProfile = -np.float16(intersectionCountProfile/prcOutputMovAvg);
             else:
-                cutPointLocsSize = np.size(cutPointsLocs)
-                if cutPointLocsSize==1 and cutPointIdx==0:
-                    indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
-                    tempCutPoint=cutPointsLocs[cutPointIdx];
-                    actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
-                    actualIndexToConsiderTemp1 =cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
-                    actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
-                    actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
-                
-                
-                if cutPointLocsSize==1 and cutPointIdx==1:
-                    indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
-                    actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                    tempCutPoint=cutPointsLocs[cutPointIdx-1];
-                
-                if cutPointLocsSize==2 and cutPointIdx==0:
-                    indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
-                    actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
-                    actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
-                    actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
-                    actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
-                    tempCutPoint=cutPointsLocs[cutPointIdx];
-                    
-                if cutPointLocsSize==2 and cutPointIdx==1:
-                    indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
-                    indexToConsider = indexToConsider & (preFilteredData[:,3]<=cutPointsLocs[cutPointIdx])
-                    preActualIndexToConsider = np.copy(actualIndexToConsider);
-                    actualIndexToConsiderTemp = (wordInfo[:,1]>cutPointsLocs[cutPointIdx-1]) 
-                    actualIndexToConsiderTemp = actualIndexToConsiderTemp & (wordInfo[:,3]<=cutPointsLocs[cutPointIdx]) 
-                    actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1]
-                    actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);# or 
-                    actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
-                    actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
-                    tempCutPoint=cutPointsLocs[cutPointIdx-1];
-                
-                if cutPointLocsSize==2 and cutPointIdx==2:
-                    indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
-                    actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                    tempCutPoint=cutPointsLocs[cutPointIdx-1];
-                    
-                if cutPointLocsSize==3 and cutPointIdx==0:
-                    indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
-                    actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
-                    actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
-                    actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
-                    actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
-                    actualIndexToConsider_1 = np.copy(actualIndexToConsider);
-                    tempCutPoint=cutPointsLocs[cutPointIdx];
-                
-                if cutPointLocsSize==3 and (cutPointIdx==1 or cutPointIdx==2):
-                    indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
-                    indexToConsider = indexToConsider & (preFilteredData[:,3]<=cutPointsLocs[cutPointIdx])
-                    preActualIndexToConsider = np.copy(actualIndexToConsider);
-                    actualIndexToConsiderTemp = (wordInfo[:,1]>cutPointsLocs[cutPointIdx-1]) 
-                    actualIndexToConsiderTemp = actualIndexToConsiderTemp & (wordInfo[:,3]<=cutPointsLocs[cutPointIdx]) 
-                    actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
-                    actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
-                    actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
-                    actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
-                    if(cutPointIdx==3):
-                        actualIndexToConsider[actualIndexToConsider & actualIndexToConsider_1]=0;
-                    tempCutPoint=cutPointsLocs[cutPointIdx-1];
-                    
-                if cutPointLocsSize==3 and cutPointIdx==3:
-                    indexToConsider = (preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1])
-                    actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                    tempCutPoint=cutPointsLocs[cutPointIdx-1];
-                
-                # Iterative - NN filter
-            bboxcenterRelabellingActual = wordInfo[actualIndexToConsider,:];
-            k=11;
-            alpha = 7;
-            max_iter = 20;
-            k1=k;k2=k;k3=k;k4=k;
-            finalFilterTemp = finalFilter[actualIndexToConsider];
-            finalFilterTemp1 = np.zeros(finalFilterTemp.shape)
-            finalFilterTemp1[finalFilterTemp]=1;
-            finalFilterTemp = finalFilterTemp1;
-            finalFilterTemp[finalFilterTemp==0] = -1;
-            tempHeight = bboxcenterRelabellingActual[:,5];
-            tempWidth = bboxcenterRelabellingActual[:,6];
-            prevfinalFilterTemp = 999;
+                negIntersectionCountProfile = -np.float16(intersectionCountProfile)
             
-            if np.size(preFilteredData[indexToConsider,5])>0:
-                iqrHeight = np.percentile(preFilteredData[indexToConsider,5],[25,75])
-                iqrHeight = abs(iqrHeight[0] - iqrHeight[1])
-                medianHeight = np.median(preFilteredData[indexToConsider,5])
-                D_max = medianHeight + alpha*iqrHeight
+            # Find CutPoints
+            #NOTE : For future work below code can be generalized to handle any number of columns. Right now it can handle upto 4 columns on a page image
+        
+            max_,min_ = peakdetect(negIntersectionCountProfile,lookahead=150,delta=np.diff(negIntersectionCountProfile).max() * 2)
+            print max_, type(max_)       
+            peakThreshold = -0.1
+            acceptedPeaks = [];
+            for pk in max_:
+                if pk[1]>peakThreshold:
+                    if np.any(pk[0]==np.arange(199,799)):
+                        acceptedPeaks.append(pk)
+            
+            cutPoints=np.array([-1.0,-1.0,-1.0]);
+            if np.any(negIntersectionCountProfile[199:398]==0):
+                temp = np.arange(199,398)
+                tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[199:398]==0]]
+                cutPoints[0]=np.float16(np.mean(100*tempCutPoints))/100.0
             else:
-                D_max = 0;
-                medianHeight = 0;
-                iqrHeight = 1.0
+                ix_ = calculateCutPointIx(acceptedPeaks,np.arange(199,399))
+                if ix_!=-1:
+                    cutPoints[0] = xPointsUp[ix_]
+                
+                
+            if np.any(negIntersectionCountProfile[400:599]==0):
+                temp = np.arange(400,599)
+                tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[400:599]==0]];
+                cutPoints[1] =np.float16(np.mean(100*tempCutPoints))/100.0
+            else:
+                ix_ = calculateCutPointIx(acceptedPeaks,np.arange(400,599))
+                if ix_!=-1:
+                    cutPoints[1] = xPointsUp[ix_]
+        
+            if np.any(negIntersectionCountProfile[600:799]==0):
+                temp = np.arange(600,799)
+                tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[600:799]==0]];
+                cutPoints[2] = np.float16(np.mean(100*tempCutPoints))/100.0
+            else:
+                ix_ = calculateCutPointIx(acceptedPeaks,np.arange(600,799))
+                if ix_!=-1:
+                    cutPoints[2] = xPointsUp[ix_]
+            if (np.size(np.ix_(negIntersectionCountProfile==0))/float(np.size(negIntersectionCountProfile)))>=0.5:
+                temp = np.arange(399,599)
+                cutPoints[2] =np.float16(np.mean(100*tempCutPoints))/100.0
+            # Filter each coloumn
+            numCutPoints = np.size(np.ix_(cutPoints!=-1));
+            if numCutPoints==0:
+                numCutPoints=1
+                cutPointsLocs = cutPoints[cutPoints!=-1]
+            else: 
+                cutPointsLocs = cutPoints[cutPoints!=-1];
+                numCutPoints = numCutPoints +1;
             
-            confTemp = wordInfo[actualIndexToConsider,7];
-            iter_ = 0;
-            count_ = 0;
-            numPrevError = -999;
-            numCurrentError = 0;
-            while((np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)) > 1) and (iter_< max_iter) and (count_<3)): 
-                numCurrentError = (np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)))
-                if numPrevError==numCurrentError:
-                    count_ = count_+1;
-                numPrevError=numCurrentError    
-                #print iter_  ,(np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)))              
-                iter_ = iter_ + 1;
-                prevfinalFilterTemp = np.copy(finalFilterTemp);
-                preLabel = np.copy(finalFilterTemp);
-                for word in range(0,np.size(finalFilterTemp)):
-                    k1=k;k2=k;k3=k;k4=k;
-                    fillterWord = np.ones(finalFilterTemp.shape);
-                    fillterWord[word] = 0;
-                    kNeigh=np.array([]);
-                    remainingBbox = fillterWord==1
-                    wordInOrgDoc = bboxcenterRelabellingActual[word,:];                    
-                    dist1 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[1,2]]),axis=0)
-                    dist2 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[1,4]]),axis=0)
-                    dist3 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[3,2]]),axis=0)
-                    dist4 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[3,4]]),axis=0)
+            predictedLabelMachineLearning = np.array([])
+            confVal = np.ones(finalFilter.shape);
+            for cutPointIdx in range(0,numCutPoints):
+                tempCutPoint = 0.0;
+                if np.size(cutPointsLocs)==0:
+                    indexToConsider = preFilteredData[:,1]<=max_x;
+                    actualIndexToConsider = wordInfo[:,1]<=1;
+                    tempCutPoint=np.copy(max_x);
+                else:
+                    cutPointLocsSize = np.size(cutPointsLocs)
+                    if cutPointLocsSize==1 and cutPointIdx==0:
+                        indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
+                        tempCutPoint=cutPointsLocs[cutPointIdx];
+                        actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
+                        actualIndexToConsiderTemp1 =cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
+                        actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
+                        actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
                     
-                    selInd1 = np.ix_(dist1<D_max);
-                    selInd2 = np.ix_(dist2<D_max);
-                    selInd3 = np.ix_(dist3<D_max);
-                    selInd4 = np.ix_(dist4<D_max);
                     
-                    if np.size(selInd1)<k:
-                        k1 = np.size(selInd1)
+                    if cutPointLocsSize==1 and cutPointIdx==1:
+                        indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
+                        actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
                     
-                    if np.size(selInd2)<k:
-                        k2 = np.size(selInd2)    
-                    
-                    if np.size(selInd3)<k:
-                        k3 = np.size(selInd3)
-                    
-                    if np.size(selInd4)<k:
-                        k4 = np.size(selInd4)
+                    if cutPointLocsSize==2 and cutPointIdx==0:
+                        indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
+                        actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
+                        actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
+                        actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
+                        actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
+                        tempCutPoint=cutPointsLocs[cutPointIdx];
                         
-                    if np.any(np.array([k1,k2,k3,k4])>0):
-                        ind1 = np.argsort(dist1[selInd1])
-                        val1 = dist1[selInd1[0][ind1]]
+                    if cutPointLocsSize==2 and cutPointIdx==1:
+                        indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
+                        indexToConsider = indexToConsider & (preFilteredData[:,3]<=cutPointsLocs[cutPointIdx])
+                        preActualIndexToConsider = np.copy(actualIndexToConsider);
+                        actualIndexToConsiderTemp = (wordInfo[:,1]>cutPointsLocs[cutPointIdx-1]) 
+                        actualIndexToConsiderTemp = actualIndexToConsiderTemp & (wordInfo[:,3]<=cutPointsLocs[cutPointIdx]) 
+                        actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1]
+                        actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);# or 
+                        actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
+                        actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
+                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                    
+                    if cutPointLocsSize==2 and cutPointIdx==2:
+                        indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
+                        actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
                         
-                        ind2 = np.argsort(dist2[selInd2])
-                        val2 = dist2[selInd2[0][ind2]]
-    
-                        ind3 = np.argsort(dist3[selInd3])
-                        val3 = dist3[selInd3[0][ind3]]                                           
+                    if cutPointLocsSize==3 and cutPointIdx==0:
+                        indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
+                        actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
+                        actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
+                        actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
+                        actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
+                        actualIndexToConsider_1 = np.copy(actualIndexToConsider);
+                        tempCutPoint=cutPointsLocs[cutPointIdx];
+                    
+                    if cutPointLocsSize==3 and (cutPointIdx==1 or cutPointIdx==2):
+                        indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
+                        indexToConsider = indexToConsider & (preFilteredData[:,3]<=cutPointsLocs[cutPointIdx])
+                        preActualIndexToConsider = np.copy(actualIndexToConsider);
+                        actualIndexToConsiderTemp = (wordInfo[:,1]>cutPointsLocs[cutPointIdx-1]) 
+                        actualIndexToConsiderTemp = actualIndexToConsiderTemp & (wordInfo[:,3]<=cutPointsLocs[cutPointIdx]) 
+                        actualIndexToConsiderTemp1 = cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
+                        actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
+                        actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
+                        actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
+                        if(cutPointIdx==3):
+                            actualIndexToConsider[actualIndexToConsider & actualIndexToConsider_1]=0;
+                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
                         
-                        ind4 = np.argsort(dist4[selInd4])
-                        val4 = dist4[selInd4[0][ind4]]
-                        remainingBbox = np.ix_(remainingBbox)
-                        if k1!=0:
-                            index = ind1;
-                            kNeigh = np.array([dist1[selInd1[0][index[range(0,k1)]]],finalFilterTemp[remainingBbox[0][selInd1[0][index[range(0,k1)]]]]]);
-    
-                        if k2!=0:
-                            index = ind2;
-                            if np.size(kNeigh)>0:
-                                kNeigh = np.append(kNeigh,np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]]),1);                            
-                            else:
-                                kNeigh = np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]])
+                    if cutPointLocsSize==3 and cutPointIdx==3:
+                        indexToConsider = (preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1])
+                        actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                    
+                    # Iterative - NN filter
+                bboxcenterRelabellingActual = wordInfo[actualIndexToConsider,:];
+                k=11;
+                alpha = 7;
+                max_iter = 20;
+                k1=k;k2=k;k3=k;k4=k;
+                finalFilterTemp = finalFilter[actualIndexToConsider];
+                finalFilterTemp1 = np.zeros(finalFilterTemp.shape)
+                finalFilterTemp1[finalFilterTemp]=1;
+                finalFilterTemp = finalFilterTemp1;
+                finalFilterTemp[finalFilterTemp==0] = -1;
+                tempHeight = bboxcenterRelabellingActual[:,5];
+                tempWidth = bboxcenterRelabellingActual[:,6];
+                prevfinalFilterTemp = 999;
+                
+                if np.size(preFilteredData[indexToConsider,5])>0:
+                    iqrHeight = np.percentile(preFilteredData[indexToConsider,5],[25,75])
+                    iqrHeight = abs(iqrHeight[0] - iqrHeight[1])
+                    medianHeight = np.median(preFilteredData[indexToConsider,5])
+                    D_max = medianHeight + alpha*iqrHeight
+                else:
+                    D_max = 0;
+                    medianHeight = 0;
+                    iqrHeight = 1.0
+                
+                confTemp = wordInfo[actualIndexToConsider,7];
+                iter_ = 0;
+                count_ = 0;
+                numPrevError = -999;
+                numCurrentError = 0;
+                while((np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)) > 1) and (iter_< max_iter) and (count_<3)): 
+                    numCurrentError = (np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)))
+                    if numPrevError==numCurrentError:
+                        count_ = count_+1;
+                    numPrevError=numCurrentError    
+                    #print iter_  ,(np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)))              
+                    iter_ = iter_ + 1;
+                    prevfinalFilterTemp = np.copy(finalFilterTemp);
+                    preLabel = np.copy(finalFilterTemp);
+                    for word in range(0,np.size(finalFilterTemp)):
+                        k1=k;k2=k;k3=k;k4=k;
+                        fillterWord = np.ones(finalFilterTemp.shape);
+                        fillterWord[word] = 0;
+                        kNeigh=np.array([]);
+                        remainingBbox = fillterWord==1
+                        wordInOrgDoc = bboxcenterRelabellingActual[word,:];                    
+                        dist1 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[1,2]]),axis=0)
+                        dist2 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[1,4]]),axis=0)
+                        dist3 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[3,2]]),axis=0)
+                        dist4 = np.min(distCalulationNew(bboxcenterRelabellingActual[remainingBbox,:],wordInOrgDoc[[3,4]]),axis=0)
+                        
+                        selInd1 = np.ix_(dist1<D_max);
+                        selInd2 = np.ix_(dist2<D_max);
+                        selInd3 = np.ix_(dist3<D_max);
+                        selInd4 = np.ix_(dist4<D_max);
+                        
+                        if np.size(selInd1)<k:
+                            k1 = np.size(selInd1)
+                        
+                        if np.size(selInd2)<k:
+                            k2 = np.size(selInd2)    
+                        
+                        if np.size(selInd3)<k:
+                            k3 = np.size(selInd3)
+                        
+                        if np.size(selInd4)<k:
+                            k4 = np.size(selInd4)
                             
+                        if np.any(np.array([k1,k2,k3,k4])>0):
+                            ind1 = np.argsort(dist1[selInd1])
+                            val1 = dist1[selInd1[0][ind1]]
                             
-                        if k3!=0:
-                            index = ind3[range(0,k3)];
+                            ind2 = np.argsort(dist2[selInd2])
+                            val2 = dist2[selInd2[0][ind2]]
+        
+                            ind3 = np.argsort(dist3[selInd3])
+                            val3 = dist3[selInd3[0][ind3]]                                           
                             
-                            for i3 in range(0,np.size(index)):
-                                if k1!=0:
-                                    if np.any(index[i3]==ind1[range(0,k1)]):
-                                        index[i3] = -999
+                            ind4 = np.argsort(dist4[selInd4])
+                            val4 = dist4[selInd4[0][ind4]]
+                            remainingBbox = np.ix_(remainingBbox)
+                            if k1!=0:
+                                index = ind1;
+                                kNeigh = np.array([dist1[selInd1[0][index[range(0,k1)]]],finalFilterTemp[remainingBbox[0][selInd1[0][index[range(0,k1)]]]]]);
+        
+                            if k2!=0:
+                                index = ind2;
+                                if np.size(kNeigh)>0:
+                                    kNeigh = np.append(kNeigh,np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]]),1);                            
                                 else:
-                                    break
-                            index = index[index!=-999]
-                            k3 = np.size(index)
+                                    kNeigh = np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]])
+                                
+                                
                             if k3!=0:
-                                if np.size(kNeigh)>0:
-                                    kNeigh = np.append(kNeigh,np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]]),1);    
-                                else:
-                                    kNeigh = np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]])
-                                    
-                            
-                        if k4!=0:
-                            index = ind4[range(0,k4)];
-                            for i4 in range(0,np.size(index)):
-                                if k2!=0:
-                                    if np.any(index[i4]==ind2[range(0,k2)]):
-                                        index[i4] = -999
-                                else:
-                                    break
-                            index = index[index!=-999]
-                            k4 = np.size(index)
+                                index = ind3[range(0,k3)];
+                                
+                                for i3 in range(0,np.size(index)):
+                                    if k1!=0:
+                                        if np.any(index[i3]==ind1[range(0,k1)]):
+                                            index[i3] = -999
+                                    else:
+                                        break
+                                index = index[index!=-999]
+                                k3 = np.size(index)
+                                if k3!=0:
+                                    if np.size(kNeigh)>0:
+                                        kNeigh = np.append(kNeigh,np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]]),1);    
+                                    else:
+                                        kNeigh = np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]])
+                                        
+                                
                             if k4!=0:
-                                if np.size(kNeigh)>0:
-                                    kNeigh = np.append(kNeigh,np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]]),1);    
-                                else:
-                                    kNeigh = np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]])
-                            
-                        if np.size(kNeigh)>0:
-                            wNeigh = np.divide(1,kNeigh[0,:])
-                            for inD in range(0,np.size(wNeigh)):
-                                if np.isnan(wNeigh[inD]) or np.isinf(wNeigh[inD]):
-                                    wNeigh[inD]=1.0;
-                            preLabel[word] = np.divide(np.sum(np.multiply(kNeigh[1,:],wNeigh)),np.sum(wNeigh))
-    
-                xTemp = np.array([])
-                bbox_center = np.array([np.mean(bboxcenterRelabellingActual[:,[1,3]],axis=1),np.mean(bboxcenterRelabellingActual[:,[2,4]],axis=1)]);
-                y_dist1 = abs(1-bbox_center[1,:]);
-                x_dist1 = abs(tempCutPoint-bbox_center[0,:]);
-                
-                xTemp = np.array([confTemp,np.divide(tempHeight,tempWidth),np.multiply(tempHeight,tempWidth),np.divide(np.subtract(tempHeight,medianHeight),iqrHeight),preLabel,y_dist1,x_dist1])
-                removeBboxesWithConf = xTemp[0,:]<0.95;
-                removeRatioInf = np.isinf(xTemp[1,:])
-                removeRatioInf1 = ~removeRatioInf
-                removeRatioNan = np.isnan(xTemp[1,:])
-                removeRatioNan1 = ~removeRatioNan
-                fullRemove = removeBboxesWithConf & removeRatioInf1 & removeRatioNan1
-                xTemp= xTemp[:,fullRemove];
-                normX = np.zeros(xTemp.shape)
-                for v in range(0,xTemp.shape[0]):
-                    normX[v,:] = np.divide(np.subtract(xTemp[v,:],minVec[v]),(maxVec[v] - minVec[v]))
-                for v in range(0,xTemp.shape[0]):
-                    normX[v,:] = 2*normX[v,:] -1
-                normX = np.matrix(normX);
-                confValTemp = 0.95*np.ones(finalFilterTemp.shape);
-                confValTempAfterConfRem = confValTemp[removeBboxesWithConf] 
-                tempPred = finalFilterTemp[removeBboxesWithConf]
-                for col in range(0,normX.shape[1]):
-                    simOut = nnSim(normX[:,col],IW,LW,b1,b2)   
-                    index_max=np.argmax(simOut)
-                    max_value = simOut[index_max]
-                   # print max_value
-                    confValTempAfterConfRem[col] = max_value
-                    if index_max==1:
-                        tempPred[col] = -1
-                    else:
-                        tempPred[col] = 1
-                confValTemp[removeBboxesWithConf] = confValTempAfterConfRem;
-                finalFilterTemp[removeBboxesWithConf]  = tempPred
-                #New addition
-                #finalFilterTemp[removeRatioInf]=-1
-                #finalFilterTemp[removeRatioNan]=-1
-                
-                
-            indactualIndexToConsider= np.ix_(actualIndexToConsider)[0];
-            #print np.size(indactualIndexToConsider)
-            confVal[indactualIndexToConsider[finalFilterTemp==1]] = confValTemp[finalFilterTemp==1]
-            confVal[indactualIndexToConsider[finalFilterTemp==-1]] = confValTemp[finalFilterTemp==-1]
-            if np.size(predictedLabelMachineLearning)>0:
-                predictedLabelMachineLearning = np.append(predictedLabelMachineLearning,indactualIndexToConsider[finalFilterTemp==1],1)     
-            else:                
-                predictedLabelMachineLearning = indactualIndexToConsider[finalFilterTemp==1]
+                                index = ind4[range(0,k4)];
+                                for i4 in range(0,np.size(index)):
+                                    if k2!=0:
+                                        if np.any(index[i4]==ind2[range(0,k2)]):
+                                            index[i4] = -999
+                                    else:
+                                        break
+                                index = index[index!=-999]
+                                k4 = np.size(index)
+                                if k4!=0:
+                                    if np.size(kNeigh)>0:
+                                        kNeigh = np.append(kNeigh,np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]]),1);    
+                                    else:
+                                        kNeigh = np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]])
+                                
+                            if np.size(kNeigh)>0:
+                                wNeigh = np.divide(1,kNeigh[0,:])
+                                for inD in range(0,np.size(wNeigh)):
+                                    if np.isnan(wNeigh[inD]) or np.isinf(wNeigh[inD]):
+                                        wNeigh[inD]=1.0;
+                                preLabel[word] = np.divide(np.sum(np.multiply(kNeigh[1,:],wNeigh)),np.sum(wNeigh))
         
-        MLFilter = np.zeros(finalFilter.shape)
-        MLFilter[predictedLabelMachineLearning]  = 1;
+                    xTemp = np.array([])
+                    bbox_center = np.array([np.mean(bboxcenterRelabellingActual[:,[1,3]],axis=1),np.mean(bboxcenterRelabellingActual[:,[2,4]],axis=1)]);
+                    y_dist1 = abs(1-bbox_center[1,:]);
+                    x_dist1 = abs(tempCutPoint-bbox_center[0,:]);
+                    
+                    xTemp = np.array([confTemp,np.divide(tempHeight,tempWidth),np.multiply(tempHeight,tempWidth),np.divide(np.subtract(tempHeight,medianHeight),iqrHeight),preLabel,y_dist1,x_dist1])
+                    removeBboxesWithConf = xTemp[0,:]<0.95;
+                    removeRatioInf = np.isinf(xTemp[1,:])
+                    removeRatioInf1 = ~removeRatioInf
+                    removeRatioNan = np.isnan(xTemp[1,:])
+                    removeRatioNan1 = ~removeRatioNan
+                    fullRemove = removeBboxesWithConf & removeRatioInf1 & removeRatioNan1
+                    xTemp= xTemp[:,fullRemove];
+                    normX = np.zeros(xTemp.shape)
+                    for v in range(0,xTemp.shape[0]):
+                        normX[v,:] = np.divide(np.subtract(xTemp[v,:],minVec[v]),(maxVec[v] - minVec[v]))
+                    for v in range(0,xTemp.shape[0]):
+                        normX[v,:] = 2*normX[v,:] -1
+                    normX = np.matrix(normX);
+                    confValTemp = 0.95*np.ones(finalFilterTemp.shape);
+                    confValTempAfterConfRem = confValTemp[removeBboxesWithConf] 
+                    tempPred = finalFilterTemp[removeBboxesWithConf]
+                    for col in range(0,normX.shape[1]):
+                        simOut = nnSim(normX[:,col],IW,LW,b1,b2)   
+                        index_max=np.argmax(simOut)
+                        max_value = simOut[index_max]
+                       # print max_value
+                        confValTempAfterConfRem[col] = max_value
+                        if index_max==1:
+                            tempPred[col] = -1
+                        else:
+                            tempPred[col] = 1
+                    confValTemp[removeBboxesWithConf] = confValTempAfterConfRem;
+                    finalFilterTemp[removeBboxesWithConf]  = tempPred
+                    #New addition
+                    #finalFilterTemp[removeRatioInf]=-1
+                    #finalFilterTemp[removeRatioNan]=-1
+                    
+                    
+                indactualIndexToConsider= np.ix_(actualIndexToConsider)[0];
+                #print np.size(indactualIndexToConsider)
+                confVal[indactualIndexToConsider[finalFilterTemp==1]] = confValTemp[finalFilterTemp==1]
+                confVal[indactualIndexToConsider[finalFilterTemp==-1]] = confValTemp[finalFilterTemp==-1]
+                if np.size(predictedLabelMachineLearning)>0:
+                    predictedLabelMachineLearning = np.append(predictedLabelMachineLearning,indactualIndexToConsider[finalFilterTemp==1],1)     
+                else:                
+                    predictedLabelMachineLearning = indactualIndexToConsider[finalFilterTemp==1]
+            
+            MLFilter = np.zeros(finalFilter.shape)
+            MLFilter[predictedLabelMachineLearning]  = 1;
+            
+             
+            #make two hOCR files
+            for word_id in range(0,np.size(wordInfo[:,0])):
+                temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
+                temp['title'] = "%s; pred %d; predConf %.4f"%(temp['title'],MLFilter[word_id],confVal[word_id])
+            
+            f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
+            f.write(soup.encode())
+            f.close()
+            
+            toDel = np.ix_(MLFilter==0)[0]
+            soup1 = bs4.BeautifulSoup(open(fileName1))
+            for word_id in range(0,np.size(toDel)):
+                temp = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[toDel[word_id],0]))
+                temp.extract()
+            
+            f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
+            f.write(soup1.encode())
+            f.close()
+        else:
+            #make two hOCR files
+            for word_id in range(0,np.size(wordInfo[:,0])):
+                temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
+                temp['title'] = "%s; pred %d; predConf %.4f"%(temp['title'],-1,-1)
         
-         
-        #make two hOCR files
-        for word_id in range(0,np.size(wordInfo[:,0])):
-            temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
-            temp['title'] = "%s; pred %d; predConf %.4f"%(temp['title'],MLFilter[word_id],confVal[word_id])
-        
-        f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
-        f.write(soup.encode())
-        f.close()
-        
-        toDel = np.ix_(MLFilter==0)[0]
-        soup1 = bs4.BeautifulSoup(open(fileName1))
-        for word_id in range(0,np.size(toDel)):
-            temp = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[toDel[word_id],0]))
-            temp.extract()
-        
-        f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
-        f.write(soup1.encode())
-        f.close()
-       
-       
+            f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
+            f.write(soup.encode())
+            f.close()
+            soup1 = bs4.BeautifulSoup(open(fileName1))
+            f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
+            f.write(soup1.encode())
+            f.close()       
     else:      
         #make two hOCR files
         for word_id in range(0,np.size(wordInfo[:,0])):
@@ -1260,7 +1272,7 @@ if __name__ == "__main__":
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
     deNoise(options.filePath,options.fileName,options.debugFlag)
-    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'1_error.xml','0')
+    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'432_error.xml','0')
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
