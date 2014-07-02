@@ -814,11 +814,11 @@ def deNoise(filePath,fileName,debugFlag):
     soup = bs4.BeautifulSoup(open(fileName1)) #51150019_1 - test 379_1 ; 2271337_13 - test id=6, 380_13; 45949734_1 , 45444878_5, 53211844_160 - 132 and 160; 48898051_301 131 and 301 ; 45509238_1 - 128 and 1; 45977751_1 128 and 
     pageInfo = soup.find_all('div',class_="ocr_page")# id='page_1'
     if pageInfo.__len__()>1:
-        f_log = open("multiple-page-errors.txt","a")
-        pageInfo = pageInfo[0];
-        soup=pageInfo  
+        f_log = open("multiple-page-errors.txt","a") 
         f_log.write("\nMultiple page error : Image file path- %s hOCR file path- %s. Processing first page only."%(pageInfo["title"].split(';')[0],fileName1))
         f_log.close()
+    pageInfo = pageInfo[0];
+    soup=pageInfo 
     t_x,t_y,pageWidth,pageHeight = pageInfo["title"].split(';')[1].split('bbox ')[1].split(' ')
     pageWidth = float(pageWidth)
     pageHeight = float(pageHeight)
@@ -1294,8 +1294,8 @@ if __name__ == "__main__":
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S');  
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
-    deNoise(options.filePath,options.fileName,options.debugFlag)
-   # deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'350_error.xml','0')#350
+    #deNoise(options.filePath,options.fileName,options.debugFlag)
+    deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'34_error.xml','0')#350
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
