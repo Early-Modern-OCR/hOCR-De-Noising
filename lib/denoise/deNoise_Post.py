@@ -688,11 +688,13 @@ def deNoise(filePath,fileName,debugFlag):
             xPointBelow = xPointBelow[abs(xPointBelow-xPointsUp)>0.001]
         
         slopeTemp = np.divide(1,np.subtract(xPointsUp,xPointBelow))
-        func1 = np.vectorize(findIntercept)
         
+        func1 = np.vectorize(findIntercept)
+
         intercept = func1(xPointBelow,xPointsUp)
         
         countArray = np.ndarray((np.size(slopeTemp),1),int)
+
         
         for i in range(0,np.size(slopeTemp)):
             ixA = calculateIntersectionA(slopeTemp[i],intercept[i])
@@ -810,14 +812,21 @@ def deNoise(filePath,fileName,debugFlag):
     #Extract word coordinate information, ocr conf and height and width information
     fileName1 = "%s%s"%(filePath,fileName) #"53211844_160.xml"
     soup = bs4.BeautifulSoup(open(fileName1)) #51150019_1 - test 379_1 ; 2271337_13 - test id=6, 380_13; 45949734_1 , 45444878_5, 53211844_160 - 132 and 160; 48898051_301 131 and 301 ; 45509238_1 - 128 and 1; 45977751_1 128 and 
-    pageInfo = soup.find('div',id='page_1',class_="ocr_page")
+    pageInfo = soup.find_all('div',class_="ocr_page")# id='page_1'
+    if pageInfo.__len__()>1:
+        f_log = open("multiple-page-errors.txt","a")
+        pageInfo = pageInfo[0];
+        soup=pageInfo  
+        f_log.write("\nMultiple page error : Image file path- %s hOCR file path- %s. Processing first page only."%(pageInfo["title"].split(';')[0],fileName1))
+        f_log.close()
     t_x,t_y,pageWidth,pageHeight = pageInfo["title"].split(';')[1].split('bbox ')[1].split(' ')
     pageWidth = float(pageWidth)
     pageHeight = float(pageHeight)
     
+    allSpanTags = [];
     allSpanTags=soup.find_all("span",class_="ocrx_word")
     
-    wordInfo = np.float16(np.ndarray((allSpanTags.__len__(),8)))
+    wordInfo = np.ndarray((allSpanTags.__len__(),8))
     wordInfoNon_Scaled = np.ndarray((allSpanTags.__len__(),8))
     for val in allSpanTags:
         splitList = val["title"].split(';')
@@ -825,13 +834,15 @@ def deNoise(filePath,fileName,debugFlag):
         w_conf = float(splitList[1].split('x_wconf ')[1])/100
         word_id = int(val["id"].split("word_")[1])
         wordInfoNon_Scaled[word_id-1,:]= np.array([word_id, int(x1),int(y1),int(x2),int(y2),abs(int(y2) - int(y1)), abs(int(x2) - int(x1)),w_conf])
-        x1 = np.float16(int(x1)/pageWidth)
-        y1 = np.float16(1 - (int(y1)/pageHeight))
-        x2 = np.float16(int(x2)/pageWidth)
-        y2 = np.float16(1 - (int(y2)/pageHeight))
-        height = np.float16(abs(y2 - y1))
-        width = np.float16(abs(x2 - x1))
-        wordInfo[word_id-1,:]= np.float16(np.array([word_id, x1,y1,x2,y2,height, width,w_conf])) 
+        x1 = (int(x1)/pageWidth)
+        y1 = (1 - (int(y1)/pageHeight))
+        x2 = (int(x2)/pageWidth)
+        y2 = (1 - (int(y2)/pageHeight))
+        height = (abs(y2 - y1))
+        width = (abs(x2 - x1))
+        #print np.float16(np.array([word_id, x1,y1,x2,y2,height, width,w_conf])) 
+        #print word_id-1,(np.array([word_id,]))
+        wordInfo[word_id-1,:]= (np.array([word_id, x1,y1,x2,y2,height, width,w_conf])) 
         
     #PreDenoise
     preDeNoiseParameters = [0,0.9100,2.0000,0.9900];
@@ -849,7 +860,7 @@ def deNoise(filePath,fileName,debugFlag):
         # 3. Area Filter
         area_bboxes = np.multiply(wordInfo[:,5],wordInfo[:,6])
         area_descend = np.sort(area_bboxes[tempFilter])[::-1]
-        area_descend_cumsum=np.float16(np.cumsum(area_descend)/np.sum(area_descend))
+        area_descend_cumsum=(np.cumsum(area_descend)/np.sum(area_descend))
         areaThInd = area_descend_cumsum>=preDeNoiseParameters[3]
         if np.any(areaThInd):
             areaTh=area_descend[areaThInd][0]
@@ -861,20 +872,20 @@ def deNoise(filePath,fileName,debugFlag):
         
         if np.any(finalFilter):
             # Calculate page bounds after preDenoising
-            max_x = np.float16(np.max(wordInfo[finalFilter,3]));
-            max_y = np.float16(np.max(wordInfo[finalFilter,2]));
-            min_x = np.float16(np.min(wordInfo[finalFilter,1]));
-            min_y = np.float(np.min(wordInfo[finalFilter,4]));
+            max_x =(np.max(wordInfo[finalFilter,3]));
+            max_y = (np.max(wordInfo[finalFilter,2]));
+            min_x = (np.min(wordInfo[finalFilter,1]));
+            min_y = (np.min(wordInfo[finalFilter,4]));
             
             #Number of bounding boxes after preDenoising
             numBbox = np.size(np.ix_(finalFilter))
             
             # Page Splitting algorithm
             # 1. x_Intersection profile
-            xPointsUp = np.float16(np.arange(min_x,max_x,np.float16((max_x-min_x)/1000)))#min_x:(max_x-min_x)/1000:max_x;
-            stepFromTop=np.float16(0.2*(max_y-min_y)) # range to consider. Removing top and bottom 20% bboxes
-            indexToConsider = preFilteredData[:,2]<np.float16((max_y-stepFromTop))
-            indexToConsiderTemp = preFilteredData[:,4]>np.float16((min_y+stepFromTop))
+            xPointsUp = (np.arange(min_x,max_x,((max_x-min_x)/1000)))#min_x:(max_x-min_x)/1000:max_x;
+            stepFromTop=(0.2*(max_y-min_y)) # range to consider. Removing top and bottom 20% bboxes
+            indexToConsider = preFilteredData[:,2]<((max_y-stepFromTop))
+            indexToConsiderTemp = preFilteredData[:,4]>((min_y+stepFromTop))
             indexToConsider = indexToConsider & indexToConsiderTemp;    
             xProfileFunc = np.vectorize(find_X_Profile)
             intersectionCountProfile = xProfileFunc(xPointsUp,min_x,min_y)
@@ -890,11 +901,11 @@ def deNoise(filePath,fileName,debugFlag):
         #    pl.figure()        
         #    pl.plot(intersectionCountProfile)
             # 75th percentile of intersection profile for normalizing 
-            prcOutputMovAvg = np.float16(np.percentile(intersectionCountProfile,80))
+            prcOutputMovAvg = (np.percentile(intersectionCountProfile,80))
             if prcOutputMovAvg>0.0:
-                negIntersectionCountProfile = -np.float16(intersectionCountProfile/prcOutputMovAvg);
+                negIntersectionCountProfile = -(intersectionCountProfile/prcOutputMovAvg);
             else:
-                negIntersectionCountProfile = -np.float16(intersectionCountProfile)
+                negIntersectionCountProfile = -(intersectionCountProfile)
             
             # Find CutPoints
             #NOTE : For future work below code can be generalized to handle any number of columns. Right now it can handle upto 4 columns on a page image
@@ -912,7 +923,7 @@ def deNoise(filePath,fileName,debugFlag):
             if np.any(negIntersectionCountProfile[199:398]==0):
                 temp = np.arange(199,398)
                 tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[199:398]==0]]
-                cutPoints[0]=np.float16(np.mean(100*tempCutPoints))/100.0
+                cutPoints[0]=(np.mean(100*tempCutPoints))/100.0
             else:
                 ix_ = calculateCutPointIx(acceptedPeaks,np.arange(199,399))
                 if ix_!=-1:
@@ -922,7 +933,7 @@ def deNoise(filePath,fileName,debugFlag):
             if np.any(negIntersectionCountProfile[400:599]==0):
                 temp = np.arange(400,599)
                 tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[400:599]==0]];
-                cutPoints[1] =np.float16(np.mean(100*tempCutPoints))/100.0
+                cutPoints[1] =(np.mean(100*tempCutPoints))/100.0
             else:
                 ix_ = calculateCutPointIx(acceptedPeaks,np.arange(400,599))
                 if ix_!=-1:
@@ -931,14 +942,14 @@ def deNoise(filePath,fileName,debugFlag):
             if np.any(negIntersectionCountProfile[600:799]==0):
                 temp = np.arange(600,799)
                 tempCutPoints=xPointsUp[temp[negIntersectionCountProfile[600:799]==0]];
-                cutPoints[2] = np.float16(np.mean(100*tempCutPoints))/100.0
+                cutPoints[2] = (np.mean(100*tempCutPoints))/100.0
             else:
                 ix_ = calculateCutPointIx(acceptedPeaks,np.arange(600,799))
                 if ix_!=-1:
                     cutPoints[2] = xPointsUp[ix_]
             if (np.size(np.ix_(negIntersectionCountProfile==0))/float(np.size(negIntersectionCountProfile)))>=0.5:
                 temp = np.arange(399,599)
-                cutPoints[2] =np.float16(np.mean(100*tempCutPoints))/100.0
+                cutPoints[2] =(np.mean(100*tempCutPoints))/100.0
             # Filter each coloumn
             numCutPoints = np.size(np.ix_(cutPoints!=-1));
             if numCutPoints==0:
@@ -1045,6 +1056,8 @@ def deNoise(filePath,fileName,debugFlag):
                     iqrHeight = abs(iqrHeight[0] - iqrHeight[1])
                     medianHeight = np.median(preFilteredData[indexToConsider,5])
                     D_max = medianHeight + alpha*iqrHeight
+                    if np.size(finalFilterTemp)==1:
+                        iqrHeight=1.0;
                 else:
                     D_max = 0;
                     medianHeight = 0;
@@ -1055,7 +1068,10 @@ def deNoise(filePath,fileName,debugFlag):
                 count_ = 0;
                 numPrevError = -999;
                 numCurrentError = 0;
-                while((np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)) > 1) and (iter_< max_iter) and (count_<3)): 
+                onlyOneBoxFlag = 0;
+                if np.size(finalFilterTemp)==1:
+                    onlyOneBoxFlag=1;
+                while(((np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)) > 1) and (iter_< max_iter) and (count_<3)) or onlyOneBoxFlag==1): 
                     numCurrentError = (np.size(np.ix_(finalFilterTemp!=prevfinalFilterTemp)))
                     if numPrevError==numCurrentError:
                         count_ = count_+1;
@@ -1193,6 +1209,8 @@ def deNoise(filePath,fileName,debugFlag):
                             tempPred[col] = 1
                     confValTemp[removeBboxesWithConf] = confValTempAfterConfRem;
                     finalFilterTemp[removeBboxesWithConf]  = tempPred
+                    if np.size(finalFilterTemp)==1:
+                        onlyOneBoxFlag=0;
                     #New addition
                     #finalFilterTemp[removeRatioInf]=-1
                     #finalFilterTemp[removeRatioNan]=-1
@@ -1212,19 +1230,24 @@ def deNoise(filePath,fileName,debugFlag):
             
              
             #make two hOCR files
+            soup1 = bs4.BeautifulSoup(open(fileName1))
             for word_id in range(0,np.size(wordInfo[:,0])):
+               # print word_id,
                 temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
                 temp['title'] = "%s; pred %d; predConf %.4f"%(temp['title'],MLFilter[word_id],confVal[word_id])
+                if MLFilter[word_id]==0:
+                    temp1 = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
+                    temp1.extract()
             
             f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
             f.write(soup.encode())
             f.close()
             
-            toDel = np.ix_(MLFilter==0)[0]
-            soup1 = bs4.BeautifulSoup(open(fileName1))
-            for word_id in range(0,np.size(toDel)):
-                temp = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[toDel[word_id],0]))
-                temp.extract()
+#            toDel = np.ix_(MLFilter==0)[0]
+#            soup1 = bs4.BeautifulSoup(open(fileName1))
+#            for word_id in range(0,np.size(toDel)):
+#                temp = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[toDel[word_id],0]))
+#                temp.extract()
             
             f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
             f.write(soup1.encode())
@@ -1272,7 +1295,7 @@ if __name__ == "__main__":
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
     deNoise(options.filePath,options.fileName,options.debugFlag)
-    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'432_error.xml','0')
+   # deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'350_error.xml','0')#350
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
