@@ -15,6 +15,7 @@ module load scipy/python-2.7.3/0.14.0 &>/dev/null
 module load emop/beautifulsoup4 &>/dev/null
 
 export _JAVA_OPTIONS="-Xmx32m -Xms16m"
+export OPENBLAS_NUM_THREADS=$PBS_NUM_PPN
 
 if [ -z "$EMOP_HOME" ]; then
         export EMOP_HOME=$HOME/emop/emop-controller
