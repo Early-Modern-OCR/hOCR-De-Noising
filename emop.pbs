@@ -1,5 +1,5 @@
 #PBS -l nodes=1:ppn=1
-#PBS -l mem=3900mb
+#PBS -l mem=1900mb
 #PBS -j oe
 
 # load required modules
