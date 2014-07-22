@@ -14,6 +14,7 @@ import time
 from math import pi, log
 from scipy import fft, ifft
 from scipy.optimize import curve_fit
+import os;
 #from memory_profiler import profile
 
 #@profile    
@@ -818,6 +819,7 @@ def deNoise(filePath,fileName,debugFlag):
         f_log.write("\nMultiple page error : Image file path- %s hOCR file path- %s. Processing first page only."%(pageInfo["title"].split(';')[0],fileName1))
         f_log.close()
     pageInfo = pageInfo[0];
+    soupInit = soup;
     soup=pageInfo 
     t_x,t_y,pageWidth,pageHeight = pageInfo["title"].split(';')[1].split('bbox ')[1].split(' ')
     pageWidth = float(pageWidth)
@@ -1233,16 +1235,22 @@ def deNoise(filePath,fileName,debugFlag):
             soup1 = bs4.BeautifulSoup(open(fileName1))
             for word_id in range(0,np.size(wordInfo[:,0])):
                # print word_id,
+                confValTemp = confVal[word_id];
+                if MLFilter[word_id]==1:
+                    confValTemp = 1.0 - confVal[word_id];                    
                 temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
-                temp['title'] = "%s; pred %d; predConf %.4f"%(temp['title'],MLFilter[word_id],confVal[word_id])
+                temp1 = temp['title'].split(';');
+                temp['title'] = "%s;%s; pred %d; noiseConf %.4f"%(temp1[0],temp1[1 ],MLFilter[word_id],confValTemp)
                 if MLFilter[word_id]==0:
                     temp1 = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
                     temp1.extract()
             
-            f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
-            f.write(soup.encode())
+            f = open("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),'w')
+            f.write(soupInit.encode())
             f.close()
-            
+            os.remove("%s%s.xml"%(filePath,fileName.replace('.xml','')))
+            os.rename("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),"%s%s.xml"%(filePath,fileName.replace('.xml','')))
+
 #            toDel = np.ix_(MLFilter==0)[0]
 #            soup1 = bs4.BeautifulSoup(open(fileName1))
 #            for word_id in range(0,np.size(toDel)):
@@ -1256,27 +1264,35 @@ def deNoise(filePath,fileName,debugFlag):
             #make two hOCR files
             for word_id in range(0,np.size(wordInfo[:,0])):
                 temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
-                temp['title'] = "%s; pred %d; predConf %.4f"%(temp['title'],-1,-1)
+                temp1 = temp['title'].split(';');
+                temp['title'] = "%s;%s; pred %d; noiseConf %.4f"%(temp1[0],temp1[1 ],-1,-1)
         
-            f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
-            f.write(soup.encode())
+            f = open("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),'w')
+            f.write(soupInit.encode())
             f.close()
+            os.remove("%s%s.xml"%(filePath,fileName.replace('.xml','')))
+            os.rename("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),"%s%s.xml"%(filePath,fileName.replace('.xml','')))
+
             soup1 = bs4.BeautifulSoup(open(fileName1))
             f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
-            f.write(soup1.encode())
+            f.write(soupInit.encode())
             f.close()       
     else:      
         #make two hOCR files
         for word_id in range(0,np.size(wordInfo[:,0])):
             temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
-            temp['title'] = "%s; pred %d; predConf %.4f"%(temp['title'],-1,-1)
+            temp1 = temp['title'].split(';');
+            temp['title'] = "%s;%s; pred %d; noiseConf %.4f"%(temp1[0],temp1[1 ],-1,-1)
         
-        f = open("%s%s_SEASR.xml"%(filePath,fileName.replace('.xml','')),'w')
-        f.write(soup.encode())
+        f = open("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),'w')
+        f.write(soupInit.encode())
         f.close()
+        os.remove("%s%s.xml"%(filePath,fileName.replace('.xml','')))
+        os.rename("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),"%s%s.xml"%(filePath,fileName.replace('.xml','')))
+
         soup1 = bs4.BeautifulSoup(open(fileName1))
         f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
-        f.write(soup1.encode())
+        f.write(soupInit.encode())
         f.close()
         #print "Do Nothing and generate two hOCR with all bounding boxes as noise"
         # copy code for generating hOCR
@@ -1294,8 +1310,8 @@ if __name__ == "__main__":
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S');  
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
-    #deNoise(options.filePath,options.fileName,options.debugFlag)
-    deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'34_error.xml','0')#350
+    deNoise(options.filePath,options.fileName,options.debugFlag)
+    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'15.xml','0')#350
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
