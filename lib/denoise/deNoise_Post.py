@@ -1354,11 +1354,12 @@ if __name__ == "__main__":
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S');  
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
+    #output=deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'350_error.xml','0')#350
     output = deNoise(options.filePath,options.fileName,options.debugFlag)
-    f = open("NOISEMEASURE_%s%s.txt"%(options.filePath,options.fileName.replace('.xml','')),'w')
+    f = open("%s%s_NOISEMEASURE.txt"%(options.filePath,options.fileName.replace('.xml','')),'w')
     f.write(("%.4f")%(output))
     f.close()
-    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'350_error.xml','0')#350
+    
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
