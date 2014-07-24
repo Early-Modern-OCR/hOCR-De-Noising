@@ -1275,6 +1275,7 @@ def deNoise(filePath,fileName,debugFlag):
             f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
             f.write(soupTemp1.encode())
             f.close()
+            return Noisemeasure;
         else:
             #make two hOCR files
             for word_id in range(0,np.size(wordInfo[:,0])):
@@ -1303,7 +1304,9 @@ def deNoise(filePath,fileName,debugFlag):
             
             f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
             f.write(soupTemp1.encode())
-            f.close()       
+            f.close()
+            Noisemeasure = 0.0;
+            return Noisemeasure;
     else:      
         #make two hOCR files
         for word_id in range(0,np.size(wordInfo[:,0])):
@@ -1332,7 +1335,9 @@ def deNoise(filePath,fileName,debugFlag):
         
         f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
         f.write(soupTemp1.encode())
-        f.close()  
+        f.close()
+        Noisemeasure = 0.0;
+        return Noisemeasure
         #print "Do Nothing and generate two hOCR with all bounding boxes as noise"
         # copy code for generating hOCR
 
@@ -1349,7 +1354,10 @@ if __name__ == "__main__":
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S');  
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
-    deNoise(options.filePath,options.fileName,options.debugFlag)
+    output = deNoise(options.filePath,options.fileName,options.debugFlag)
+    f = open("NOISEMEASURE_%s%s.txt"%(options.filePath,options.fileName.replace('.xml','')),'w')
+    f.write(("%.4f")%(output))
+    f.close()
     #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'350_error.xml','0')#350
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
