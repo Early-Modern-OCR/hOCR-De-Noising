@@ -711,7 +711,21 @@ def deNoise(filePath,fileName,debugFlag):
             
         return np.min(countArray)
           
-    
+    def intersectArea(coor1,coor2):
+        x11 = coor1[0]
+        y11 = coor1[1]
+        x12 = coor1[0] + coor1[2] # coor1[2] = width and coor1[3] = height
+        y12 = coor1[1] + coor1[3]
+        x21 = coor2[0]
+        y21 = coor2[1]
+        x22 = coor2[0] + coor2[2] # coor1[2] = width and coor1[3] = height
+        y22 = coor2[1] + coor2[3]
+        x_overlap = max(0,min(x12,x22)) - max(x11,x21)
+        y_overlap = max(0,min(y12,y22)) - max(y11,y21)
+        if x_overlap*y_overlap < 0.0 :
+            return 0.0
+        else:
+            return x_overlap*y_overlap
     def findIntercept(coor2,coor1):
         slope = np.divide(1,np.subtract(coor1,coor2))
         b = np.subtract(1,np.multiply(slope,coor1))
@@ -766,34 +780,34 @@ def deNoise(filePath,fileName,debugFlag):
     
     # Neural Netwrok Parameters
     # Netwrok Weight Matrix            
-    IW =np.matrix( np.array([[-5.4418  , 37.4529  ,  5.5736  , -4.5354  ,  0.4307 ,   0.0395  , 0.1616],
-                   [-0.6640 ,  15.6633  ,  0.4456 ,   0.3437,  -11.2914 ,  -0.2126 ,   1.0719],
-                    [-1.8122 , -26.8527 ,  12.5663  ,  0.0969 ,  -0.0094  , -0.0634  , -0.0037],
-                    [-0.4184 ,   3.3215 ,  -0.1944  , -0.2692 ,  -0.0030 ,   0.0461  , -0.0519],
-                    [0.3392  , -8.2592  , -6.1236 , -25.1874  , -0.2366 ,  -0.1298  ,  0.1672],
-                    [1.2716  , 26.1854 ,  16.0628 ,  25.8461  ,  2.5596 , -78.0128  , 20.9898],
-                    [0.1675 ,  26.0839 , 409.1064  ,  4.5132  , -0.3801  , -0.0157 ,   0.4406],
-                    [-0.6780 , -27.2737  , -1.4170 , -36.0104  ,  0.1094  , -0.0361,   -0.0715]])  ) 
+    IW =np.matrix( np.array([[-0.567394002567346,	0.248465206584307,	-0.216325231103474,	-6.10907202618151,	-9.25551558986030	,0.326091458340850,	-0.450311953565308,	-0.331391215566321,	0.100956276048414],
+                   [-0.0964922214464849,	2.99369311476157,	0.672413526815872,	2.18993448278244,	0.0688775926652790,	0.00541591267709561,	-0.0241790243522465,	-162.014862879894	,0.618868304161152],
+                    [0.102518072657718,	-37.5796767793315,	-225.496977012809	,4.19210750877832	,-0.153948367691651,	-0.126982986432763,	-0.377830570108759,	156.809203392922,	23.6684407493119],
+                    [0.343644340404815,	15.8365880729787,	1.27406446111594,	18.9075348899442,	-0.194719873946375,	-0.0218513714680240,	-0.0238295481115446,	-30.1509253247717	,0.260655801625047],
+                    [-3.10701332305674,	-11.9495778757273	,-0.0854745724719932,	2.88353632786848,	0.261731306743247	,-0.178806462941931,	-0.322279221035548,	-1.33340045747881	,18.0560043126257],
+                    [-0.118529751792690,	2.97625884078903,	0.701142200958050	,1.86927014155841	,0.0703311746430368,	0.0141401658231407,	-0.0115474757955837,	107.463977289897,	0.845703548846256],
+                    [0.297151584986575,	-19.7586887219666,	1.51918978903422,	-10.3535233865589,	-0.272065744295044,	0.120521867846897,	0.346343241629583	,5.06623153384455,	1.71082315388465],
+                    [0.777396646774761,	-4.65927667355198	,0.658221313941851,	25.2520293288184,	0.244529793957230,3.51770543878647,	1.01317648643490	,-7.09417288011555	,-0.709809099960220]])  ) 
                     
     # Bias for hidden layer    
-    b1 = np.matrix(np.array([[ 44.1387],
-        [30.3000],
-      [-13.3406],
-        [4.4684],
-       [-26.1089],
-        [-27.0020],
-      [438.3794],
-      [-43.9163]])   )
+    b1 = np.matrix(np.array([[ 6.9547],
+        [-155.0385],
+      [-79.2543],
+        [1.9314],
+       [ 7.5616],
+        [113.9056],
+      [-20.1206],
+      [14.1210]])   )
     
     # Bias for output layer
-    b2 = np.matrix(np.array([[15.6106],
-                    [-14.9825]]))
+    b2 = np.matrix(np.array([[-56.6263],
+                    [55.1651]]))
     
     LW =np.matrix( np.array([[ 0.7723,  -37.6731 ,  -1.2153 , -33.4960  , -3.4024  ,  0.2162  , 48.6920  ,  2.5112],
                    [-1.9791,   36.9998  ,  1.6843 ,  32.7260  ,  5.1717  , -1.1162,  -49.3584 ,  -2.7970]])     )
     
-    maxVec = np.array([0.9399 , 112.0000 ,   0.0399 , 147.0000   , 1.0000   , 0.9990   , 0.9844]);
-    minVec = np.array([0     ,    0   ,      0 , -55.4060 ,  -1.0000    ,     0    ,     0]);
+    maxVec = np.array([0.9400 , 89.1745441012281 ,   0.0399396439133235 , 107.684210526316   , 1.0   , 0.999172642029785  , 0.539712320200125,1044526.55555556,0.0284463554265791]);
+    minVec = np.array([0    ,   0.0125972439179053   ,      6.66518314501377e-08 , -9.75000000000000,  -1    ,     0.000226654578422414   ,     0,0,0]);
     
     # Neural netwrok activation function
     def tansig(dat):
@@ -967,15 +981,18 @@ def deNoise(filePath,fileName,debugFlag):
             confVal = np.ones(finalFilter.shape);
             for cutPointIdx in range(0,numCutPoints):
                 tempCutPoint = 0.0;
+                prevCutPoint = np.copy(tempCutPoint);
                 if np.size(cutPointsLocs)==0:
                     indexToConsider = preFilteredData[:,1]<=max_x;
                     actualIndexToConsider = wordInfo[:,1]<=1;
                     tempCutPoint=np.copy(max_x);
+                    prevCutPoint = min_x;
                 else:
                     cutPointLocsSize = np.size(cutPointsLocs)
                     if cutPointLocsSize==1 and cutPointIdx==0:
                         indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
                         tempCutPoint=cutPointsLocs[cutPointIdx];
+                        prevCutPoint=min_x;
                         actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
                         actualIndexToConsiderTemp1 =cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
                         actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
@@ -985,7 +1002,7 @@ def deNoise(filePath,fileName,debugFlag):
                     if cutPointLocsSize==1 and cutPointIdx==1:
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
                         actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=max_x;
                     
                     if cutPointLocsSize==2 and cutPointIdx==0:
                         indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
@@ -994,6 +1011,7 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
                         actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
                         tempCutPoint=cutPointsLocs[cutPointIdx];
+                        prevCutPoint=min_x;
                         
                     if cutPointLocsSize==2 and cutPointIdx==1:
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
@@ -1005,12 +1023,12 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);# or 
                         actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
                         actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=cutPointsLocs[cutPointIdx];
                     
                     if cutPointLocsSize==2 and cutPointIdx==2:
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
                         actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=max_x;
                         
                     if cutPointLocsSize==3 and cutPointIdx==0:
                         indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
@@ -1020,6 +1038,7 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
                         actualIndexToConsider_1 = np.copy(actualIndexToConsider);
                         tempCutPoint=cutPointsLocs[cutPointIdx];
+                        prevCutPoint=min_x;
                     
                     if cutPointLocsSize==3 and (cutPointIdx==1 or cutPointIdx==2):
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
@@ -1033,12 +1052,12 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
                         if(cutPointIdx==3):
                             actualIndexToConsider[actualIndexToConsider & actualIndexToConsider_1]=0;
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=cutPointsLocs[cutPointIdx];
                         
                     if cutPointLocsSize==3 and cutPointIdx==3:
                         indexToConsider = (preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1])
                         actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=max_x;
                     
                     # Iterative - NN filter
                 bboxcenterRelabellingActual = wordInfo[actualIndexToConsider,:];
@@ -1048,11 +1067,15 @@ def deNoise(filePath,fileName,debugFlag):
                 k1=k;k2=k;k3=k;k4=k;
                 finalFilterTemp = finalFilter[actualIndexToConsider];
                 finalFilterTemp1 = np.zeros(finalFilterTemp.shape)
+                nnArea = np.zeros(finalFilterTemp.shape);
+                overlapNN = np.zeros(finalFilterTemp.shape)
                 finalFilterTemp1[finalFilterTemp]=1;
                 finalFilterTemp = finalFilterTemp1;
                 finalFilterTemp[finalFilterTemp==0] = -1;
                 tempHeight = bboxcenterRelabellingActual[:,5];
                 tempWidth = bboxcenterRelabellingActual[:,6];
+                tempArea = np.multiply(tempHeight,tempWidth);
+                
                 prevfinalFilterTemp = 999;
                 
                 if np.size(preFilteredData[indexToConsider,5])>0:
@@ -1128,14 +1151,14 @@ def deNoise(filePath,fileName,debugFlag):
                             remainingBbox = np.ix_(remainingBbox)
                             if k1!=0:
                                 index = ind1;
-                                kNeigh = np.array([dist1[selInd1[0][index[range(0,k1)]]],finalFilterTemp[remainingBbox[0][selInd1[0][index[range(0,k1)]]]]]);
+                                kNeigh = np.array([dist1[selInd1[0][index[range(0,k1)]]],finalFilterTemp[remainingBbox[0][selInd1[0][index[range(0,k1)]]]],tempArea[remainingBbox[0][selInd1[0][index[range(0,k1)]]]],remainingBbox[0][selInd1[0][index[range(0,k1)]]],tempWidth[remainingBbox[0][selInd1[0][index[range(0,k1)]]]],tempHeight[remainingBbox[0][selInd1[0][index[range(0,k1)]]]]]);
         
                             if k2!=0:
                                 index = ind2;
                                 if np.size(kNeigh)>0:
-                                    kNeigh = np.append(kNeigh,np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]]),1);                            
+                                    kNeigh = np.append(kNeigh,np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempArea[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],remainingBbox[0][selInd2[0][index[range(0,k2)]]],tempWidth[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempHeight[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]]),1);                            
                                 else:
-                                    kNeigh = np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]])
+                                    kNeigh = np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempArea[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],remainingBbox[0][selInd2[0][index[range(0,k2)]]],tempWidth[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempHeight[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]])
                                 
                                 
                             if k3!=0:
@@ -1151,9 +1174,9 @@ def deNoise(filePath,fileName,debugFlag):
                                 k3 = np.size(index)
                                 if k3!=0:
                                     if np.size(kNeigh)>0:
-                                        kNeigh = np.append(kNeigh,np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]]),1);    
+                                        kNeigh = np.append(kNeigh,np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempArea[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],remainingBbox[0][selInd3[0][index[range(0,k3)]]],tempWidth[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempHeight[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]]),1);    
                                     else:
-                                        kNeigh = np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]])
+                                        kNeigh = np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempArea[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],remainingBbox[0][selInd3[0][index[range(0,k3)]]],tempWidth[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempHeight[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]])
                                         
                                 
                             if k4!=0:
@@ -1168,9 +1191,9 @@ def deNoise(filePath,fileName,debugFlag):
                                 k4 = np.size(index)
                                 if k4!=0:
                                     if np.size(kNeigh)>0:
-                                        kNeigh = np.append(kNeigh,np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]]),1);    
+                                        kNeigh = np.append(kNeigh,np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempArea[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],remainingBbox[0][selInd4[0][index[range(0,k4)]]],tempWidth[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempHeight[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]]),1);    
                                     else:
-                                        kNeigh = np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]])
+                                        kNeigh = np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempArea[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],remainingBbox[0][selInd4[0][index[range(0,k4)]]],tempWidth[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempHeight[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]])
                                 
                             if np.size(kNeigh)>0:
                                 wNeigh = np.divide(1,kNeigh[0,:])
@@ -1178,13 +1201,20 @@ def deNoise(filePath,fileName,debugFlag):
                                     if np.isnan(wNeigh[inD]) or np.isinf(wNeigh[inD]):
                                         wNeigh[inD]=1.0;
                                 preLabel[word] = np.divide(np.sum(np.multiply(kNeigh[1,:],wNeigh)),np.sum(wNeigh))
+                                areaAA = tempArea[word];
+                                nnArea[word] = np.average(abs(np.divide(np.subtract(areaAA,kNeigh[2,:]),areaAA)))
+                                #nnCoordinates = bboxcenterRelabellingActual[kNeigh[3,:],:];
+                                overlapArea = 0.0;
+                                for i in range(0,kNeigh[3,:].shape[0]):
+                                    overlapArea = overlapArea + intersectArea([bboxcenterRelabellingActual[kNeigh[3,i],1],bboxcenterRelabellingActual[kNeigh[3,i],4],kNeigh[4,i],kNeigh[5,i]],[bboxcenterRelabellingActual[word,1],bboxcenterRelabellingActual[word,4],tempWidth[word],tempHeight[word]])
+                                overlapNN[word] = overlapArea;
         
                     xTemp = np.array([])
                     bbox_center = np.array([np.mean(bboxcenterRelabellingActual[:,[1,3]],axis=1),np.mean(bboxcenterRelabellingActual[:,[2,4]],axis=1)]);
                     y_dist1 = abs(1-bbox_center[1,:]);
-                    x_dist1 = abs(tempCutPoint-bbox_center[0,:]);
+                    x_dist1 = abs(((tempCutPoint+prevCutPoint)/2)-bbox_center[0,:]);
                     
-                    xTemp = np.array([confTemp,np.divide(tempHeight,tempWidth),np.multiply(tempHeight,tempWidth),np.divide(np.subtract(tempHeight,medianHeight),iqrHeight),preLabel,y_dist1,x_dist1])
+                    xTemp = np.array([confTemp,np.divide(tempHeight,tempWidth),np.multiply(tempHeight,tempWidth),np.divide(np.subtract(tempHeight,medianHeight),iqrHeight),preLabel,y_dist1,x_dist1,nnArea,overlapNN])
                     removeBboxesWithConf = xTemp[0,:]<0.95;
                     removeRatioInf = np.isinf(xTemp[1,:])
                     removeRatioInf1 = ~removeRatioInf
