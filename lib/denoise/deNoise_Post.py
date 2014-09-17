@@ -711,7 +711,21 @@ def deNoise(filePath,fileName,debugFlag):
             
         return np.min(countArray)
           
-    
+    def intersectArea(coor1,coor2):
+        x11 = coor1[0]
+        y11 = coor1[1]
+        x12 = coor1[0] + coor1[2] # coor1[2] = width and coor1[3] = height
+        y12 = coor1[1] + coor1[3]
+        x21 = coor2[0]
+        y21 = coor2[1]
+        x22 = coor2[0] + coor2[2] # coor1[2] = width and coor1[3] = height
+        y22 = coor2[1] + coor2[3]
+        x_overlap = max(0,min(x12,x22)) - max(x11,x21)
+        y_overlap = max(0,min(y12,y22)) - max(y11,y21)
+        if x_overlap*y_overlap < 0.0 :
+            return 0.0
+        else:
+            return x_overlap*y_overlap
     def findIntercept(coor2,coor1):
         slope = np.divide(1,np.subtract(coor1,coor2))
         b = np.subtract(1,np.multiply(slope,coor1))
@@ -766,34 +780,34 @@ def deNoise(filePath,fileName,debugFlag):
     
     # Neural Netwrok Parameters
     # Netwrok Weight Matrix            
-    IW =np.matrix( np.array([[-5.4418  , 37.4529  ,  5.5736  , -4.5354  ,  0.4307 ,   0.0395  , 0.1616],
-                   [-0.6640 ,  15.6633  ,  0.4456 ,   0.3437,  -11.2914 ,  -0.2126 ,   1.0719],
-                    [-1.8122 , -26.8527 ,  12.5663  ,  0.0969 ,  -0.0094  , -0.0634  , -0.0037],
-                    [-0.4184 ,   3.3215 ,  -0.1944  , -0.2692 ,  -0.0030 ,   0.0461  , -0.0519],
-                    [0.3392  , -8.2592  , -6.1236 , -25.1874  , -0.2366 ,  -0.1298  ,  0.1672],
-                    [1.2716  , 26.1854 ,  16.0628 ,  25.8461  ,  2.5596 , -78.0128  , 20.9898],
-                    [0.1675 ,  26.0839 , 409.1064  ,  4.5132  , -0.3801  , -0.0157 ,   0.4406],
-                    [-0.6780 , -27.2737  , -1.4170 , -36.0104  ,  0.1094  , -0.0361,   -0.0715]])  ) 
+    IW =np.matrix( np.array([[-0.594140000082075,	0.0284426552800584,	0.633962614499578	,3.28625526733271,	0.135357920986002,	0.0744090237062824,	-0.104335668169507],
+                   [0.582301257544410,	1.02518630598767,	-9.11772639809179	,-0.402524297693123,	0.0102389560044855,	-0.0791970693550233,	0.369262689723785],
+                    [0.239984949103749,	-87.5269134098991	,-33.8991260602495,	1.17564645973248,	-1.12089713455975	,-0.983194853356573,	-47.6282329029053],
+                    [0.235158115252368,	-19.1996471786875	,-440.781581422114	,7.55469040107880,	0.316909768618500	,-0.0395229877154089,	0.210814777210327],
+                    [4.40901664698217,	16.1450856630481,	0.0906903536753684,	-5.39330399600042,	-0.617335318223031,	-0.223181914782527,	-0.0180602735321480],
+                    [-0.540902931519254,	-131.891721211789	,-55.5540477615985	,-3.04419286543500	,-0.0953696784219757,	-0.118330193755444,	-0.0293326608826203],
+                    [0.268341734790750,	6.21756468534859,	1.10959003485922,	15.1283657342125,	0.00161804321049251,	-0.0196312514795930,	0.178605142680341],
+                    [0.361328059849469,	0.210300855715019,	-0.607497545986723,	-3.22209066515691,	-0.112050733164288,	-0.0519265549320669,	0.0699452632434586]])  ) 
                     
     # Bias for hidden layer    
-    b1 = np.matrix(np.array([[ 44.1387],
-        [30.3000],
-      [-13.3406],
-        [4.4684],
-       [-26.1089],
-        [-27.0020],
-      [438.3794],
-      [-43.9163]])   )
+    b1 = np.matrix(np.array([[ 1.23003200158914],
+        [-10.3246201755893],
+      [-82.9226929464117],
+        [-457.603059874791],
+       [ 16.7138065068903],
+        [-188.825283911144],
+      [10.1739148122845],
+      [-1.13862142860185]])   )
     
     # Bias for output layer
-    b2 = np.matrix(np.array([[15.6106],
-                    [-14.9825]]))
+    b2 = np.matrix(np.array([[-31.8507],
+                    [33.0516]]))
     
-    LW =np.matrix( np.array([[ 0.7723,  -37.6731 ,  -1.2153 , -33.4960  , -3.4024  ,  0.2162  , 48.6920  ,  2.5112],
-                   [-1.9791,   36.9998  ,  1.6843 ,  32.7260  ,  5.1717  , -1.1162,  -49.3584 ,  -2.7970]])     )
+    LW =np.matrix( np.array([[ -34.0506100659894,	31.2573651380090,	0.466550632307331	,-4.00279418916034,	-1.25936711908938	,-51.8134696327409,	-4.00089910338376,	-46.4067607691938],
+                   [35.1466171843005,	-30.8357383677796,	-0.887824702053121,	4.38946074239154,	1.40004866498257,	51.6906113788625,	4.50615099912734	,47.1133076956261]])     )
     
-    maxVec = np.array([0.9399 , 112.0000 ,   0.0399 , 147.0000   , 1.0000   , 0.9990   , 0.9844]);
-    minVec = np.array([0     ,    0   ,      0 , -55.4060 ,  -1.0000    ,     0    ,     0]);
+    maxVec = np.array([0.939940000000000 , 89.1880000000000 ,   0.0399480000000000 , 57.1560000000000   , 1.0   , 0.999020000000000  , 0.544920000000000]);
+    minVec = np.array([0.0    ,   0.0125960000000000   ,     5.96050000000000e-08 , -34.9380000000000,  -1    ,     0.0  ,     0.0]);
     
     # Neural netwrok activation function
     def tansig(dat):
@@ -812,11 +826,13 @@ def deNoise(filePath,fileName,debugFlag):
         return softmax(outputActivation)
     #Extract word coordinate information, ocr conf and height and width information
     fileName1 = "%s%s"%(filePath,fileName) #"53211844_160.xml"
+    if os.path.isfile(fileName1)==False:
+        return 0
     soup = bs4.BeautifulSoup(open(fileName1)) #51150019_1 - test 379_1 ; 2271337_13 - test id=6, 380_13; 45949734_1 , 45444878_5, 53211844_160 - 132 and 160; 48898051_301 131 and 301 ; 45509238_1 - 128 and 1; 45977751_1 128 and 
     pageInfo = soup.find_all('div',class_="ocr_page")# id='page_1'
     if pageInfo.__len__()>1:
         f_log = open("multiple-page-errors.txt","a") 
-        f_log.write("\nMultiple page error : Image file path- %s hOCR file path- %s. Processing first page only."%(pageInfo["title"].split(';')[0],fileName1))
+        f_log.write("\nMultiple page error : Image file path- %s hOCR file path- %s. Processing first page only.\n"%(pageInfo[0]["title"].split(";")[0],fileName1))
         f_log.close()
     pageInfo = pageInfo[0];
     soupInit = soup;
@@ -965,15 +981,18 @@ def deNoise(filePath,fileName,debugFlag):
             confVal = np.ones(finalFilter.shape);
             for cutPointIdx in range(0,numCutPoints):
                 tempCutPoint = 0.0;
+                prevCutPoint = np.copy(tempCutPoint);
                 if np.size(cutPointsLocs)==0:
                     indexToConsider = preFilteredData[:,1]<=max_x;
                     actualIndexToConsider = wordInfo[:,1]<=1;
                     tempCutPoint=np.copy(max_x);
+                    prevCutPoint = min_x;
                 else:
                     cutPointLocsSize = np.size(cutPointsLocs)
                     if cutPointLocsSize==1 and cutPointIdx==0:
                         indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
                         tempCutPoint=cutPointsLocs[cutPointIdx];
+                        prevCutPoint=min_x;
                         actualIndexToConsiderTemp = wordInfo[:,3]<=cutPointsLocs[cutPointIdx] 
                         actualIndexToConsiderTemp1 =cutPointsLocs[cutPointIdx]>wordInfo[:,1] 
                         actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
@@ -983,7 +1002,7 @@ def deNoise(filePath,fileName,debugFlag):
                     if cutPointLocsSize==1 and cutPointIdx==1:
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
                         actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=max_x;
                     
                     if cutPointLocsSize==2 and cutPointIdx==0:
                         indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
@@ -992,6 +1011,7 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);
                         actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
                         tempCutPoint=cutPointsLocs[cutPointIdx];
+                        prevCutPoint=min_x;
                         
                     if cutPointLocsSize==2 and cutPointIdx==1:
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
@@ -1003,12 +1023,12 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsiderTemp1 = actualIndexToConsiderTemp1 & (cutPointsLocs[cutPointIdx]<wordInfo[:,3]);# or 
                         actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
                         actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=cutPointsLocs[cutPointIdx];
                     
                     if cutPointLocsSize==2 and cutPointIdx==2:
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
                         actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=max_x;
                         
                     if cutPointLocsSize==3 and cutPointIdx==0:
                         indexToConsider = preFilteredData[:,3]<=cutPointsLocs[cutPointIdx]
@@ -1018,6 +1038,7 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsider = actualIndexToConsiderTemp | actualIndexToConsiderTemp1
                         actualIndexToConsider_1 = np.copy(actualIndexToConsider);
                         tempCutPoint=cutPointsLocs[cutPointIdx];
+                        prevCutPoint=min_x;
                     
                     if cutPointLocsSize==3 and (cutPointIdx==1 or cutPointIdx==2):
                         indexToConsider = preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1]
@@ -1031,12 +1052,12 @@ def deNoise(filePath,fileName,debugFlag):
                         actualIndexToConsider[actualIndexToConsider & preActualIndexToConsider]=0;
                         if(cutPointIdx==3):
                             actualIndexToConsider[actualIndexToConsider & actualIndexToConsider_1]=0;
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=cutPointsLocs[cutPointIdx];
                         
                     if cutPointLocsSize==3 and cutPointIdx==3:
                         indexToConsider = (preFilteredData[:,1]>cutPointsLocs[cutPointIdx-1])
                         actualIndexToConsider = wordInfo[:,1]>cutPointsLocs[cutPointIdx-1];
-                        tempCutPoint=cutPointsLocs[cutPointIdx-1];
+                        tempCutPoint=max_x;
                     
                     # Iterative - NN filter
                 bboxcenterRelabellingActual = wordInfo[actualIndexToConsider,:];
@@ -1046,11 +1067,15 @@ def deNoise(filePath,fileName,debugFlag):
                 k1=k;k2=k;k3=k;k4=k;
                 finalFilterTemp = finalFilter[actualIndexToConsider];
                 finalFilterTemp1 = np.zeros(finalFilterTemp.shape)
+                #nnArea = np.zeros(finalFilterTemp.shape);
+                #overlapNN = np.zeros(finalFilterTemp.shape)
                 finalFilterTemp1[finalFilterTemp]=1;
                 finalFilterTemp = finalFilterTemp1;
                 finalFilterTemp[finalFilterTemp==0] = -1;
                 tempHeight = bboxcenterRelabellingActual[:,5];
                 tempWidth = bboxcenterRelabellingActual[:,6];
+                tempArea = np.multiply(tempHeight,tempWidth);
+                
                 prevfinalFilterTemp = 999;
                 
                 if np.size(preFilteredData[indexToConsider,5])>0:
@@ -1126,14 +1151,14 @@ def deNoise(filePath,fileName,debugFlag):
                             remainingBbox = np.ix_(remainingBbox)
                             if k1!=0:
                                 index = ind1;
-                                kNeigh = np.array([dist1[selInd1[0][index[range(0,k1)]]],finalFilterTemp[remainingBbox[0][selInd1[0][index[range(0,k1)]]]]]);
+                                kNeigh = np.array([dist1[selInd1[0][index[range(0,k1)]]],finalFilterTemp[remainingBbox[0][selInd1[0][index[range(0,k1)]]]],tempArea[remainingBbox[0][selInd1[0][index[range(0,k1)]]]],remainingBbox[0][selInd1[0][index[range(0,k1)]]],tempWidth[remainingBbox[0][selInd1[0][index[range(0,k1)]]]],tempHeight[remainingBbox[0][selInd1[0][index[range(0,k1)]]]]]);
         
                             if k2!=0:
                                 index = ind2;
                                 if np.size(kNeigh)>0:
-                                    kNeigh = np.append(kNeigh,np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]]),1);                            
+                                    kNeigh = np.append(kNeigh,np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempArea[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],remainingBbox[0][selInd2[0][index[range(0,k2)]]],tempWidth[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempHeight[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]]),1);                            
                                 else:
-                                    kNeigh = np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]])
+                                    kNeigh = np.array([dist2[selInd2[0][index[range(0,k2)]]],finalFilterTemp[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempArea[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],remainingBbox[0][selInd2[0][index[range(0,k2)]]],tempWidth[remainingBbox[0][selInd2[0][index[range(0,k2)]]]],tempHeight[remainingBbox[0][selInd2[0][index[range(0,k2)]]]]])
                                 
                                 
                             if k3!=0:
@@ -1149,9 +1174,9 @@ def deNoise(filePath,fileName,debugFlag):
                                 k3 = np.size(index)
                                 if k3!=0:
                                     if np.size(kNeigh)>0:
-                                        kNeigh = np.append(kNeigh,np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]]),1);    
+                                        kNeigh = np.append(kNeigh,np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempArea[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],remainingBbox[0][selInd3[0][index[range(0,k3)]]],tempWidth[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempHeight[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]]),1);    
                                     else:
-                                        kNeigh = np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]])
+                                        kNeigh = np.array([dist3[selInd3[0][index[range(0,k3)]]],finalFilterTemp[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempArea[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],remainingBbox[0][selInd3[0][index[range(0,k3)]]],tempWidth[remainingBbox[0][selInd3[0][index[range(0,k3)]]]],tempHeight[remainingBbox[0][selInd3[0][index[range(0,k3)]]]]])
                                         
                                 
                             if k4!=0:
@@ -1166,9 +1191,9 @@ def deNoise(filePath,fileName,debugFlag):
                                 k4 = np.size(index)
                                 if k4!=0:
                                     if np.size(kNeigh)>0:
-                                        kNeigh = np.append(kNeigh,np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]]),1);    
+                                        kNeigh = np.append(kNeigh,np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempArea[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],remainingBbox[0][selInd4[0][index[range(0,k4)]]],tempWidth[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempHeight[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]]),1);    
                                     else:
-                                        kNeigh = np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]])
+                                        kNeigh = np.array([dist4[selInd4[0][index[range(0,k4)]]],finalFilterTemp[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempArea[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],remainingBbox[0][selInd4[0][index[range(0,k4)]]],tempWidth[remainingBbox[0][selInd4[0][index[range(0,k4)]]]],tempHeight[remainingBbox[0][selInd4[0][index[range(0,k4)]]]]])
                                 
                             if np.size(kNeigh)>0:
                                 wNeigh = np.divide(1,kNeigh[0,:])
@@ -1176,12 +1201,20 @@ def deNoise(filePath,fileName,debugFlag):
                                     if np.isnan(wNeigh[inD]) or np.isinf(wNeigh[inD]):
                                         wNeigh[inD]=1.0;
                                 preLabel[word] = np.divide(np.sum(np.multiply(kNeigh[1,:],wNeigh)),np.sum(wNeigh))
+                                #areaAA = tempArea[word];
+                                #nnArea[word] = np.average(abs(np.divide(np.subtract(areaAA,kNeigh[2,:]),areaAA)))
+                                #nnCoordinates = bboxcenterRelabellingActual[kNeigh[3,:],:];
+                                #overlapArea = 0.0;
+                                #for i in range(0,kNeigh[3,:].shape[0]):
+                                #    overlapArea = overlapArea + intersectArea([bboxcenterRelabellingActual[kNeigh[3,i],1],bboxcenterRelabellingActual[kNeigh[3,i],4],kNeigh[4,i],kNeigh[5,i]],[bboxcenterRelabellingActual[word,1],bboxcenterRelabellingActual[word,4],tempWidth[word],tempHeight[word]])
+                                #overlapNN[word] = overlapArea;
         
                     xTemp = np.array([])
                     bbox_center = np.array([np.mean(bboxcenterRelabellingActual[:,[1,3]],axis=1),np.mean(bboxcenterRelabellingActual[:,[2,4]],axis=1)]);
                     y_dist1 = abs(1-bbox_center[1,:]);
-                    x_dist1 = abs(tempCutPoint-bbox_center[0,:]);
-                    
+                    x_dist1 = abs(((tempCutPoint+prevCutPoint)/2)-bbox_center[0,:]);
+                    if iqrHeight==0.0:
+                        iqrHeight = 1.0;
                     xTemp = np.array([confTemp,np.divide(tempHeight,tempWidth),np.multiply(tempHeight,tempWidth),np.divide(np.subtract(tempHeight,medianHeight),iqrHeight),preLabel,y_dist1,x_dist1])
                     removeBboxesWithConf = xTemp[0,:]<0.95;
                     removeRatioInf = np.isinf(xTemp[1,:])
@@ -1229,12 +1262,16 @@ def deNoise(filePath,fileName,debugFlag):
             
             MLFilter = np.zeros(finalFilter.shape)
             MLFilter[predictedLabelMachineLearning]  = 1;
-            
-             
+            Noisemeasure = float(np.ix_(MLFilter==0)[0].__len__())/float(MLFilter.__len__());
+            #f_log = open("Noisemeasure.txt","a") 
+            #f_log.write("\nMultiple page error : Image file path- %s hOCR file path- %s. Processing first page only."%(pageInfo["title"].split(';')[0],fileName1))
+            #f_log.close()
+            Noisemeasure = float(np.ix_(MLFilter==0)[0].__len__())/float(MLFilter.__len__());
             #make two hOCR files
-            soup1 = bs4.BeautifulSoup(open(fileName1))
+            soupTemp1 = bs4.BeautifulSoup(open(fileName1))
+            pgInfo1 = soupTemp1.find_all('div',class_="ocr_page")
+            soup1= pgInfo1[0];      
             for word_id in range(0,np.size(wordInfo[:,0])):
-               # print word_id,
                 confValTemp = confVal[word_id];
                 if MLFilter[word_id]==1:
                     confValTemp = 1.0 - confVal[word_id];                    
@@ -1244,6 +1281,11 @@ def deNoise(filePath,fileName,debugFlag):
                 if MLFilter[word_id]==0:
                     temp1 = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
                     temp1.extract()
+            
+            # insert noisemeasure
+            tempNoiseM = soup["title"];
+            tempNoiseM1 = tempNoiseM.split(";");
+            soup["title"]="%s;%s;%s; noisiness %.4f"%(tempNoiseM1[0],tempNoiseM1[1 ],tempNoiseM1[2],Noisemeasure);
             
             f = open("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),'w')
             f.write(soupInit.encode())
@@ -1256,27 +1298,45 @@ def deNoise(filePath,fileName,debugFlag):
 #            for word_id in range(0,np.size(toDel)):
 #                temp = soup1.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[toDel[word_id],0]))
 #                temp.extract()
-            
+             # insert noisemeasure
+            tempNoiseM = soup1["title"];
+            tempNoiseM1 = tempNoiseM.split(";");
+            soup1["title"]="%s;%s;%s; noisiness %.4f"%(tempNoiseM1[0],tempNoiseM1[1 ],tempNoiseM1[2],Noisemeasure);
             f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
-            f.write(soup1.encode())
+            f.write(soupTemp1.encode())
             f.close()
+            return Noisemeasure;
         else:
             #make two hOCR files
             for word_id in range(0,np.size(wordInfo[:,0])):
                 temp = soup.find("span",class_="ocrx_word",id="word_%d"%(wordInfo[word_id,0]))
                 temp1 = temp['title'].split(';');
                 temp['title'] = "%s;%s; pred %d; noiseConf %.4f"%(temp1[0],temp1[1 ],-1,-1)
-        
+            
+            tempNoiseM = soup["title"];
+            tempNoiseM1 = tempNoiseM.split(";");
+            soup["title"]="%s;%s;%s; noisiness %.4f"%(tempNoiseM1[0],tempNoiseM1[1 ],tempNoiseM1[2],0.0);
+            
             f = open("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),'w')
             f.write(soupInit.encode())
             f.close()
             os.remove("%s%s.xml"%(filePath,fileName.replace('.xml','')))
             os.rename("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),"%s%s.xml"%(filePath,fileName.replace('.xml','')))
-
-            soup1 = bs4.BeautifulSoup(open(fileName1))
+            
+            
+            soupTemp1 = bs4.BeautifulSoup(open(fileName1))
+            pgInfo1 = soupTemp1.find_all('div',class_="ocr_page")
+            soup1= pgInfo1[0];      
+            # insert noisemeasure
+            tempNoiseM = soup1["title"];
+            tempNoiseM1 = tempNoiseM.split(";");
+            soup1["title"]="%s;%s;%s; noisiness %.4f"%(tempNoiseM1[0],tempNoiseM1[1 ],tempNoiseM1[2],0.0);
+            
             f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
-            f.write(soupInit.encode())
-            f.close()       
+            f.write(soupTemp1.encode())
+            f.close()
+            Noisemeasure = 0.0;
+            return Noisemeasure;
     else:      
         #make two hOCR files
         for word_id in range(0,np.size(wordInfo[:,0])):
@@ -1284,16 +1344,30 @@ def deNoise(filePath,fileName,debugFlag):
             temp1 = temp['title'].split(';');
             temp['title'] = "%s;%s; pred %d; noiseConf %.4f"%(temp1[0],temp1[1 ],-1,-1)
         
+        tempNoiseM = soup["title"];
+        tempNoiseM1 = tempNoiseM.split(";");
+        soup["title"]="%s;%s;%s; noisiness %.4f"%(tempNoiseM1[0],tempNoiseM1[1 ],tempNoiseM1[2],0.0);
+        
         f = open("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),'w')
         f.write(soupInit.encode())
         f.close()
         os.remove("%s%s.xml"%(filePath,fileName.replace('.xml','')))
         os.rename("%s%s_TEMP.xml"%(filePath,fileName.replace('.xml','')),"%s%s.xml"%(filePath,fileName.replace('.xml','')))
-
-        soup1 = bs4.BeautifulSoup(open(fileName1))
+        
+        
+        soupTemp1 = bs4.BeautifulSoup(open(fileName1))
+        pgInfo1 = soupTemp1.find_all('div',class_="ocr_page")
+        soup1= pgInfo1[0];      
+        # insert noisemeasure
+        tempNoiseM = soup1["title"];
+        tempNoiseM1 = tempNoiseM.split(";");
+        soup1["title"]="%s;%s;%s; noisiness %.4f"%(tempNoiseM1[0],tempNoiseM1[1 ],tempNoiseM1[2],0.0);
+        
         f = open("%s%s_IDHMC.xml"%(filePath,fileName.replace('.xml','')),'w')
-        f.write(soupInit.encode())
+        f.write(soupTemp1.encode())
         f.close()
+        Noisemeasure = 0.0;
+        return Noisemeasure
         #print "Do Nothing and generate two hOCR with all bounding boxes as noise"
         # copy code for generating hOCR
 
@@ -1310,8 +1384,12 @@ if __name__ == "__main__":
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S');  
 #    try:
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
-    deNoise(options.filePath,options.fileName,options.debugFlag)
-    #deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'15.xml','0')#350
+    #output=deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'10.xml','0')#350
+    output = deNoise(options.filePath,options.fileName,options.debugFlag)
+    f = open("%s%s_NOISEMEASURE.txt"%(options.filePath,options.fileName.replace('.xml','')),'w')
+    f.write(("%.4f")%(output))
+    f.close()
+    
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
