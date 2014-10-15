@@ -1,0 +1,35 @@
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=1900
+
+# load required modules
+module use ${EMOP_HOME}/modulefiles
+module load emop
+
+JAVA_OPTIONS="-Xmx32m -Xms16m"
+PROC_ID=$SLURM_JOB_ID
+
+export OPENBLAS_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+export JUXTA_HOME=${EMOP_HOME}/lib/juxta-cl
+export RETAS_HOME=${EMOP_HOME}/lib/retas
+export SEASR_HOME=${EMOP_HOME}/lib/seasr
+export TESSDATA_PREFIX=/dh/data/shared/
+export DENOISE_HOME=${EMOP_HOME}/lib/denoise
+
+# Print out the starting time and host.
+echo "$SLURM_JOB_ID started on $(hostname) at $(date)"
+echo "-=-"
+
+# Set umask so directories can be read/written by others
+umask 002
+
+# launch instance of the controller which runs until killed or no jobs remain
+java ${JAVA_OPTIONS} -jar $EMOP_HOME/emop-controller.jar -mode run -procid ${PROC_ID}
+
+# Done; print the end time and host.
+echo "-=-"
+echo "$SLURM_JOB_ID ended on $(hostname) at $(date)"
+ 
+exit 0

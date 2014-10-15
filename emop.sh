@@ -77,24 +77,22 @@ export PATH=$PATH:/usr/local/bin
 # be sure to cd to this directory no matter how the script was 
 # launched 
 cd $(dirname $0)
-EMOP_HOME=$(pwd)
+export EMOP_HOME=$(pwd)
+APP_NAME="emop-controller"
 
 [ -f ${EMOP_HOME}/emop.conf ] && source ${EMOP_HOME}/emop.conf
 
 LOGDIR=${LOGDIR-${EMOP_HOME}/logs}
+LOGFILE="${LOGDIR}/${APP_NAME}.out"
 
-MODULES_SRC_DIR="${EMOP_HOME}/emop-modules/emop"
-MODULES_DIR="${HOME}/privatemodules/emop"
-APP_NAME="emop_controller"
-
-Q="idhmc"
-Q_LIMIT=128
+PARTITION="idhmc"
+PARTITION_LIMIT=128
 TOTAL_PAGES_TO_RUN=0
 AVG_PAGE_RUNTIME=20
 MIN_JOB_RUNTIME=300
 MAX_JOB_RUNTIME=3600
-Q_TOTAL=`qselect -q ${Q} -N ${APP_NAME} | wc -l`
-Q_AVAIL=`echo "$Q_LIMIT - $Q_TOTAL"|bc`
+PARTITION_TOTAL=`squeue -r --noheader -p ${PARTITION} -n ${APP_NAME} | wc -l`
+PARTITION_AVAIL=`echo "$PARTITION_LIMIT - $PARTITION_TOTAL"|bc`
 
 [ $NOOP -eq 1 ] && NOOP_PREFIX="(NOOP) " || NOOP_PREFIX=""
 
@@ -108,13 +106,6 @@ echo_verbose() {
   fi
 }
 
-bootstrap_modules() {
-  if [ ! -L $MODULES_DIR ]; then
-    echo_verbose "${NOOP_PREFIX}Creating symbolic link ${MODULES_SRC_DIR} -> ${MODULES_DIR}"
-    ln -sn ${MODULES_SRC_DIR} ${MODULES_DIR}
-  fi
-}
-
 ensure_environment() {
   if [ ! -d $LOGDIR ]; then
     echo_verbose "Creating LOGDIR: ${LOGDIR}"
@@ -124,7 +115,7 @@ ensure_environment() {
 
 # ensure that there is work to do before scheduling
 check_page_cnt() {
-  PAGE_CNT=$(env EMOP_HOME=$EMOP_HOME java -jar emop-controller.jar -mode check)
+  PAGE_CNT=$(java -jar emop-controller.jar -mode check 2>/dev/null)
   if [ $? -ne 0 ];then
     # do not submit a new controller if there were  errors checking count
     echo "Unable to determine job count. Not launching eMOP controller"
@@ -137,66 +128,63 @@ check_page_cnt() {
   fi
 }
 
-# only allow 128 emop_controller jobs to be schedulated at a time
-check_queue_limit() {
-  if [ $Q_TOTAL -ge $Q_LIMIT ];then
-    echo "${Q_LIMIT} instances of ${APP_NAME} is already running."
+# only allow 128 emop_controller jobs to be scheduled at a time
+check_partition_limit() {
+  if [ $PARTITION_TOTAL -ge $PARTITION_LIMIT ];then
+    echo "${PARTITION_LIMIT} instances of ${APP_NAME} is already running."
     exit 1
   fi
 }
 
-# Script to execute qdel
-qdel_job() {
+# Script to execute scancel
+cancel_job() {
   local id=$1
 
   echo "Deleting queued job ${id}"
-  QDEL_CMD="qdel ${id}"
-  echo_verbose "Executing: ${QDEL_CMD}"
-  eval $QDEL_CMD
+  CANCEL_CMD="scancel ${id}"
+  echo_verbose "Executing: ${CANCEL_CMD}"
+  eval $CANCEL_CMD
   exit 1
 }
 
 # there is work in the emop job_queue. Schedule the controller to process these jobs
-qsub_job() {
+submit_job() {
   local numpages=$1
   local jobID=0
   # Set a delay of 1 minute for all jobs to allow reservation to complete
-  local qsub_delay=$(date --date="-1 minutes ago" +%H%M)
-  QSUB_CMD="qsub -a ${qsub_delay} -q ${Q} -N ${APP_NAME} -v EMOP_HOME='$EMOP_HOME' -e ${LOGDIR} -o ${LOGDIR} emop.pbs"
+  SUBMIT_CMD="sbatch --parsable --begin=now+60 -p ${PARTITION} -J ${APP_NAME} -o ${LOGFILE} emop.slrm"
 
-  echo_verbose "${NOOP_PREFIX}Executing: ${QSUB_CMD}"
+  echo_verbose "${NOOP_PREFIX}Executing: ${SUBMIT_CMD}"
   if [ $NOOP -eq 0 ]; then
-    qsub_return=`eval $QSUB_CMD`
+    jobID=`eval $QSUB_CMD`
     [ $? -ne 0 ] && { echo "qsub command failed" ; exit 1; }
-    # Converts a jobid from [0-9].domain to [0-9]
-    jobID="$(echo $qsub_return | cut -d'.' -f1)"
   else
     return
   fi
 
-  JOB_RESERVED_CNT=$(env EMOP_HOME=$EMOP_HOME java -jar emop-controller.jar -mode reserve -procid $jobID -numpages $numpages)
+  JOB_RESERVED_CNT=$(java -jar emop-controller.jar -mode reserve -procid $jobID -numpages $numpages 2>/dev/null)
   # If the reservation fails, delete the job that was just submitted
   if [ $? -ne 0 ]; then
     echo "Failed to reserve ${numpages} pages for jobID: ${jobID}"
-    qdel_job $jobID
+    cancel_job $jobID
   fi
 
   # If the return value from the reservation is not
   # the number of jobs to be reserved then qdel the job
   if [ $JOB_RESERVED_CNT -ne $numpages ]; then
     echo "Reserved count ${JOB_RESERVED_CNT} does not equal ${numpages}"
-    qdel_job $jobID
+    cancel_job $jobID
   fi
 }
 
 # Optimize pages per job based on maximum and minimum job runtimes
 optimize() {
-  runOptionA=`echo "$PAGE_CNT / $Q_AVAIL"|bc`
+  runOptionA=`echo "$PAGE_CNT / $PARTITION_AVAIL"|bc`
   runOptionB=`echo "$MAX_JOB_RUNTIME / $AVG_PAGE_RUNTIME"|bc`
   runOptionC=`echo "$MIN_JOB_RUNTIME / $AVG_PAGE_RUNTIME"|bc`
 
   if [ $runOptionA -gt $runOptionB ]; then
-    NUM_JOBS=$Q_AVAIL
+    NUM_JOBS=$PARTITION_AVAIL
     PAGES_PER_JOB=$runOptionB
   elif [ $PAGE_CNT -lt $runOptionC ]; then
     NUM_JOBS=$((PAGE_CNT / runOptionC))
@@ -225,11 +213,11 @@ local_test() {
   for pagecnt in 5 75 128 500 1280 128000; do
     PAGE_CNT=$pagecnt
     for qavail in 1 10 30 50 75 128; do
-      Q_AVAIL=$qavail
-      echo "## TEST Q_AVAIL ${Q_AVAIL} | PAGE_CNT ${PAGE_CNT} ##"
+      PARTITION_AVAIL=$qavail
+      echo "## TEST PARTITION_AVAIL ${PARTITION_AVAIL} | PAGE_CNT ${PAGE_CNT} ##"
       optimize
       
-      if [ $NUM_JOBS -eq 0 ] || [ $NUM_JOBS -gt $Q_LIMIT ]; then
+      if [ $NUM_JOBS -eq 0 ] || [ $NUM_JOBS -gt $PARTITION_LIMIT ]; then
         echo "## TEST FAILED | NUM_JOBS ${NUM_JOBS} | PAGES_PER_JOB ${PAGES_PER_JOB} ##"
         exit 1
       fi
@@ -247,12 +235,9 @@ fi
 # directories and paths exist
 ensure_environment
 
-# Bootstrap setup for jobs to run
-bootstrap_modules
-
 # Check queue limits
-check_queue_limit
-echo_verbose "Available queue slots: ${Q_AVAIL}"
+check_partition_limit
+echo_verbose "Available queue slots: ${PARTITION_AVAIL}"
 
 # Check if actual pages to OCR
 check_page_cnt
@@ -266,15 +251,15 @@ fi
 echo "${NOOP_PREFIX}Executing ${NUM_JOBS} jobs with ${PAGES_PER_JOB} pages per job"
 if [ $NOOP -eq 0 ]; then
   for i in $(seq 1 $NUM_JOBS); do
-    qsub_job $PAGES_PER_JOB
+    submit_job $PAGES_PER_JOB
   done
 fi
 
 if [ $PAGES_PER_JOB -eq 0 -a $NUM_JOBS -eq 0 ]; then
-  if [ $PAGE_CNT -gt $TOTAL_PAGES_TO_RUN ] && [ $NUM_JOBS -lt $Q_AVAIL ]; then
+  if [ $PAGE_CNT -gt $TOTAL_PAGES_TO_RUN ] && [ $NUM_JOBS -lt $PARTITION_AVAIL ]; then
     PAGES_REMAINDER=`echo "$PAGE_CNT - $TOTAL_PAGES_TO_RUN"|bc`
     echo "${NOOP_PREFIX}Executing 1 job with ${PAGES_REMAINDER} pages"
-    [ $NOOP -eq 0 ] && qsub_job $PAGES_REMAINDER
+    [ $NOOP -eq 0 ] && submit_job $PAGES_REMAINDER
   fi
 fi
 
