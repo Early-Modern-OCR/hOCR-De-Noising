@@ -156,8 +156,8 @@ submit_job() {
 
   echo_verbose "${NOOP_PREFIX}Executing: ${SUBMIT_CMD}"
   if [ $NOOP -eq 0 ]; then
-    jobID=`eval $QSUB_CMD`
-    [ $? -ne 0 ] && { echo "qsub command failed" ; exit 1; }
+    jobID=`eval $SUBMIT_CMD`
+    [ $? -ne 0 ] && { echo "sbatch command failed" ; exit 1; }
   else
     return
   fi
