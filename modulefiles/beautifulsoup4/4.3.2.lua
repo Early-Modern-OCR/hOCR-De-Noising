@@ -11,4 +11,4 @@ local pythonpath = pathJoin(prefix, "lib/python2.7/site-packages")
 
 prereq('python')
 
-prepend_path("PYTHONPATH", prefix)
+prepend_path("PYTHONPATH", pythonpath)

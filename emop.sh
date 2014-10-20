@@ -83,7 +83,7 @@ APP_NAME="emop-controller"
 [ -f ${EMOP_HOME}/emop.conf ] && source ${EMOP_HOME}/emop.conf
 
 LOGDIR=${LOGDIR-${EMOP_HOME}/logs}
-LOGFILE="${LOGDIR}/${APP_NAME}.out"
+LOGFILE="${LOGDIR}/${APP_NAME}-%j.out"
 
 PARTITION="idhmc"
 PARTITION_LIMIT=128
