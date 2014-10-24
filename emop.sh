@@ -2,6 +2,7 @@
 
 export _JAVA_OPTIONS="-Xmx32m -Xms16m"
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DEBUG=0
 VERBOSE=0
 QUIET=0
@@ -9,6 +10,8 @@ NOOP=0
 TEST=0
 PAGES_PER_JOB=0
 NUM_JOBS=0
+PARTITION="idhmc"
+PARTITION_LIMIT=128
 
 SCRIPT_NAME=$(basename $0)
 
@@ -33,6 +36,7 @@ OPTIONS:
                       testing 'division of labor'.
   --pages-per-job=N   Defaults to 0 which lets the script determine the optimal number
   --num-jobs=N        Defaults to 0 which lets the script determine the optimal number
+  --partition         SLURM partition to use (Default: ${PARTITION})
 
 EXAMPLE:
 
@@ -47,7 +51,7 @@ Run script without submitting a job and viewing verbose output
 EOF
 }
 
-ARGS=`getopt -o hdvqnt -l help,debug,verbose,quiet,noop,test,pages-per-job:,num-jobs: -n "$0" -- "$@"`
+ARGS=`getopt -o hdvqnt -l help,debug,verbose,quiet,noop,test,pages-per-job:,num-jobs:,partition: -n "$0" -- "$@"`
 
 [ $? -ne 0 ] && { usage; exit 1; }
 
@@ -63,6 +67,7 @@ while true; do
     -t|--test) NOOP=1 ; TEST=1 ; shift ;;
     --pages-per-job) PAGES_PER_JOB=$2 ; shift 2 ;;
     --num-jobs) NUM_JOBS=$2 ; shift 2 ;;
+    --partition) PARTITION=$2 ; shift 2 ;;
     --) shift ; break ;;
     *) break ;;
   esac
@@ -76,8 +81,8 @@ export PATH=$PATH:/usr/local/bin
 # this script lives in the root directory of the emop controller
 # be sure to cd to this directory no matter how the script was 
 # launched 
-cd $(dirname $0)
-export EMOP_HOME=$(pwd)
+cd $DIR
+export EMOP_HOME=$DIR
 APP_NAME="emop-controller"
 
 [ -f ${EMOP_HOME}/emop.conf ] && source ${EMOP_HOME}/emop.conf
@@ -85,8 +90,6 @@ APP_NAME="emop-controller"
 LOGDIR=${LOGDIR-${EMOP_HOME}/logs}
 LOGFILE="${LOGDIR}/${APP_NAME}-%j.out"
 
-PARTITION="idhmc"
-PARTITION_LIMIT=128
 TOTAL_PAGES_TO_RUN=0
 AVG_PAGE_RUNTIME=20
 MIN_JOB_RUNTIME=300
@@ -115,7 +118,7 @@ ensure_environment() {
 
 # ensure that there is work to do before scheduling
 check_page_cnt() {
-  PAGE_CNT=$(java -jar emop-controller.jar -mode check 2>/dev/null)
+  PAGE_CNT=$(java -jar emop-controller.jar -mode check 2>/dev/null | tail -n1)
   if [ $? -ne 0 ];then
     # do not submit a new controller if there were  errors checking count
     echo "Unable to determine job count. Not launching eMOP controller"
@@ -162,7 +165,7 @@ submit_job() {
     return
   fi
 
-  JOB_RESERVED_CNT=$(java -jar emop-controller.jar -mode reserve -procid $jobID -numpages $numpages 2>/dev/null)
+  JOB_RESERVED_CNT=$(java -jar emop-controller.jar -mode reserve -procid $jobID -numpages $numpages 2>/dev/null | tail -n1)
   # If the reservation fails, delete the job that was just submitted
   if [ $? -ne 0 ]; then
     echo "Failed to reserve ${numpages} pages for jobID: ${jobID}"
