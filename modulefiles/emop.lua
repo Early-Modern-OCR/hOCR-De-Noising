@@ -9,7 +9,9 @@ load("java/1.7.0_67")
 
 if (mode() == "load") then
   if (not os.getenv("EMOP_HOME")) then
-    LmodMessage("WARNING: EMOP_HOME is not set.")
+    local cwd = lfs.currentdir()
+    LmodMessage("WARNING: EMOP_HOME is not set, setting to ", cwd)
+    pushenv("EMOP_HOME", cwd)
   else
     local emop_home = os.getenv("EMOP_HOME")
     pushenv("JUXTA_HOME", pathJoin(emop_home, "lib/juxta-cl"))
