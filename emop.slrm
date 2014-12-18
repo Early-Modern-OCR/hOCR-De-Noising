@@ -8,9 +8,6 @@
 module use ${EMOP_HOME}/modulefiles
 module load emop
 
-unset _JAVA_OPTIONS
-PROC_ID=$SLURM_JOB_ID
-
 export OPENBLAS_NUM_THREADS=$SLURM_NTASKS
 export OMP_NUM_THREADS=$SLURM_NTASKS
 
@@ -22,7 +19,9 @@ echo "-=-"
 umask 002
 
 # launch instance of the controller which runs until killed or no jobs remain
-java -Xmx32m -Xms16m -jar $EMOP_HOME/emop-controller.jar -mode run -procid ${PROC_ID}
+CMD="python $EMOP_HOME/emop.py --mode run --proc-id ${PROC_ID}"
+echo "Executing: ${CMD}"
+eval $CMD
 
 # Done; print the end time and host.
 echo "-=-"

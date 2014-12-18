@@ -1,0 +1,21 @@
+[dashboard]
+api_version: 1
+url_base: http://emop-dashboard-dev.tamu.edu
+auth_token: changeme
+
+[controller]
+payload_input_path: payload/input
+payload_output_path: payload/output
+ocr_root: /data/shared/text-xml/IDHMC-ocr
+input_path_prefix: /dh
+output_path_prefix: /dh
+log_level: DEBUG
+
+[scheduler]
+max_jobs: 128
+queue: idhmc
+name: emop-controller
+min_job_runtime: 300
+max_job_runtime: 3600
+avg_page_runtime: 20
+logdir: logs

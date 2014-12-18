@@ -3,3 +3,10 @@ emop.conf
 logs/*
 !logs/.gitkeep
 emop.sh.log
+
+*.pyc
+config.ini
+payload/input/*
+!payload/input/.keep
+payload/output/*
+!payload/output/.keep
