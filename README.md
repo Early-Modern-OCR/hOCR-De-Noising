@@ -31,7 +31,14 @@ Add the following to your login scripts such as ~/.bashrc
 
     umask 002
 
+Rename the following configuration files and change their values as needed:
+
+* emop.properties.example to emop.properties
+* config.ini.example to config.ini
+
 The file `config.ini` contains all the configuration options used by the emop-controller.
+
+The file `emop.properties` is legacy and currently only used by the PageCorrector post-process.
 
 ## Running
 
