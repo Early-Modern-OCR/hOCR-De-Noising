@@ -1,0 +1,3 @@
+[submodule "ext/seasr"]
+	path = ext/seasr
+	url = git@gitlab.tamu.edu:emop/seasr.git
