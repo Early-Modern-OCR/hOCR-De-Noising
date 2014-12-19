@@ -15,7 +15,7 @@ if os.environ.get("_JAVA_OPTIONS"):
 # Define defaults and values used for command line options
 default_config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')
 mandatory_opts = ['mode']
-modes = ['check','submit','run']
+modes = ['check', 'submit', 'run']
 
 # Define command line options
 parser = optparse.OptionParser()
@@ -113,4 +113,3 @@ elif opts.mode == 'submit':
 elif opts.mode == 'run':
     emop_run = EmopRun(opts.config_path, opts.proc_id)
     run_status = emop_run.run()
-

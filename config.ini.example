@@ -11,26 +11,58 @@
 #
 ###########
 [dashboard]
-api_version: 1
-url_base: http://emop-dashboard-dev.tamu.edu
-auth_token: changeme
+api_version = 1
+url_base = http://emop-dashboard-dev.tamu.edu
+auth_token = changeme
 
 [controller]
-payload_input_path: %(emop_home)s/payload/input
-payload_output_path: %(emop_home)s/payload/output
-ocr_root: /data/shared/text-xml/IDHMC-ocr
-input_path_prefix: /dh
-output_path_prefix: /dh
-log_level: INFO
+payload_input_path = %(emop_home)s/payload/input
+payload_output_path = %(emop_home)s/payload/output
+ocr_root = /data/shared/text-xml/IDHMC-ocr
+input_path_prefix = /dh
+output_path_prefix = /dh
+log_level = INFO
 
 [scheduler]
-max_jobs: 128
-queue: idhmc
-name: emop-controller
-min_job_runtime: 300
-max_job_runtime: 3600
-avg_page_runtime: 20
-logdir: %(emop_home)s/logs
+max_jobs = 128
+queue = idhmc
+name = emop-controller
+min_job_runtime = 300
+max_job_runtime = 3600
+avg_page_runtime = 20
+logdir = %(emop_home)s/logs
 
 [juxta-cl]
-jx_algorithm: jaro_winkler
+jx_algorithm = jaro_winkler
+
+# DO NOT MODIFY BELOW THIS LINE
+[loggers]
+keys = root,emop
+
+[handlers]
+keys = console
+
+[formatters]
+keys = simple
+
+[logger_root]
+handlers = console
+
+[logger_emop]
+handlers = console
+qualname = emop
+propagate = 0
+
+[handler_console]
+class = StreamHandler
+formatter = simple
+args = (sys.stdout,)
+
+[formatter_simple]
+format=[%(asctime)s] %(levelname)s: %(message)s
+datefmt=%Y-%m-%dT%H:%M:%S
+
+[flake8]
+ignore = E501
+exclude = lib/denoise/deNoise_Post.py,test.py
+max-complexity = 10

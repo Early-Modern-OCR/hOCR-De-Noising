@@ -52,12 +52,12 @@ All interaction with the emop-controller is done through `emop.py`.  This script
 
 This is an example of submitting a single page to run in a single job:
 
-./emop.py --mode submit --num-jobs 1 --pages-per-job 1
+    ./emop.py --mode submit --num-jobs 1 --pages-per-job 1
 
 This is an example of submitting and letting the emop-controller determine the optimal
 number of jobs and pages-per-job to submit:
 
-./emop.py --mode submit
+    ./emop.py --mode submit
 
 ## Support
 
@@ -74,3 +74,9 @@ Only the following versions of each dependency have been tested.
 * tesseract - SVN revision 889
 
 See `modulefiles/emop.lua` and `modulefiles/emop-build.lua` for a list of all the applications used
+
+## Development
+
+Running lint tests
+
+    flake8 --config config.ini .
