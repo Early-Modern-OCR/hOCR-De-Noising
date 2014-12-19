@@ -42,7 +42,22 @@ The file `emop.properties` is legacy and currently only used by the PageCorrecto
 
 ## Running
 
-TODO
+All interaction with the emop-controller is done through `emop.py`.  This script has a set of "modes" that determine the operations performed.
+
+* check - query the number of pending pages
+* submit - submit jobs to the cluster
+* run - run a job
+
+### Submitting
+
+This is an example of submitting a single page to run in a single job:
+
+./emop.py --mode submit --num-jobs 1 --pages-per-job 1
+
+This is an example of submitting and letting the emop-controller determine the optimal
+number of jobs and pages-per-job to submit:
+
+./emop.py --mode submit
 
 ## Support
 

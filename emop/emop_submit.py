@@ -59,14 +59,13 @@ class EmopSubmit(EmopBase):
         proc_id = reserve_request.get('proc_id')
         results = reserve_request.get('results')
         logger.debug("Requested %s pages, and %s were reserved with proc_id: %s" % (requested, reserved, proc_id))
-        # TODO Remove this debug output
-        print "Payload:"
-        print str(results)
+        logger.debug("Payload: %s" % str(results))
 
         if reserved < 1:
             logger.error("No pages reserved")
             return None
 
+        return None
         self.payload = EmopPayload(self.settings.payload_input_path, self.settings.payload_output_path, proc_id)
         self.payload.save_input(results)
 

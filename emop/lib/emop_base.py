@@ -4,6 +4,8 @@ import collections
 import os
 import re
 import logging
+import logging.config
+import sys
 import time
 from emop.lib.emop_settings import EmopSettings
 from emop.lib.emop_api import EmopAPI
@@ -19,17 +21,15 @@ class EmopBase(object):
         self.emop_api = EmopAPI(self.settings.url_base, self.settings.api_headers)
         os.environ['EMOP_HOME'] = self.settings.emop_home
 
-        logging_format = '[%(asctime)s] %(levelname)s: %(message)s'
         logging_level = getattr(logging, self.settings.log_level)
-        logging_datefmt = '%Y-%m-%dT%H:%M:%S'
-        logger = logging.getLogger('emop')
-        logger.setLevel(logging_level)
-        logger_handler = logging.StreamHandler()
-        logger_handler.setLevel(logging_level)
-        logger_formatter = logging.Formatter(logging_format)
-        logger_handler.setFormatter(logger_formatter)
-        logger.addHandler(logger_handler)
-        
+        # logging_format = '[%(asctime)s] %(levelname)s: %(message)s'
+        # logging_datefmt = '%Y-%m-%dT%H:%M:%S'
+        # logging.basicConfig(level=logging_level, format=logging_format, datefmt=logging_datefmt)
+        # logging.getLogger('requests').setLevel(logging.WARNING)
+
+        logging.config.fileConfig(config_path, disable_existing_loggers=True)
+        logging.getLogger('emop').setLevel(logging_level)
+
         logger.debug("%s: %s" % (self.settings.__class__.__name__, EmopStdlib.to_JSON(self.settings)))
 
     @staticmethod
@@ -38,8 +38,6 @@ class EmopBase(object):
             start = time.time()
             ret = func(*args, **kwargs)
             elapsed = time.time() - start
-            print "DEBUG: %s" % start
-            print "DEBUG: %s" % elapsed
             logger.info("TOTAL TIME: %0.3f" % elapsed)
             return ret
         return wrap
