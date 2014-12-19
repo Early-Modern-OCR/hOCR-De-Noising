@@ -1,7 +1,10 @@
 import collections
+import logging
 import os
 import xml.etree.ElementTree as ET
 from emop.lib.processes.processes_base import ProcessesBase
+
+logger = logging.getLogger('emop')
 
 
 class XML_To_Text(ProcessesBase):
@@ -15,6 +18,8 @@ class XML_To_Text(ProcessesBase):
         if not self.idhmc_xml_file or not os.path.isfile(self.idhmc_xml_file):
             stderr = "XML to Text: Could not find XML file"
             return Results(stdout=None, stderr=stderr, exitcode=1)
+
+        logging.debug("XML_To_Text: Converting %s to %s" % (self.idhmc_xml_file, self.idhmc_txt_file))
 
         xml = ET.parse(self.idhmc_xml_file)
 
@@ -32,7 +37,6 @@ class XML_To_Text(ProcessesBase):
             lines_text.append(line_text)
 
         text = "\n".join(lines_text)
-        print text
 
         with open(self.idhmc_txt_file, 'w') as txt_file:
             txt_file.write(text)

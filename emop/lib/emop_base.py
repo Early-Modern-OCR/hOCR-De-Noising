@@ -7,6 +7,7 @@ import logging
 import time
 from emop.lib.emop_settings import EmopSettings
 from emop.lib.emop_api import EmopAPI
+from emop.lib.emop_stdlib import EmopStdlib
 
 logger = logging.getLogger('emop')
 
@@ -21,9 +22,15 @@ class EmopBase(object):
         logging_format = '[%(asctime)s] %(levelname)s: %(message)s'
         logging_level = getattr(logging, self.settings.log_level)
         logging_datefmt = '%Y-%m-%dT%H:%M:%S'
-        # logger = logging.getLogger('emop')
-        logging.basicConfig(format=logging_format, level=logging_level, datefmt=logging_datefmt)
-        logging.getLogger("requests").setLevel(logging.WARNING)
+        logger = logging.getLogger('emop')
+        logger.setLevel(logging_level)
+        logger_handler = logging.StreamHandler()
+        logger_handler.setLevel(logging_level)
+        logger_formatter = logging.Formatter(logging_format)
+        logger_handler.setFormatter(logger_formatter)
+        logger.addHandler(logger_handler)
+        
+        logger.debug("%s: %s" % (self.settings.__class__.__name__, EmopStdlib.to_JSON(self.settings)))
 
     @staticmethod
     def timing(func):

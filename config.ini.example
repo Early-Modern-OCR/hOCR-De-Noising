@@ -1,15 +1,27 @@
+###########
+# emop-controller configuration file
+#
+# The following are values that can be used for interpolation
+#
+#   * %(emop_home)s - This will be replaced with the EMOP_HOME
+#                     environment variable.  If that value is
+#                     absent the directory of this file is used.
+#   * %(home)s      - This will be replaced with the value of the HOME
+#                     environment variable.
+#
+###########
 [dashboard]
 api_version: 1
 url_base: http://emop-dashboard-dev.tamu.edu
 auth_token: changeme
 
 [controller]
-payload_input_path: payload/input
-payload_output_path: payload/output
+payload_input_path: %(emop_home)s/payload/input
+payload_output_path: %(emop_home)s/payload/output
 ocr_root: /data/shared/text-xml/IDHMC-ocr
 input_path_prefix: /dh
 output_path_prefix: /dh
-log_level: DEBUG
+log_level: INFO
 
 [scheduler]
 max_jobs: 128
@@ -18,8 +30,7 @@ name: emop-controller
 min_job_runtime: 300
 max_job_runtime: 3600
 avg_page_runtime: 20
-logdir: logs
+logdir: %(emop_home)s/logs
 
 [juxta-cl]
-# options: juxta, levenshtein, jaro_winkler
 jx_algorithm: jaro_winkler
