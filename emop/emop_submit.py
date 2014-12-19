@@ -65,7 +65,6 @@ class EmopSubmit(EmopBase):
             logger.error("No pages reserved")
             return None
 
-        return None
         self.payload = EmopPayload(self.settings.payload_input_path, self.settings.payload_output_path, proc_id)
         self.payload.save_input(results)
 
