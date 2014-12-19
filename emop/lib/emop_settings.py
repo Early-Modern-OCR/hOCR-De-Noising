@@ -46,7 +46,6 @@ class EmopSettings(object):
         # Settings used by Juxta-cl
         self.juxta_cl_jx_algorithm = self.get_value('juxta-cl', 'jx_algorithm')
 
-
     def get_value(self, section, option, default=None):
         interpolation_map = {
             "home": os.getenv("HOME"),

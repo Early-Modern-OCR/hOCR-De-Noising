@@ -9,6 +9,7 @@ class EmopEncoder(json.JSONEncoder):
         else:
             return str(type(obj))
 
+
 class EmopStdlib(object):
 
     @staticmethod

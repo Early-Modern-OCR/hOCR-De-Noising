@@ -5,7 +5,6 @@ import os
 import re
 import logging
 import logging.config
-import sys
 import time
 from emop.lib.emop_settings import EmopSettings
 from emop.lib.emop_api import EmopAPI
