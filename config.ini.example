@@ -19,3 +19,7 @@ min_job_runtime: 300
 max_job_runtime: 3600
 avg_page_runtime: 20
 logdir: logs
+
+[juxta-cl]
+# options: juxta, levenshtein, jaro_winkler
+jx_algorithm: jaro_winkler

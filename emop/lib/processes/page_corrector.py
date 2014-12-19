@@ -36,7 +36,8 @@ class PageCorrector(ProcessesBase):
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:
-            stderr = "PageCorrector failed: %s" % proc.stderr
+            # TODO: PageCorrector errors are going to stdout not stderr
+            stderr = "PageCorrector failed: %s" % proc.stdout
             return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()

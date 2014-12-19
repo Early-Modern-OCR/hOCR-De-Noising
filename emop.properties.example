@@ -3,6 +3,7 @@ db_host: localhost
 db_name: emop
 db_user: root
 db_pass: pass
+db_ngrams: google_1grams
 
 # logging level. Options are DEBUG, INFO, ERROR
 log_level: INFO

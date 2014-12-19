@@ -10,6 +10,7 @@ class JuxtaCompare(ProcessesBase):
         super(self.__class__, self).__init__(job)
         self.home = os.environ["JUXTA_HOME"]
         self.executable = os.path.join(self.home, "juxta-cl.jar")
+        self.jx_algorithm = job.settings.juxta_cl_jx_algorithm
 
     def run(self, postproc):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
@@ -28,7 +29,7 @@ class JuxtaCompare(ProcessesBase):
 
         cmd = [
             "java", "-Xms128M", "-Xmx128M", "-jar", self.executable, "-diff", self.job.ground_truth_file, input_file,
-            "-algorithm", "jaro_winkler", "-hyphen", "none"
+            "-algorithm", self.jx_algorithm, "-hyphen", "none"
         ]
 
         proc = EmopBase.exec_cmd(cmd)

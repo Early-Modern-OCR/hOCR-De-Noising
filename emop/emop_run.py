@@ -82,7 +82,7 @@ class EmopRun(EmopBase):
         image_path = self.get_image_path(page, work)
         # TODO adding prefix should be handled by EmopPage class
         ground_truth_file = EmopBase.add_prefix(self.settings.input_path_prefix, page.ground_truth_file)
-        emop_job = EmopJob(job["id"], output_root_dir, image_path, batch_job, font, page, work, ground_truth_file)
+        emop_job = EmopJob(job["id"], output_root_dir, image_path, batch_job, font, page, work, ground_truth_file, self.settings)
 
         # TODO: Remove
         # print "PAGE: \n %s" % json.dumps(vars(page), sort_keys=True, indent=4)

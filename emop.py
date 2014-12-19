@@ -7,6 +7,11 @@ from emop.emop_query import EmopQuery
 from emop.emop_submit import EmopSubmit
 from emop.emop_run import EmopRun
 
+# Needed to prevent this from breaking some of the post processes
+# that use Java
+if os.environ.get("_JAVA_OPTIONS"):
+    del os.environ["_JAVA_OPTIONS"]
+
 default_config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')
 
 parser = optparse.OptionParser()
