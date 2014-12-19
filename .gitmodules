@@ -4,3 +4,6 @@
 [submodule "ext/Juxta-cl"]
 	path = ext/Juxta-cl
 	url = https://github.com/idhmc-tamu/Juxta-cl.git
+[submodule "ext/RETAS"]
+	path = ext/RETAS
+	url = https://github.com/idhmc-tamu/RETAS.git
