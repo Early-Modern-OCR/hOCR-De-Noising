@@ -1,9 +1,9 @@
-[submodule "ext/seasr"]
-	path = ext/seasr
+[submodule "src/seasr"]
+	path = src/seasr
 	url = git@gitlab.tamu.edu:emop/seasr.git
-[submodule "ext/Juxta-cl"]
-	path = ext/Juxta-cl
+[submodule "src/Juxta-cl"]
+	path = src/Juxta-cl
 	url = https://github.com/idhmc-tamu/Juxta-cl.git
-[submodule "ext/RETAS"]
-	path = ext/RETAS
+[submodule "src/RETAS"]
+	path = src/RETAS
 	url = https://github.com/idhmc-tamu/RETAS.git
