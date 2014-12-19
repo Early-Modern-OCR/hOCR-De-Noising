@@ -1,6 +1,6 @@
 [submodule "src/seasr"]
 	path = src/seasr
-	url = git@gitlab.tamu.edu:emop/seasr.git
+	url = git@github.tamu.edu:emop/seasr.git
 [submodule "src/Juxta-cl"]
 	path = src/Juxta-cl
 	url = https://github.com/idhmc-tamu/Juxta-cl.git

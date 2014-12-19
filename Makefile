@@ -39,7 +39,7 @@ install_juxta_cl:
 
 install_retas:
 	install -d $(RETAS_HOME)
-	jar cf $(RETAS_HOME)/retas.jar $(SRC_DIR)/RETAS/*.class
+	cd $(SRC_DIR)/RETAS && jar cfe $(RETAS_HOME)/retas.jar RecursiveAlignmentTool *.class
 	install -m 0664 $(SRC_DIR)/RETAS/config.txt $(RETAS_HOME)/config.txt
 
 clean: clean_seasr clean_juxta_cl clean_retas
