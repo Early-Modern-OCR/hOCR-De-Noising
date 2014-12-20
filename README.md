@@ -2,11 +2,21 @@
 
 The Brazos Cluster controller process for the eMOP workflow.
 
+## Install
+
+Clone this repository and merge in the submodules
+
+    git clone git@github.tamu.edu:emop/emop-controller.git
+    cd emop-controller
+    # Temporary until python rewrite is merged into master
+    git checkout -b python-rewrite origin/python-rewrite
+    git submodule update --init
+
 ## Build
 
 Step #1 is specific to the Brazos cluster and can be skipped if you have maven available.
 
-1. Load maven module.
+1. Load emop-build module.
 
         module use ./modulefiles
         module load emop-build
@@ -14,6 +24,10 @@ Step #1 is specific to the Brazos cluster and can be skipped if you have maven a
 2. Build and install all necessary dependencies.
 
         make
+
+3. Unload the emop-build module.
+
+        module unload emop-build
 
 ## Setup
 
@@ -47,6 +61,11 @@ All interaction with the emop-controller is done through `emop.py`.  This script
 * check - query the number of pending pages
 * submit - submit jobs to the cluster
 * run - run a job
+
+Be sure the emop module is loaded before executing emop.py
+
+    module use ./modulefiles
+    module load emop
 
 ### Submitting
 
