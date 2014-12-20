@@ -48,7 +48,7 @@ class EmopBase(object):
         return full_path
 
     @staticmethod
-    def exec_cmd(cmd):
+    def exec_cmd(cmd, log_level="info"):
         if isinstance(cmd, basestring):
             cmd_str = cmd
             cmd = shlex.split(cmd)
@@ -56,7 +56,7 @@ class EmopBase(object):
             cmd_str = " ".join(cmd)
 
         try:
-            logger.info("Executing: '%s'" % cmd_str)
+            getattr(logger, log_level)("Executing: '%s'" % cmd_str)
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
             process.wait()
             out, err = process.communicate()

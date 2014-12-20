@@ -1,3 +1,4 @@
+import codecs
 import collections
 import logging
 import os
@@ -19,7 +20,7 @@ class XML_To_Text(ProcessesBase):
             stderr = "XML to Text: Could not find XML file"
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
-        logging.debug("XML_To_Text: Converting %s to %s" % (self.idhmc_xml_file, self.idhmc_txt_file))
+        logger.info("XML_To_Text: Converting %s to %s" % (self.idhmc_xml_file, self.idhmc_txt_file))
 
         xml = ET.parse(self.idhmc_xml_file)
 
@@ -36,8 +37,12 @@ class XML_To_Text(ProcessesBase):
             line_text = " ".join(filter(None, words_list))
             lines_text.append(line_text)
 
-        text = "\n".join(lines_text)
+        try:
+            text = "\n".join(lines_text).encode("utf-8")
+        except UnicodeDecodeError:
+            text = "\n".join(lines_text)
 
+        # TODO Move file write operations to emop_base or emop_stdlib and handle encoding there
         with open(self.idhmc_txt_file, 'w') as txt_file:
             txt_file.write(text)
 

@@ -13,7 +13,7 @@ class EmopSubmit(EmopBase):
 
     def current_job_count(self):
         cmd = ["squeue", "-r", "--noheader", "-p", self.settings.slurm_queue, "-n", self.settings.slurm_job_name]
-        proc = EmopBase.exec_cmd(cmd)
+        proc = EmopBase.exec_cmd(cmd, log_level="debug")
         lines = proc.stdout.splitlines()
         num = len(lines)
         return num
@@ -70,6 +70,6 @@ class EmopSubmit(EmopBase):
 
         os.environ['PROC_ID'] = proc_id
         cmd = ["sbatch", "--parsable", "-p", self.settings.slurm_queue, "-J", self.settings.slurm_job_name, "-o", self.settings.slurm_logfile, "emop.slrm"]
-        proc = EmopBase.exec_cmd(cmd)
+        proc = EmopBase.exec_cmd(cmd, log_level="debug")
         out = proc.stdout.rstrip()
         logger.info("SLURM jobID: %s" % out)
