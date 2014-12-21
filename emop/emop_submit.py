@@ -9,9 +9,19 @@ logger = logging.getLogger('emop')
 class EmopSubmit(EmopBase):
 
     def __init__(self, config_path):
+        """ Initialize EmopSubmit object and attributes
+
+        Args:
+            config_path (str): path to application config file
+
+        """
         super(self.__class__, self).__init__(config_path)
 
     def current_job_count(self):
+        """Get count of this application's active jobs
+
+        Currently this returns Running+Pending jobs
+        """
         cmd = ["squeue", "-r", "--noheader", "-p", self.settings.slurm_queue, "-n", self.settings.slurm_job_name]
         proc = EmopBase.exec_cmd(cmd, log_level="debug")
         lines = proc.stdout.splitlines()
@@ -19,6 +29,19 @@ class EmopSubmit(EmopBase):
         return num
 
     def optimize_submit(self, page_count, running_job_count):
+        """Determine optimal job submission
+
+        This function attempts to determine the best number of jobs
+        and how many pages per job should be submitted to the scheduler.
+
+        This function does not return a value but sets the num_jobs and
+        pages_per_job attributes.
+
+        Args:
+            page_count (int): Number of pages needing to be processed
+            running_job_count (int): Number of active jobs
+
+        """
         job_slots_available = self.settings.max_jobs - running_job_count
         run_option_a = page_count / job_slots_available
         run_option_b = self.settings.max_job_runtime / self.settings.avg_page_runtime
@@ -48,6 +71,19 @@ class EmopSubmit(EmopBase):
         logger.debug("Optimal submission is %s jobs with %s pages per job" % (self.num_jobs, self.pages_per_job))
 
     def submit_job(self):
+        """Submit a job to SLURM
+
+        First reserve pages by sending PUT request to dashboard API.
+        The results from the dashboard API are then used to submit the job
+        to SLURM.
+
+        The PROC_ID environment variable is set so that the SLURM job can know
+        which JSON file to load.
+
+        Returns:
+            None is returned upon failure.
+
+        """
         reserve_data = {
             "job_queue": {"num_pages": self.pages_per_job}
         }
@@ -65,7 +101,7 @@ class EmopSubmit(EmopBase):
             logger.error("No pages reserved")
             return None
 
-        self.payload = EmopPayload(self.settings.payload_input_path, self.settings.payload_output_path, proc_id)
+        self.payload = EmopPayload(self.settings, proc_id)
         self.payload.save_input(results)
 
         os.environ['PROC_ID'] = proc_id

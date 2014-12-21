@@ -13,19 +13,23 @@ export OPENBLAS_NUM_THREADS=$SLURM_JOB_CPUS_PER_NODE
 export OMP_NUM_THREADS=$SLURM_JOB_CPUS_PER_NODE
 
 # Print out the starting time and host.
-echo "$SLURM_JOB_ID started on $(hostname) at $(date)"
+echo "${SLURM_JOB_ID} started on $(hostname) at $(date)"
 echo "-=-"
 
 # Set umask so directories can be read/written by others
 umask 002
 
 # launch instance of the controller which runs until killed or no jobs remain
-CMD="python $EMOP_HOME/emop.py --mode run --proc-id ${PROC_ID}"
-echo "Executing: ${CMD}"
-eval $CMD
+RUN_CMD="python ${EMOP_HOME}/emop.py --mode run --proc-id ${PROC_ID}"
+echo "Executing: ${RUN_CMD}"
+eval ${RUN_CMD}
+
+UPLOAD_CMD="python ${EMOP_HOME}/emop.py --mode upload --proc-id ${PROC_ID}"
+echo "Executing: ${UPLOAD_CMD}"
+eval ${UPLOAD_CMD}
 
 # Done; print the end time and host.
 echo "-=-"
-echo "$SLURM_JOB_ID ended on $(hostname) at $(date)"
+echo "${SLURM_JOB_ID} ended on $(hostname) at $(date)"
  
 exit 0

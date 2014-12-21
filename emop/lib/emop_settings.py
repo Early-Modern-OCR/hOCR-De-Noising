@@ -28,6 +28,8 @@ class EmopSettings(object):
         # Settings used by controller
         self.payload_input_path = self.get_value('controller', 'payload_input_path')
         self.payload_output_path = self.get_value('controller', 'payload_output_path')
+        self.payload_completed_path = os.path.join(self.payload_output_path, "completed")
+        self.payload_uploaded_path = os.path.join(self.payload_output_path, "uploaded")
         self.ocr_root = self.get_value('controller', 'ocr_root')
         self.input_path_prefix = self.get_value('controller', 'input_path_prefix')
         self.output_path_prefix = self.get_value('controller', 'output_path_prefix')

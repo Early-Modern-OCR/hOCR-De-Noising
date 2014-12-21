@@ -21,9 +21,15 @@ logger = logging.getLogger('emop')
 class EmopRun(EmopBase):
 
     def __init__(self, config_path, proc_id):
+        """ Initialize EmopRun object and attributes
+
+        Args:
+            config_path (str): path to application config file
+            proc_id (str or int): proc-id of this run
+        """
         super(self.__class__, self).__init__(config_path)
         self.proc_id = proc_id
-        self.payload = EmopPayload(self.settings.payload_input_path, self.settings.payload_output_path, proc_id)
+        self.payload = EmopPayload(self.settings, proc_id)
         self.results = {}
         self.jobs_completed = []
         self.jobs_failed = []
@@ -31,6 +37,19 @@ class EmopRun(EmopBase):
         self.postproc_results = []
 
     def get_image_path(self, page, work):
+        """Determine the full path of an image
+
+        This function may not be necessary but was added to maintain
+        compatibility with some of the old Java code
+
+        Args:
+            page (EmopPage): EmopPage object
+            work (EmopWork): EmopWork object
+
+        Returns:
+            str: Path to the page image
+            None is returned if no path could be determined which constitutes an error
+        """
         image_path = page.image_path
         if image_path:
             return EmopBase.add_prefix(self.settings.input_path_prefix, image_path)
@@ -49,6 +68,16 @@ class EmopRun(EmopBase):
                 return None
 
     def append_result(self, job, results, failed=False):
+        """Append a page's results to job's results payload
+
+        The results are saved to the output JSON file so that the status
+        of each page is saved upon failure or success.
+
+        Args:
+            job (EmopJob): EmopJob object
+            results (str): The error output of a particular process
+            failed (bool, optional): Sets if the result is a failure
+        """
         if failed:
             logger.error(results)
             self.jobs_failed.append({"id": job.id, "results": results})
@@ -59,107 +88,199 @@ class EmopRun(EmopBase):
         self.page_results.append(job.page_result.__dict__)
         self.postproc_results.append(job.postproc_result.__dict__)
 
+        current_results = self.get_results()
+        self.payload.save_output(data=current_results, overwrite=True)
+
+    def get_results(self):
+        """Get this object's results
+
+        Returns:
+            dict: Results to be used as payload to API
+        """
+        job_queues_data = {
+            "completed": self.jobs_completed,
+            "failed": self.jobs_failed,
+        }
+        data = {
+            "job_queues": job_queues_data,
+            "page_results": self.page_results,
+            "postproc_results": self.postproc_results,
+        }
+
+        return data
+
     def do_process(self, obj, job, **kwargs):
+        """ Run a process
+
+        This function is intended to handle calling and getting the
+        success or failure of a job's post process.
+
+        If a process does not return an exitcode of 0 then a failure has occurred
+        and the stderr is added to the job's results.
+
+        Args:
+            obj (object): The class of a process
+            job (EmopJob): EmopJob object
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
         klass = obj.__class__.__name__
         result = obj.run(**kwargs)
         if result.exitcode != 0:
             err = "%s Failed: %s" % (klass, result.stderr)
+            # TODO need to rework so failed doesn't mean done
             self.append_result(job=job, results=err, failed=True)
-            return None
+            return False
         else:
             return True
 
-    @EmopBase.timing
-    def do_ocr(self, batch_job, job):
-        font = EmopFont()
-        page = EmopPage()
-        work = EmopWork()
-        font.setattrs(job["batch_job"]["font"])
-        page.setattrs(job["page"])
-        work.setattrs(job["work"])
-        # TODO adding prefix should be handled else where
-        output_root_dir = EmopBase.add_prefix(self.settings.output_path_prefix, self.settings.ocr_root)
-        image_path = self.get_image_path(page, work)
-        # TODO adding prefix should be handled by EmopPage class
-        ground_truth_file = EmopBase.add_prefix(self.settings.input_path_prefix, page.ground_truth_file)
-        emop_job = EmopJob(job["id"], output_root_dir, image_path, batch_job, font, page, work, ground_truth_file, self.settings)
+    def do_ocr(self, job):
+        """Run the OCR
 
-        # TODO: Remove
-        # print "PAGE: \n %s" % json.dumps(vars(page), sort_keys=True, indent=4)
+        The actual OCR class is called from here.  Based on the value
+        of the ocr_engine, a different class will be called.
 
+        The ocr_results returned by the OCR class are used to determine if
+        the ocr was successful and the results are appended to global results.
+
+        Args:
+            job (EmopJob): EmopJob object
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
         logger.info(
             "Got job [%s] - Batch: %s JobType: %s OCR Engine: %s" %
-            (emop_job.id, emop_job.batch_job.name, emop_job.batch_job.job_type, emop_job.batch_job.ocr_engine)
+            (job.id, job.batch_job.name, job.batch_job.job_type, job.batch_job.ocr_engine)
         )
 
         # OCR #
-        ocr_engine = emop_job.batch_job.ocr_engine
+        ocr_engine = job.batch_job.ocr_engine
         if ocr_engine == "tesseract":
-            ocr = Tesseract(job=emop_job)
+            ocr = Tesseract(job=job)
             ocr_result = ocr.run()
         else:
             ocr_engine_err = "OCR with %s not yet supported" % ocr_engine
-            self.append_result(job=emop_job, results=ocr_engine_err, failed=True)
-            return
+            self.append_result(job=job, results=ocr_engine_err, failed=True)
+            return False
 
         if ocr_result.exitcode != 0:
             ocr_err = "OCR Failed: %s" % ocr_result.stderr
-            self.append_result(job=emop_job, results=ocr_err, failed=True)
-            return
+            self.append_result(job=job, results=ocr_err, failed=True)
+            return False
+        else:
+            return True
 
+    def do_postprocesses(self, job):
+        """Run the post processes
+
+        Each post process class is called from here.
+
+        Currently the steps are executed in the following order:
+            * Denoise
+            * XML_To_Text
+            * PageEvaluator
+            * PageCorrector
+            * JuxtaCompare (postprocess)
+            * JuxtaCompare
+            * RetasCompare (postprocess)
+            * RetasCompare
+
+        If any step fails, the function terminates and returns False.
+
+        Args:
+            job (EmopJob): EmopJob object
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
         # DeNoise #
-        denoise = Denoise(job=emop_job)
-        denoise_proc = self.do_process(denoise, emop_job)
+        denoise = Denoise(job=job)
+        denoise_proc = self.do_process(denoise, job)
         if not denoise_proc:
-            return
+            return False
 
         # _IDHMC.xml to _IDHMC.txt #
-        xml_to_text = XML_To_Text(job=emop_job)
-        xml_to_text_proc = self.do_process(xml_to_text, emop_job)
+        xml_to_text = XML_To_Text(job=job)
+        xml_to_text_proc = self.do_process(xml_to_text, job)
         if not xml_to_text_proc:
-            return
+            return False
 
         # PageEvaluator #
-        page_evaluator = PageEvaluator(job=emop_job)
-        page_evaluator_proc = self.do_process(page_evaluator, emop_job)
+        page_evaluator = PageEvaluator(job=job)
+        page_evaluator_proc = self.do_process(page_evaluator, job)
         if not page_evaluator_proc:
-            return
+            return False
 
         # PageCorrector #
-        page_corrector = PageCorrector(job=emop_job)
-        page_corrector_proc = self.do_process(page_corrector, emop_job)
+        page_corrector = PageCorrector(job=job)
+        page_corrector_proc = self.do_process(page_corrector, job)
         if not page_corrector_proc:
-            return
+            return False
 
         # JuxtaCompare postprocess and OCR output #
-        juxta_compare = JuxtaCompare(job=emop_job)
-        juxta_compare_proc_pp = self.do_process(juxta_compare, emop_job, postproc=True)
+        juxta_compare = JuxtaCompare(job=job)
+        juxta_compare_proc_pp = self.do_process(juxta_compare, job, postproc=True)
         if not juxta_compare_proc_pp:
-            return
-        juxta_compare_proc = self.do_process(juxta_compare, emop_job, postproc=False)
+            return False
+        juxta_compare_proc = self.do_process(juxta_compare, job, postproc=False)
         if not juxta_compare_proc:
-            return
+            return False
 
         # RetasCompare postprocess and OCR output #
-        retas_compare = RetasCompare(job=emop_job)
-        retas_compare_proc_pp = self.do_process(retas_compare, emop_job, postproc=True)
+        retas_compare = RetasCompare(job=job)
+        retas_compare_proc_pp = self.do_process(retas_compare, job, postproc=True)
         if not retas_compare_proc_pp:
-            return
-        retas_compare_proc = self.do_process(retas_compare, emop_job, postproc=False)
+            return False
+        retas_compare_proc = self.do_process(retas_compare, job, postproc=False)
         if not retas_compare_proc:
-            return
+            return False
 
-        # Append successful completion of page #
-        self.append_result(job=emop_job, results=None, failed=False)
+        return True
 
+    @EmopBase.page_timing
+    def do_job(self, job):
+        """Execute the parts of a page's job
+
+        Args:
+            job (EmopJob): EmopJob object
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        if not self.do_ocr(job=job):
+            return False
+        if not self.do_postprocesses(job=job):
+            return False
+        return True
+
+    @EmopBase.job_timing
     def run(self):
+        """Run the EmopJob
+
+        This function is intended to be what's called by external scripts
+        like emop.py to start all work.
+
+        Based on the payload's data, all pages are iterated over from here.
+
+        Once the loop of all jobs is complete the final results are saved
+        to a file as completed payload
+
+        Returns:
+            None is returned in the event of an error
+        """
         data = self.payload.load_input()
 
         if not data:
             logger.error("No payload data to load.")
             return None
         if self.payload.output_exists():
-            logger.error("Output file already exists.")
+            logger.error("Output file %s already exists." % self.payload.output_filename)
+            return None
+        if self.payload.completed_output_exists():
+            logger.error("Output file %s already exists." % self.payload.completed_output_filename)
             return None
 
         for job in data:
@@ -167,23 +288,29 @@ class EmopRun(EmopBase):
             batch_job.setattrs(job["batch_job"])
 
             if batch_job.job_type == "ocr":
-                self.do_ocr(batch_job=batch_job, job=job)
+                font = EmopFont()
+                page = EmopPage()
+                work = EmopWork()
+                font.setattrs(job["batch_job"]["font"])
+                page.setattrs(job["page"])
+                work.setattrs(job["work"])
+                # TODO adding prefix should be handled else where
+                output_root_dir = EmopBase.add_prefix(self.settings.output_path_prefix, self.settings.ocr_root)
+                image_path = self.get_image_path(page, work)
+                # TODO adding prefix should be handled by EmopPage class
+                ground_truth_file = EmopBase.add_prefix(self.settings.input_path_prefix, page.ground_truth_file)
+                emop_job = EmopJob(job["id"], output_root_dir, image_path, batch_job, font, page, work, ground_truth_file, self.settings)
+
+                job_succcessful = self.do_job(job=emop_job)
+                if not job_succcessful:
+                    continue
+                # Append successful completion of page #
+                self.append_result(job=emop_job, results=None, failed=False)
             # TODO
             # elif batch_job.job_type == "ground truth compare":
             else:
-                # TODO print some useful error
+                logger.error("JobType of %s is not yet supported." % batch_job.job_type)
                 return None
 
-        self.results["job_queues"] = {
-            "completed": self.jobs_completed,
-            "failed": self.jobs_failed,
-        }
-        self.results["page_results"] = self.page_results
-        self.results["postproc_results"] = self.postproc_results
-
-        # TODO Remove
-        print("Payload:")
-        print(json.dumps(self.results, sort_keys=True, indent=4))
-
-        # TODO Re-enable
-        # self.payload.save_output(self.results)
+        logger.debug("Payload: \n%s" % json.dumps(self.get_results(), sort_keys=True, indent=4))
+        self.payload.save_completed_output(data=self.get_results())

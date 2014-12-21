@@ -54,13 +54,16 @@ The file `config.ini` contains all the configuration options used by the emop-co
 
 The file `emop.properties` is legacy and currently only used by the PageCorrector post-process.
 
-## Running
+## Usage
 
 All interaction with the emop-controller is done through `emop.py`.  This script has a set of "modes" that determine the operations performed.
 
 * check - query the number of pending pages
 * submit - submit jobs to the cluster
 * run - run a job
+* upload - upload completed job results
+
+For full list of options execute `emop.py --help`
 
 Be sure the emop module is loaded before executing emop.py
 
@@ -77,6 +80,20 @@ This is an example of submitting and letting the emop-controller determine the o
 number of jobs and pages-per-job to submit:
 
     ./emop.py --mode submit
+
+### Uploading
+
+This example is what is used to upload data from a SLURM job
+
+    ./emop.py --mode upload --proc-id 20141220211214811
+
+This is an example of uploading a single file
+
+    ./emop.py --mode upload --upload-file payload/output/completed/20141220211214811.json
+
+This is an example of uploading an entire directory
+
+    ./emop.py --mode upload --upload-dir payload/output/completed
 
 ## Support
 

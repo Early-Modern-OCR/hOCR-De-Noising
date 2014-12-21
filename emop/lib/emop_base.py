@@ -32,7 +32,17 @@ class EmopBase(object):
         logger.debug("%s: %s" % (self.settings.__class__.__name__, EmopStdlib.to_JSON(self.settings)))
 
     @staticmethod
-    def timing(func):
+    def page_timing(func):
+        def wrap(*args, **kwargs):
+            start = time.time()
+            ret = func(*args, **kwargs)
+            elapsed = time.time() - start
+            logger.info("Job [%s] COMPLETE: Duration: %0.3f secs" % (kwargs.get('job').id, elapsed))
+            return ret
+        return wrap
+
+    @staticmethod
+    def job_timing(func):
         def wrap(*args, **kwargs):
             start = time.time()
             ret = func(*args, **kwargs)

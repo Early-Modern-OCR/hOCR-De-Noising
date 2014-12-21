@@ -4,10 +4,8 @@ logs/*
 
 *.pyc
 config.ini
-payload/input/*
-!payload/input/.keep
-payload/output/*
-!payload/output/.keep
+payload/**/*.json
+payload/**/**/*.json
 
 *.jar
 lib/juxta-cl/*.sh

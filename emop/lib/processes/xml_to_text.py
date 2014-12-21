@@ -1,4 +1,3 @@
-import codecs
 import collections
 import logging
 import os
@@ -32,11 +31,12 @@ class XML_To_Text(ProcessesBase):
             for word in words:
                 text = word.text or ""
                 for sub_ele in word:
-                    text += ET.tostring(sub_ele, encoding="utf-8", method="text")
+                    text += ET.tostring(sub_ele)
                 words_list.append(text)
             line_text = " ".join(filter(None, words_list))
             lines_text.append(line_text)
 
+        # Try to encode to UTF-8 so that the writing does not throw exception
         try:
             text = "\n".join(lines_text).encode("utf-8")
         except UnicodeDecodeError:
