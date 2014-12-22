@@ -27,12 +27,12 @@ run_opt_grp = optparse.OptionGroup(parser, "Run Options")
 upload_opt_grp = optparse.OptionGroup(parser, "Upload Options")
 
 mandatory_opt_grp.add_option('-m', '--mode',
-                          type='choice',
-                          help='Modes of operation. Choices: %s' % ", ".join(modes),
-                          dest='mode',
-                          action='store',
-                          choices=modes,
-                          nargs=1)
+                             type='choice',
+                             help='Modes of operation. Choices: %s' % ", ".join(modes),
+                             dest='mode',
+                             action='store',
+                             choices=modes,
+                             nargs=1)
 common_opt_grp.add_option('-c', '--config',
                           help='path to config.ini',
                           dest='config_path',
@@ -74,7 +74,7 @@ upload_opt_grp.add_option('--upload-dir',
 parser.add_option_group(mandatory_opt_grp)
 parser.add_option_group(common_opt_grp)
 parser.add_option_group(submit_opt_grp)
-#parser.add_option_group(run_opt_grp)
+# parser.add_option_group(run_opt_grp)
 parser.add_option_group(upload_opt_grp)
 (opts, args) = parser.parse_args()
 

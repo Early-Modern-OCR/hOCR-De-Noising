@@ -68,7 +68,7 @@ class EmopJob(object):
         """ Add filename suffix
 
         This function adds a suffix to a filename before the extension
-        
+
         Example:
         add_filename_suffix('5.xml', 'IDHMC')
             5.xml -> 5_IDHMC.xml
@@ -79,7 +79,6 @@ class EmopJob(object):
 
         Returns:
             str: The filename with suffix added before extension
-        
         """
         filename, ext = os.path.splitext(file)
         return "%s_%s%s" % (filename, suffix, ext)

@@ -113,6 +113,23 @@ See `modulefiles/emop.lua` and `modulefiles/emop-build.lua` for a list of all th
 
 ## Development
 
+The following Python modules are needed for development
+
+* flake8
+* sphinx
+
+Install using the following
+
+    pip install --user <module name>
+
+### Lint tests
+
 Running lint tests
 
     flake8 --config config.ini .
+
+### Documentation
+
+Build documentation using Sphinx
+
+    make docs

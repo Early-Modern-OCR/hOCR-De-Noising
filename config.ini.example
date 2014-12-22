@@ -64,5 +64,5 @@ datefmt=%Y-%m-%dT%H:%M:%S
 
 [flake8]
 ignore = E501
-exclude = lib/denoise/deNoise_Post.py,test.py
+exclude = lib/denoise/deNoise_Post.py,test.py,docs/conf.py
 max-complexity = 10

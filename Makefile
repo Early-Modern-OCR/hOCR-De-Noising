@@ -7,9 +7,14 @@ SEASR_HOME ?= $(LIB_DIR)/seasr
 JUXTA_HOME ?= $(LIB_DIR)/juxta-cl
 RETAS_HOME ?= $(LIB_DIR)/retas
 
+.PHONY: all docs
+
 _default: all
 
 all: build install
+
+docs:
+	cd docs && make html
 
 build: build_seasr build_juxta_cl build_retas
 
