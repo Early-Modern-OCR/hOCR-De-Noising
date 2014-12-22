@@ -14,12 +14,12 @@ class PageEvaluator(ProcessesBase):
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
-        if not self.xml_file or not os.path.isfile(self.xml_file):
+        if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "PageEvaluator Error: Could not find XML file"
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO Move -Xms and -Xmx into config.ini
-        cmd = ["java", "-Xms128M", "-Xmx128M", "-jar", self.executable, "-q", self.xml_file]
+        cmd = ["java", "-Xms128M", "-Xmx128M", "-jar", self.executable, "-q", self.job.xml_file]
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:

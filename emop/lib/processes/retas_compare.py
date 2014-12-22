@@ -16,13 +16,13 @@ class RetasCompare(ProcessesBase):
     def run(self, postproc):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
-        if not self.page.hasGroundTruth():
+        if not self.job.page.hasGroundTruth():
             return Results(stdout=None, stderr=None, exitcode=0)
 
         if postproc:
-            input_file = self.alto_txt_file
+            input_file = self.job.alto_txt_file
         else:
-            input_file = self.idhmc_txt_file
+            input_file = self.job.idhmc_txt_file
 
         if not input_file or not os.path.isfile(input_file):
             stderr = "Could not find RetasCompare input file: %s" % input_file

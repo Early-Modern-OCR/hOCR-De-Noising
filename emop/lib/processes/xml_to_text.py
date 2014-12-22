@@ -15,13 +15,13 @@ class XML_To_Text(ProcessesBase):
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
-        if not self.idhmc_xml_file or not os.path.isfile(self.idhmc_xml_file):
+        if not self.job.idhmc_xml_file or not os.path.isfile(self.job.idhmc_xml_file):
             stderr = "XML to Text: Could not find XML file"
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
-        logger.info("XML_To_Text: Converting %s to %s" % (self.idhmc_xml_file, self.idhmc_txt_file))
+        logger.info("XML_To_Text: Converting %s to %s" % (self.job.idhmc_xml_file, self.job.idhmc_txt_file))
 
-        xml = ET.parse(self.idhmc_xml_file)
+        xml = ET.parse(self.job.idhmc_xml_file)
 
         lines = xml.findall(".//*[@class='ocr_line']")
         lines_text = []
@@ -31,7 +31,9 @@ class XML_To_Text(ProcessesBase):
             for word in words:
                 text = word.text or ""
                 for sub_ele in word:
-                    text += ET.tostring(sub_ele)
+                    sub_ele_txt = sub_ele.text
+                    if sub_ele_txt:
+                        text += sub_ele_txt
                 words_list.append(text)
             line_text = " ".join(filter(None, words_list))
             lines_text.append(line_text)
@@ -43,7 +45,7 @@ class XML_To_Text(ProcessesBase):
             text = "\n".join(lines_text)
 
         # TODO Move file write operations to emop_base or emop_stdlib and handle encoding there
-        with open(self.idhmc_txt_file, 'w') as txt_file:
+        with open(self.job.idhmc_txt_file, 'w') as txt_file:
             txt_file.write(text)
 
         return Results(stdout=None, stderr=None, exitcode=0)

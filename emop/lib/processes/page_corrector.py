@@ -19,20 +19,20 @@ class PageCorrector(ProcessesBase):
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
-        if not self.xml_file or not os.path.isfile(self.xml_file):
+        if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "PageCorrector Error: Could not find XML file"
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO Move -Xms and -Xmx into config.ini
         cmd = [
             "java", "-Xms128M", "-Xmx512M", "-jar", self.executable, "--dbconf", self.cfg,
-            "-t", self.rules_file, "-o", self.output_dir, "--stats", "--dict"
+            "-t", self.rules_file, "-o", self.job.output_dir, "--stats", "--dict"
         ]
         for file in glob.glob("%s/*.dict" % self.dicts_dir):
             cmd.append(file)
 
         cmd.append("--")
-        cmd.append(self.xml_file)
+        cmd.append(self.job.xml_file)
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:

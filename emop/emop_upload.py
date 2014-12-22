@@ -14,6 +14,7 @@ class EmopUpload(EmopBase):
         super(self.__class__, self).__init__(config_path)
 
     def upload(self, data):
+        # TODO Validate data?
         logger.debug("Payload: \n%s" % json.dumps(data, sort_keys=True, indent=4))
         upload_request = self.emop_api.put_request("/api/batch_jobs/upload_results", data)
         if not upload_request:
@@ -37,7 +38,6 @@ class EmopUpload(EmopBase):
         with open(filename_path) as datafile:
             data = json.load(datafile)
 
-        # TODO Validate data?
         uploaded = self.upload(data)
         if uploaded:
             print "uploaded successfully"

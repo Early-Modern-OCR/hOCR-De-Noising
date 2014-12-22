@@ -10,18 +10,18 @@ class JuxtaCompare(ProcessesBase):
         super(self.__class__, self).__init__(job)
         self.home = os.environ["JUXTA_HOME"]
         self.executable = os.path.join(self.home, "juxta-cl.jar")
-        self.jx_algorithm = job.settings.juxta_cl_jx_algorithm
+        self.jx_algorithm = self.job.settings.juxta_cl_jx_algorithm
 
     def run(self, postproc):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
-        if not self.page.hasGroundTruth():
+        if not self.job.page.hasGroundTruth():
             return Results(stdout=None, stderr=None, exitcode=0)
 
         if postproc:
-            input_file = self.alto_txt_file
+            input_file = self.job.alto_txt_file
         else:
-            input_file = self.idhmc_txt_file
+            input_file = self.job.idhmc_txt_file
 
         if not input_file or not os.path.isfile(input_file):
             stderr = "Could not find JuxtaCompare input file: %s" % input_file

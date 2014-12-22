@@ -10,17 +10,16 @@ class Denoise(ProcessesBase):
         super(self.__class__, self).__init__(job)
         self.home = os.environ["DENOISE_HOME"]
         self.executable = os.path.join(self.home, "deNoise_Post.py")
+        # This adds a trailing /
+        self.xml_file_dir = os.path.join(self.job.output_dir, '')
+        self.xml_filename = os.path.basename(self.job.xml_file)
 
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
-        if not self.xml_file or not os.path.isfile(self.xml_file):
+        if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "Denoise: Could not find XML file"
             return Results(stdout=None, stderr=stderr, exitcode=1)
-
-        # This adds a trailing /
-        self.xml_file_dir = os.path.join(self.output_dir, '')
-        self.xml_filename = os.path.basename(self.xml_file)
 
         cmd = ["python", self.executable, "-p", self.xml_file_dir, "-n", self.xml_filename]
         proc = EmopBase.exec_cmd(cmd)

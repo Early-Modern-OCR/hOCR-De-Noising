@@ -36,37 +36,6 @@ class EmopRun(EmopBase):
         self.page_results = []
         self.postproc_results = []
 
-    def get_image_path(self, page, work):
-        """Determine the full path of an image
-
-        This function may not be necessary but was added to maintain
-        compatibility with some of the old Java code
-
-        Args:
-            page (EmopPage): EmopPage object
-            work (EmopWork): EmopWork object
-
-        Returns:
-            str: Path to the page image
-            None is returned if no path could be determined which constitutes an error
-        """
-        image_path = page.image_path
-        if image_path:
-            return EmopBase.add_prefix(self.settings.input_path_prefix, image_path)
-        # image path was not provided by API so one will be generated
-        else:
-            if work.is_ecco():
-                # ECCO format: ECCO number + 4 digit page + 0.tif
-                img = "%s/%s%04d0.tif" % (work.ecco_directory, work.ecco_number, page.number)
-                return img
-            else:
-                # EEBO format: 00014.000.001.tif where 00014 is the page number.
-                # EEBO is a problem because of the last segment before .tif. It is some
-                # kind of version info and can vary. Start with 0 and increase til
-                # a file is found.
-                # TODO
-                return None
-
     def append_result(self, job, results, failed=False):
         """Append a page's results to job's results payload
 
@@ -294,12 +263,7 @@ class EmopRun(EmopBase):
                 font.setattrs(job["batch_job"]["font"])
                 page.setattrs(job["page"])
                 work.setattrs(job["work"])
-                # TODO adding prefix should be handled else where
-                output_root_dir = EmopBase.add_prefix(self.settings.output_path_prefix, self.settings.ocr_root)
-                image_path = self.get_image_path(page, work)
-                # TODO adding prefix should be handled by EmopPage class
-                ground_truth_file = EmopBase.add_prefix(self.settings.input_path_prefix, page.ground_truth_file)
-                emop_job = EmopJob(job["id"], output_root_dir, image_path, batch_job, font, page, work, ground_truth_file, self.settings)
+                emop_job = EmopJob(job["id"], batch_job, font, page, work, self.settings)
 
                 job_succcessful = self.do_job(job=emop_job)
                 if not job_succcessful:
