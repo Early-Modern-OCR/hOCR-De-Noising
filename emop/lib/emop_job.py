@@ -73,7 +73,7 @@ class EmopJob(object):
         This function adds a suffix to a filename before the extension
 
         Example:
-        add_filename_suffix('5.xml', 'IDHMC')
+            add_filename_suffix('5.xml', 'IDHMC')
             5.xml -> 5_IDHMC.xml
 
         Args:
