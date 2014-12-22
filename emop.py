@@ -17,12 +17,13 @@ if os.environ.get("_JAVA_OPTIONS"):
 # Define defaults and values used for command line options
 default_config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')
 mandatory_opts = ['mode']
-modes = ['check', 'submit', 'run', 'upload']
+modes = ['query', 'submit', 'run', 'upload']
 
 # Define command line options
 parser = optparse.OptionParser()
 mandatory_opt_grp = optparse.OptionGroup(parser, "Mandatory Options")
 common_opt_grp = optparse.OptionGroup(parser, "Common Options")
+query_opt_grp = optparse.OptionGroup(parser, "Query Options")
 submit_opt_grp = optparse.OptionGroup(parser, "Submit Options")
 run_opt_grp = optparse.OptionGroup(parser, "Run Options")
 upload_opt_grp = optparse.OptionGroup(parser, "Upload Options")
@@ -41,6 +42,20 @@ common_opt_grp.add_option('-c', '--config',
                           default=default_config_path,
                           nargs=1,
                           type='string')
+common_opt_grp.add_option('--proc-id',
+                          help='job proc-id',
+                          dest='proc_id',
+                          action='store',
+                          nargs=1,
+                          type='int')
+query_opt_grp.add_option('--pending-pages',
+                         help="query number of pending pages",
+                         dest="query_pending_pages",
+                         action="store_true")
+query_opt_grp.add_option('--avg-runtimes',
+                         help="query average runtimes of completed jobs",
+                         dest="query_avg_runtimes",
+                         action="store_true")
 submit_opt_grp.add_option('--pages-per-job',
                           help='number of pages per job',
                           dest='pages_per_job',
@@ -57,12 +72,6 @@ submit_opt_grp.add_option('--sim',
                           help='simulate job submission',
                           dest='submit_simulate',
                           action='store_true')
-common_opt_grp.add_option('--proc-id',
-                          help='job proc-id',
-                          dest='proc_id',
-                          action='store',
-                          nargs=1,
-                          type='int')
 upload_opt_grp.add_option('--upload-file',
                           help='path to payload file to upload',
                           dest='upload_file',
@@ -78,6 +87,7 @@ upload_opt_grp.add_option('--upload-dir',
 
 parser.add_option_group(mandatory_opt_grp)
 parser.add_option_group(common_opt_grp)
+parser.add_option_group(query_opt_grp)
 parser.add_option_group(submit_opt_grp)
 # parser.add_option_group(run_opt_grp)
 parser.add_option_group(upload_opt_grp)
@@ -121,16 +131,30 @@ if ((opts.upload_file and opts.upload_dir) or
 
 # Perform actions based on the mode
 
-# CHECK
-if opts.mode == 'check':
+# QUERY
+if opts.mode == 'query':
     emop_query = EmopQuery(opts.config_path)
-    pending_pages = emop_query.pending_pages()
-    if pending_pages:
-        print "Number of pending pages: %s" % pending_pages
-        sys.exit(0)
-    else:
-        print "ERROR: querying failed"
-        sys.exit(1)
+    # --pending-pages
+    if opts.query_pending_pages:
+        pending_pages = emop_query.pending_pages()
+        if pending_pages:
+            print "Number of pending pages: %s" % pending_pages
+        else:
+            print "ERROR: querying pending pages failed"
+            sys.exit(1)
+    # --avg-runtimes
+    if opts.query_avg_runtimes:
+        avg_runtimes = emop_query.get_runtimes()
+        if avg_runtimes:
+            print "Pages processed: %s" % avg_runtimes["total_pages"]
+            print "Total Page Runtime: %s seconds" % avg_runtimes["total_page_runtime"]
+            print "Average Page Runtime: %s seconds" % avg_runtimes["average_page_runtime"]
+            print "Jobs run: %s" % avg_runtimes["total_jobs"]
+            print "Average Job Runtime: %s seconds" % avg_runtimes["average_job_runtime"]
+        else:
+            print "ERROR: querying average page runtimes"
+            sys.exit(1)
+    sys.exit(0)
 
 # SUBMIT
 if opts.mode == 'submit':

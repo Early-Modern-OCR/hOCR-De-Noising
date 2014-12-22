@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from emop.lib.emop_base import EmopBase
@@ -106,7 +107,7 @@ class EmopSubmit(EmopBase):
         proc_id = reserve_request.get('proc_id')
         results = reserve_request.get('results')
         logger.debug("Requested %s pages, and %s were reserved with proc_id: %s" % (requested, reserved, proc_id))
-        logger.debug("Payload: %s" % str(results))
+        logger.debug("Payload: %s" % json.dumps(results, sort_keys=True, indent=4))
 
         if reserved < 1:
             logger.error("No pages reserved")
@@ -118,5 +119,8 @@ class EmopSubmit(EmopBase):
         os.environ['PROC_ID'] = proc_id
         cmd = ["sbatch", "--parsable", "-p", self.settings.slurm_queue, "-J", self.settings.slurm_job_name, "-o", self.settings.slurm_logfile, "emop.slrm"]
         proc = EmopBase.exec_cmd(cmd, log_level="debug")
-        out = proc.stdout.rstrip()
-        logger.info("SLURM jobID: %s" % out)
+        if proc.exitcode != 0:
+            logger.error("Failed to submit job to SLURM.")
+            return None
+        slurm_job_id = proc.stdout.rstrip()
+        logger.info("SLURM job %s submitted for PROC_ID %s" % (slurm_job_id, proc_id))
