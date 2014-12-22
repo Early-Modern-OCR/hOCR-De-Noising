@@ -194,18 +194,18 @@ class EmopRun(EmopBase):
         juxta_compare_proc_pp = self.do_process(juxta_compare, job, postproc=True)
         if not juxta_compare_proc_pp:
             return False
-        juxta_compare_proc = self.do_process(juxta_compare, job, postproc=False)
-        if not juxta_compare_proc:
-            return False
+        # juxta_compare_proc = self.do_process(juxta_compare, job, postproc=False)
+        # if not juxta_compare_proc:
+        #     return False
 
         # RetasCompare postprocess and OCR output #
         retas_compare = RetasCompare(job=job)
         retas_compare_proc_pp = self.do_process(retas_compare, job, postproc=True)
         if not retas_compare_proc_pp:
             return False
-        retas_compare_proc = self.do_process(retas_compare, job, postproc=False)
-        if not retas_compare_proc:
-            return False
+        # retas_compare_proc = self.do_process(retas_compare, job, postproc=False)
+        # if not retas_compare_proc:
+        #     return False
 
         return True
 

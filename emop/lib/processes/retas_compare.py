@@ -42,8 +42,9 @@ class RetasCompare(ProcessesBase):
         value = float(values[-1])
 
         if postproc:
-            self.job.postproc_result.pp_retas = value
-        else:
+            # self.job.postproc_result.pp_retas = value
             self.job.page_result.alt_change_index = value
+        # else:
+        #     self.job.page_result.alt_change_index = value
 
         return Results(stdout=None, stderr=None, exitcode=0)

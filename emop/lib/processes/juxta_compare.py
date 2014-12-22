@@ -41,8 +41,9 @@ class JuxtaCompare(ProcessesBase):
         value = float(out)
 
         if postproc:
-            self.job.postproc_result.pp_juxta = value
-        else:
-            self.job.page_result.juxta_change_index = value
+            # self.job.postproc_result.pp_juxta = value
+            self.job.postproc_result.juxta_change_index = value
+        # else:
+        #     self.job.page_result.juxta_change_index = value
 
         return Results(stdout=None, stderr=None, exitcode=0)
