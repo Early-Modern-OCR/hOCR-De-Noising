@@ -1,5 +1,6 @@
 import collections
 import os
+import re
 from emop.lib.emop_base import EmopBase
 from emop.lib.processes.processes_base import ProcessesBase
 
@@ -27,5 +28,11 @@ class Denoise(ProcessesBase):
         if proc.exitcode != 0:
             stderr = "DeNoise failed: %s" % proc.stderr
             return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
+
+        out = proc.stdout
+        noisemsr_match = re.search("NOISEMEASURE: ([0-9.]+)", out)
+        if noisemsr_match:
+            value = noisemsr_match.group(1)
+            self.job.postproc_result.pp_noisemsr = value
 
         return Results(stdout=None, stderr=None, exitcode=0)

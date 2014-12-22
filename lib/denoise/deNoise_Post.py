@@ -1386,10 +1386,8 @@ if __name__ == "__main__":
     #logError(f,"\n%s : Processing '%s'..."%(st,options.fileName))
     #output=deNoise("C:/Users/guptaa.JAEN/Google Drive/EMOP/PythonImplDenoise/DeNoise/",'10.xml','0')#350
     output = deNoise(options.filePath,options.fileName,options.debugFlag)
-    f = open("%s%s_NOISEMEASURE.txt"%(options.filePath,options.fileName.replace('.xml','')),'w')
-    f.write(("%.4f")%(output))
-    f.close()
-    
+    print "NOISEMEASURE: %.4f" % output
+
    # ts = time.time()
    # st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'); 
     #logError(f,"\n%s : Processing Completed."%(st))
