@@ -8,7 +8,7 @@ logger = logging.getLogger('emop')
 
 class EmopSubmit(EmopBase):
 
-    def __init__(self, config_path):
+    def __init__(self, config_path, simulate=False):
         """ Initialize EmopSubmit object and attributes
 
         Args:
@@ -16,6 +16,7 @@ class EmopSubmit(EmopBase):
 
         """
         super(self.__class__, self).__init__(config_path)
+        self.simulate = simulate
 
     def current_job_count(self):
         """Get count of this application's active jobs
@@ -64,11 +65,19 @@ class EmopSubmit(EmopBase):
             self.num_jobs = 1
 
         expected_runtime = self.pages_per_job * self.settings.avg_page_runtime
-        logger.debug("Expected job runtime: %s seconds" % expected_runtime)
+        expected_runtime_msg = "Expected job runtime: %s seconds" % expected_runtime
+        if self.simulate:
+            logger.info(expected_runtime_msg)
+        else:
+            logger.debug(expected_runtime_msg)
 
         self.total_pages_to_run = self.num_jobs * self.pages_per_job
 
-        logger.debug("Optimal submission is %s jobs with %s pages per job" % (self.num_jobs, self.pages_per_job))
+        optimal_submit_msg = "Optimal submission is %s jobs with %s pages per job" % (self.num_jobs, self.pages_per_job)
+        if self.simulate:
+            logger.info(optimal_submit_msg)
+        else:
+            logger.debug(optimal_submit_msg)
 
     def submit_job(self):
         """Submit a job to SLURM
@@ -84,6 +93,8 @@ class EmopSubmit(EmopBase):
             None is returned upon failure.
 
         """
+        if self.simulate:
+            return None
         reserve_data = {
             "job_queue": {"num_pages": self.pages_per_job}
         }

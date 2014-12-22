@@ -53,6 +53,9 @@ class EmopBase(object):
 
     @staticmethod
     def add_prefix(prefix, path):
+        # TODO: may be necessary
+        # if not prefix or not path:
+        #     return None
         relative_path = re.sub("^/", "", path)
         full_path = os.path.join(prefix, relative_path)
         return full_path

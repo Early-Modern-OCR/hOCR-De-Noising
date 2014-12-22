@@ -2,6 +2,7 @@
 
 import optparse
 import os
+import sys
 
 from emop.emop_query import EmopQuery
 from emop.emop_submit import EmopSubmit
@@ -52,6 +53,10 @@ submit_opt_grp.add_option('--num-jobs',
                           action='store',
                           nargs=1,
                           type='int')
+submit_opt_grp.add_option('--sim',
+                          help='simulate job submission',
+                          dest='submit_simulate',
+                          action='store_true')
 common_opt_grp.add_option('--proc-id',
                           help='job proc-id',
                           dest='proc_id',
@@ -84,7 +89,7 @@ for m in mandatory_opts:
     if not opts.__dict__[m]:
         print "Must provide the %s option" % m
         parser.print_help()
-        exit(-1)
+        sys.exit(1)
 
 # Ensure --num-jobs and --pages-per-job are both present
 # if either is used
@@ -92,19 +97,19 @@ if (opts.num_jobs and not opts.pages_per_job
         or not opts.num_jobs and opts.pages_per_job):
     print "--num-jobs and --pages-per-job must be used together"
     parser.print_help()
-    exit(-1)
+    sys.exit(1)
 
 # Ensure mode=run also has --proc-id
 if opts.mode == 'run' and not opts.proc_id:
     print "--mode run requires --proc-id"
     parser.print_help()
-    exit(-1)
+    sys.exit(1)
 
 # Ensure upload mode was given at least --upload-file or --upload-dir
 if opts.mode == 'upload' and not opts.upload_file and not opts.upload_dir and not opts.proc_id:
     print "Mode upload requires either --upload-file or --upload-dir"
     parser.print_help()
-    exit(1)
+    sys.exit(1)
 
 # Ensure --upload-file and --upload-dir aren't used together
 if ((opts.upload_file and opts.upload_dir) or
@@ -112,30 +117,41 @@ if ((opts.upload_file and opts.upload_dir) or
         (opts.upload_dir and opts.proc_id)):
     print "--proc-id, --upload-file, and --upload-dir can not be used together"
     parser.print_help()
-    exit(1)
+    sys.exit(1)
 
 # Perform actions based on the mode
+
 # CHECK
 if opts.mode == 'check':
     emop_query = EmopQuery(opts.config_path)
     pending_pages = emop_query.pending_pages()
-    print "Number of pending pages: %s" % pending_pages
+    if pending_pages:
+        print "Number of pending pages: %s" % pending_pages
+        sys.exit(0)
+    else:
+        print "ERROR: querying failed"
+        sys.exit(1)
+
 # SUBMIT
-elif opts.mode == 'submit':
-    emop_submit = EmopSubmit(opts.config_path)
+if opts.mode == 'submit':
+    emop_submit = EmopSubmit(opts.config_path, simulate=opts.submit_simulate)
     emop_query = EmopQuery(opts.config_path)
     pending_pages = emop_query.pending_pages()
+
+    if not pending_pages:
+        print "Error querying pending pages"
+        sys.exit(1)
 
     # Exit if no pages to run
     if pending_pages == 0:
         print "No work to be done"
-        exit(0)
+        sys.exit(0)
 
     # Exit if the number of submitted jobs has reached the limit
     current_job_count = emop_submit.current_job_count()
     if current_job_count >= emop_submit.settings.max_jobs:
         print "Job limit of %s reached." % emop_submit.settings.max_jobs
-        exit(0)
+        sys.exit(0)
 
     # Optimize job submission if --pages-per-job and --num-jobs was not set
     if not opts.pages_per_job and not opts.num_jobs:
@@ -144,14 +160,23 @@ elif opts.mode == 'submit':
         emop_submit.num_jobs = opts.num_jobs
         emop_submit.pages_per_job = opts.pages_per_job
 
-    # Loop that performs the actual submission
-    for i in xrange(emop_submit.num_jobs):
-        emop_submit.submit_job()
+    if not emop_submit.simulate:
+        # Loop that performs the actual submission
+        for i in xrange(emop_submit.num_jobs):
+            emop_submit.submit_job()
+
+    sys.exit(0)
+
 # RUN - this is typically done from compute node
-elif opts.mode == 'run':
+if opts.mode == 'run':
     emop_run = EmopRun(opts.config_path, opts.proc_id)
     run_status = emop_run.run()
-elif opts.mode == 'upload':
+    if run_status:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+if opts.mode == 'upload':
     emop_upload = EmopUpload(opts.config_path)
     if opts.proc_id:
         upload_status = emop_upload.upload_proc_id(proc_id=opts.proc_id)
@@ -159,3 +184,8 @@ elif opts.mode == 'upload':
         upload_status = emop_upload.upload_file(filename=opts.upload_file)
     elif opts.upload_dir:
         upload_status = emop_upload.upload_dir(dirname=opts.upload_dir)
+
+    if upload_status:
+        sys.exit(0)
+    else:
+        sys.exit(1)

@@ -27,7 +27,8 @@ class EmopUpload(EmopBase):
     def upload_proc_id(self, proc_id):
         payload = EmopPayload(self.settings, proc_id)
         filename = payload.completed_output_filename
-        self.upload_file(filename=filename)
+        upload_status = self.upload_file(filename=filename)
+        return upload_status
 
     def upload_file(self, filename):
         filename_path = os.path.abspath(filename)
@@ -40,15 +41,21 @@ class EmopUpload(EmopBase):
 
         uploaded = self.upload(data)
         if uploaded:
-            print "uploaded successfully"
+            logger.info("Successfully uploaded payload file %s" % filename_path)
+            return True
+        else:
+            return False
 
     def upload_dir(self, dirname):
         dirname_path = os.path.abspath(dirname)
         if not os.path.isdir(dirname_path):
             logger.error("EmopUpload: Could not find directory %s" % dirname_path)
-            return None
+            return False
 
         files_glob = os.path.join(dirname_path, "*.json")
         files = glob.glob(files_glob)
         for file in files:
             self.upload_file(file)
+
+        # TODO handle failure of individual files
+        return True

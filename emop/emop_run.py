@@ -238,19 +238,20 @@ class EmopRun(EmopBase):
         to a file as completed payload
 
         Returns:
-            None is returned in the event of an error
+            bool: True if successful, False otherwise.
         """
         data = self.payload.load_input()
+        logger.debug("Payload: \n%s" % json.dumps(data, sort_keys=True, indent=4))
 
         if not data:
             logger.error("No payload data to load.")
-            return None
+            return False
         if self.payload.output_exists():
             logger.error("Output file %s already exists." % self.payload.output_filename)
-            return None
+            return False
         if self.payload.completed_output_exists():
             logger.error("Output file %s already exists." % self.payload.completed_output_filename)
-            return None
+            return False
 
         for job in data:
             batch_job = EmopBatchJob()
@@ -274,7 +275,8 @@ class EmopRun(EmopBase):
             # elif batch_job.job_type == "ground truth compare":
             else:
                 logger.error("JobType of %s is not yet supported." % batch_job.job_type)
-                return None
+                return False
 
         logger.debug("Payload: \n%s" % json.dumps(self.get_results(), sort_keys=True, indent=4))
         self.payload.save_completed_output(data=self.get_results())
+        return True
