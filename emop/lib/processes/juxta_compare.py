@@ -42,7 +42,7 @@ class JuxtaCompare(ProcessesBase):
 
         if postproc:
             # self.job.postproc_result.pp_juxta = value
-            self.job.postproc_result.juxta_change_index = value
+            self.job.page_result.juxta_change_index = value
         # else:
         #     self.job.page_result.juxta_change_index = value
 
