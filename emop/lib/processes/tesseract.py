@@ -16,7 +16,10 @@ class Tesseract(ProcessesBase):
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
-        if not self.job.image_path or not os.path.isfile(self.job.image_path):
+        if not self.job.image_path:
+            stderr = "Tesseract: No image path could be determined"
+            return Results(stdout=None, stderr=stderr, exitcode=1)
+        if not os.path.isfile(self.job.image_path):
             stderr = "Tesseract: Could not find page image %s" % self.job.image_path
             return Results(stdout=None, stderr=stderr, exitcode=1)
 

@@ -40,25 +40,28 @@ class EmopJob(object):
         """ Provide the job output directory
 
         Format is the following:
-            /<config.ini output_path_prefix><config.ini ocr_root>/<org_unit>/<work_id>/<batch>
+            /<config.ini output_path_prefix><config.ini ocr_root>/<batch ID>/<work ID>
 
         Example:
-            /dh/data/shared/text-xml/IDHMC-OCR/<org_unit>/<work_id>/<batch>
+            /dh/data/shared/text-xml/IDHMC-OCR/<batch.id>/<work.id>
 
         Returns:
             str: Output directory path
         """
-        path = os.path.join(self.output_root_dir, str(self.work.organizational_unit), str(self.work.id), str(self.batch_job.id))
+        path = os.path.join(self.output_root_dir, str(self.batch_job.id), str(self.work.id))
         return path
 
     def output_file(self, fmt):
         """ Provide the job output file name
 
         Format is the following:
-            /<config.ini output_path_prefix>/<config.ini ocr_root>/<org_unit>/<work_id>/<batch>/<image-file-name>.[txt | xml]
+            <output_dir>/<page.number>.<fmt>
 
         Example:
-            /dh/data/shared/text-xml/IDHMC-OCR/<org_unit>/<work_id>/<batch>/<image-file-name>.[txt | xml]
+            <output_dir>/<page.number>.<fmt>
+
+        Args:
+            fmt (str): File format (extension) for file path
 
         Returns:
             str: Output file path
@@ -115,10 +118,11 @@ class EmopJob(object):
             if work.is_ecco():
                 img = "%s/%s%04d0.tif" % (work.ecco_directory, work.ecco_id, page.number)
                 image_path = EmopBase.add_prefix(settings.input_path_prefix, img)
+                image_path_upcase = image_path.replace(".tif", ".TIF")
                 if os.path.isfile(image_path):
                     return image_path
-                else:
-                    return image_path.replace(".tif", ".TIF")
+                elif os.path.isfile(image_path_upcase):
+                    return image_path_upcase
             # EEBO
             else:
                 for i in xrange(101):
