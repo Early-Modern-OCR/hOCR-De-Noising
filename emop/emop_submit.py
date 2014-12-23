@@ -118,7 +118,7 @@ class EmopSubmit(EmopBase):
 
         os.environ['PROC_ID'] = proc_id
         cmd = [
-            "sbatch", "--parsable", 
+            "sbatch", "--parsable",
             "-p", self.settings.slurm_queue,
             "-J", self.settings.slurm_job_name,
             "-o", self.settings.slurm_logfile,

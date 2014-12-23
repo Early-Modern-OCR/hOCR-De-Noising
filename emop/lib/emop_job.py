@@ -89,8 +89,13 @@ class EmopJob(object):
     def get_image_path(self, page, work, settings):
         """Determine the full path of an image
 
-        This function may not be necessary but was added to maintain
-        compatibility with some of the old Java code
+        This function generates an image path based on value of image path for a page.
+        If a page has no image path then one is generated.
+
+        ECCO image path format:
+            eeco_directory/<eeco ID> + <4 digit page ID> + 0.[tif | TIF]
+        EEBO image path format:
+            eebo_directory/<eebo ID>.000.<0-100>.[tif | TIF]
 
         Args:
             page (EmopPage): EmopPage object
@@ -106,14 +111,24 @@ class EmopJob(object):
             return EmopBase.add_prefix(settings.input_path_prefix, image_path)
         # image path was not provided by API so one will be generated
         else:
+            # EECO
             if work.is_ecco():
-                # ECCO format: ECCO number + 4 digit page + 0.tif
-                img = "%s/%s%04d0.tif" % (work.ecco_directory, work.ecco_number, page.number)
-                return img
+                img = "%s/%s%04d0.tif" % (work.ecco_directory, work.ecco_id, page.number)
+                image_path = EmopBase.add_prefix(settings.input_path_prefix, img)
+                if os.path.isfile(image_path):
+                    return image_path
+                else:
+                    return image_path.replace(".tif", ".TIF")
+            # EEBO
             else:
-                # EEBO format: 00014.000.001.tif where 00014 is the page number.
-                # EEBO is a problem because of the last segment before .tif. It is some
-                # kind of version info and can vary. Start with 0 and increase til
-                # a file is found.
-                # TODO
-                return None
+                for i in xrange(101):
+                    img = "%s/%05d.000.%03d.tif" % (work.eebo_directory, page.number, i)
+                    image_path = EmopBase.add_prefix(settings.input_path_prefix, img)
+                    image_path_upcase = image_path.replace(".tif", ".TIF")
+                    if os.path.isfile(image_path):
+                        return image_path
+                    elif os.path.isfile(image_path_upcase):
+                        return image_path_upcase
+                    else:
+                        continue
+        return None

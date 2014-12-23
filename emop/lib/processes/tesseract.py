@@ -17,7 +17,7 @@ class Tesseract(ProcessesBase):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
         if not self.job.image_path or not os.path.isfile(self.job.image_path):
-            stderr = "Tesseract: Could not find page image"
+            stderr = "Tesseract: Could not find page image %s" % self.job.image_path
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO: Remove once ready to run in production, this helps speed up testing

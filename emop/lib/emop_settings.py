@@ -1,13 +1,18 @@
 import ConfigParser
 import os
 
+# TODO: Need sane defaults for all settings
+defaults = {
+    "mem_per_cpu": "4000",
+    "cpus_per_task": "1",
+}
 
-# TODO: Need sane defaults for some settings
+
 class EmopSettings(object):
 
     def __init__(self, config_path):
         self.config_path = config_path
-        self.config = ConfigParser.ConfigParser()
+        self.config = ConfigParser.ConfigParser(defaults=defaults)
         self.config.read(self.config_path)
 
         if os.getenv("EMOP_HOME"):
