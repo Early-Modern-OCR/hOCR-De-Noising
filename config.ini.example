@@ -31,6 +31,8 @@ min_job_runtime = 300
 max_job_runtime = 3600
 avg_page_runtime = 20
 logdir = %(emop_home)s/logs
+mem_per_cpu = 4000
+cpus_per_task = 1
 
 [juxta-cl]
 jx_algorithm = jaro_winkler

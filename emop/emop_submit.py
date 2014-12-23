@@ -117,7 +117,15 @@ class EmopSubmit(EmopBase):
         self.payload.save_input(results)
 
         os.environ['PROC_ID'] = proc_id
-        cmd = ["sbatch", "--parsable", "-p", self.settings.slurm_queue, "-J", self.settings.slurm_job_name, "-o", self.settings.slurm_logfile, "emop.slrm"]
+        cmd = [
+            "sbatch", "--parsable", 
+            "-p", self.settings.slurm_queue,
+            "-J", self.settings.slurm_job_name,
+            "-o", self.settings.slurm_logfile,
+            "--mem-per-cpu", self.settings.slurm_mem_per_cpu,
+            "--cpus-per-task", self.settings.slurm_cpus_per_task,
+            "emop.slrm"
+        ]
         proc = EmopBase.exec_cmd(cmd, log_level="debug")
         if proc.exitcode != 0:
             logger.error("Failed to submit job to SLURM.")

@@ -44,6 +44,8 @@ class EmopSettings(object):
         self.avg_page_runtime = int(self.get_value('scheduler', 'avg_page_runtime'))
         self.slurm_logdir = self.get_value('scheduler', 'logdir')
         self.slurm_logfile = os.path.join(self.slurm_logdir, "%s-%%j.out" % self.slurm_job_name)
+        self.slurm_mem_per_cpu = self.get_value('scheduler', 'mem_per_cpu')
+        self.slurm_cpus_per_task = self.get_value('scheduler', 'cpus_per_task')
 
         # Settings used by Juxta-cl
         self.juxta_cl_jx_algorithm = self.get_value('juxta-cl', 'jx_algorithm')
