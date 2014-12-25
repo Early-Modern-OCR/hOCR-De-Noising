@@ -62,6 +62,7 @@ All interaction with the emop-controller is done through `emop.py`.  This script
 * submit - submit jobs to the cluster
 * run - run a job
 * upload - upload completed job results
+* testrun - Reserve, run and upload results.  Intended for testing.
 
 For full list of options execute `emop.py --help`
 
@@ -94,6 +95,32 @@ This is an example of uploading a single file
 This is an example of uploading an entire directory
 
     ./emop.py --mode upload --upload-dir payload/output/completed
+
+### Test Run
+
+The mode `testrun` is available so that small number of pages can be processed interactively
+from within a cluster job.
+
+First acquire an interactive job environment.  The following command is specific to Brazos and requests
+an interactive job with 4000MB of memory.
+
+    sintr -m 4000
+
+Once the job starts and your on a compute node you can must load the emop modules.  These commands are also
+specific to Brazos using Lmod.
+
+    # Change to directory containing this project
+    cd emop-controller
+    module use modulefiles
+    module load emop
+
+The following example will reserve 2 pages, process them and upload the results.
+    
+    ./emop.py --mode testrun --num-pages 2
+
+You can also run `testrun` with uploading of results disabled.
+
+    ./emop.py --mode testrun --num-pages 2 --no-upload
 
 ## Support
 

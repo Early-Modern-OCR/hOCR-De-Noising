@@ -29,7 +29,7 @@ class EmopBase(object):
         logging.config.fileConfig(config_path, disable_existing_loggers=True)
         logging.getLogger('emop').setLevel(logging_level)
 
-        logger.debug("%s: %s" % (self.settings.__class__.__name__, EmopStdlib.to_JSON(self.settings)))
+        # logger.debug("%s: %s" % (self.settings.__class__.__name__, EmopStdlib.to_JSON(self.settings)))
 
     @staticmethod
     def page_timing(func):

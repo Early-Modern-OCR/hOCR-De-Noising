@@ -17,7 +17,7 @@ if os.environ.get("_JAVA_OPTIONS"):
 # Define defaults and values used for command line options
 default_config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')
 mandatory_opts = ['mode']
-modes = ['query', 'submit', 'run', 'upload']
+modes = ['query', 'submit', 'run', 'upload', 'testrun']
 
 # Define command line options
 parser = optparse.OptionParser()
@@ -27,6 +27,7 @@ query_opt_grp = optparse.OptionGroup(parser, "Query Options")
 submit_opt_grp = optparse.OptionGroup(parser, "Submit Options")
 run_opt_grp = optparse.OptionGroup(parser, "Run Options")
 upload_opt_grp = optparse.OptionGroup(parser, "Upload Options")
+testrun_opt_grp = optparse.OptionGroup(parser, "Test Run Options")
 
 mandatory_opt_grp.add_option('-m', '--mode',
                              type='choice',
@@ -72,6 +73,11 @@ submit_opt_grp.add_option('--sim',
                           help='simulate job submission',
                           dest='submit_simulate',
                           action='store_true')
+submit_opt_grp.add_option('--no-schedule',
+                          help='disable submitting to scheduler',
+                          dest='schedule',
+                          action='store_false',
+                          default=True)
 upload_opt_grp.add_option('--upload-file',
                           help='path to payload file to upload',
                           dest='upload_file',
@@ -84,6 +90,18 @@ upload_opt_grp.add_option('--upload-dir',
                           action='store',
                           nargs=1,
                           type='string')
+testrun_opt_grp.add_option('--num-pages',
+                           help='number pages to reserve and run',
+                           dest='testrun_num_pages',
+                           action='store',
+                           nargs=1,
+                           type='int',
+                           default=1)
+testrun_opt_grp.add_option('--no-upload',
+                           help='disable uploading of results',
+                           dest='testrun_no_upload',
+                           action='store_true',
+                           default=False)
 
 parser.add_option_group(mandatory_opt_grp)
 parser.add_option_group(common_opt_grp)
@@ -91,6 +109,7 @@ parser.add_option_group(query_opt_grp)
 parser.add_option_group(submit_opt_grp)
 # parser.add_option_group(run_opt_grp)
 parser.add_option_group(upload_opt_grp)
+parser.add_option_group(testrun_opt_grp)
 (opts, args) = parser.parse_args()
 
 # Option validation
@@ -172,10 +191,11 @@ if opts.mode == 'submit':
         sys.exit(0)
 
     # Exit if the number of submitted jobs has reached the limit
-    current_job_count = emop_submit.current_job_count()
-    if current_job_count >= emop_submit.settings.max_jobs:
-        print "Job limit of %s reached." % emop_submit.settings.max_jobs
-        sys.exit(0)
+    if opts.schedule:
+        current_job_count = emop_submit.current_job_count()
+        if current_job_count >= emop_submit.settings.max_jobs:
+            print "Job limit of %s reached." % emop_submit.settings.max_jobs
+            sys.exit(0)
 
     # Optimize job submission if --pages-per-job and --num-jobs was not set
     if not opts.pages_per_job and not opts.num_jobs:
@@ -184,10 +204,16 @@ if opts.mode == 'submit':
         emop_submit.num_jobs = opts.num_jobs
         emop_submit.pages_per_job = opts.pages_per_job
 
-    if not emop_submit.simulate:
-        # Loop that performs the actual submission
-        for i in xrange(emop_submit.num_jobs):
-            emop_submit.submit_job()
+    if emop_submit.simulate:
+        sys.exit(0)
+
+    # Loop that performs the actual submission
+    for i in xrange(emop_submit.num_jobs):
+        proc_id = emop_submit.reserve()
+        if not proc_id:
+            print "Failed to reserve page"
+            sys.exit(1)
+        emop_submit.submit_job(proc_id=proc_id)
 
     sys.exit(0)
 
@@ -213,3 +239,40 @@ if opts.mode == 'upload':
         sys.exit(0)
     else:
         sys.exit(1)
+
+# TESTRUN - Reserve pages, run pages and optionally upload pages
+if opts.mode == 'testrun':
+    # Do not run testrun mode if not in a valid cluster job environment
+    # This prevents accidently running resource intensive program on login nodes
+    job_env_checks = ['SLURM_JOB_ID', 'SLURM_JOBID']
+    job_env = False
+    for job_env_check in job_env_checks:
+        if os.environ.get(job_env_check):
+            job_env = True
+    if not job_env:
+        print "Can only run testrun mode from within a cluster job environment"
+        sys.exit(1)
+    # Reserve pages equal to --num-pages
+    emop_submit = EmopSubmit(opts.config_path, simulate=False)
+    emop_submit.num_jobs = 1
+    emop_submit.pages_per_job = opts.testrun_num_pages
+    proc_id = emop_submit.reserve()
+    if not proc_id:
+        print "Failed to reserve pages"
+        sys.exit(1)
+    # Run reserved pages
+    emop_run = EmopRun(opts.config_path, proc_id)
+    run_status = emop_run.run()
+    if not run_status:
+        sys.exit(1)
+
+    # Exit if --no-upload
+    if opts.testrun_no_upload:
+        sys.exit(0)
+    # Upload results
+    emop_upload = EmopUpload(opts.config_path)
+    upload_status = emop_upload.upload_proc_id(proc_id=proc_id)
+    if not upload_status:
+        sys.exit(1)
+
+    sys.exit(0)

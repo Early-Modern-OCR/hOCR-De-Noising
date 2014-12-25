@@ -26,6 +26,9 @@ log_level = INFO
 [scheduler]
 max_jobs = 128
 queue = idhmc
+# Example values for submitting to background
+#max_jobs = 3000
+#queue = background
 name = emop-controller
 min_job_runtime = 300
 max_job_runtime = 3600

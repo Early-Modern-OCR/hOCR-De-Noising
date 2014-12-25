@@ -14,6 +14,8 @@ class EmopSubmit(EmopBase):
 
         Args:
             config_path (str): path to application config file
+            simulate (bool, optional): Sets if the submission should
+              be a simulation or actual submission.  Defaults to False.
 
         """
         super(self.__class__, self).__init__(config_path)
@@ -80,28 +82,20 @@ class EmopSubmit(EmopBase):
         else:
             logger.debug(optimal_submit_msg)
 
-    def submit_job(self):
-        """Submit a job to SLURM
+    def reserve(self):
+        """Reserve pages for a job
 
-        First reserve pages by sending PUT request to dashboard API.
-        The results from the dashboard API are then used to submit the job
-        to SLURM.
-
-        The PROC_ID environment variable is set so that the SLURM job can know
-        which JSON file to load.
+        Reserve page(s) for work by sending PUT request to dashboard API.
 
         Returns:
-            None is returned upon failure.
-
+            str: The reserved work's proc_id.
         """
-        if self.simulate:
-            return None
         reserve_data = {
             "job_queue": {"num_pages": self.pages_per_job}
         }
         reserve_request = self.emop_api.put_request("/api/job_queues/reserve", reserve_data)
         if not reserve_request:
-            return None
+            return ""
         requested = reserve_request.get('requested')
         reserved = reserve_request.get('reserved')
         proc_id = reserve_request.get('proc_id')
@@ -111,10 +105,37 @@ class EmopSubmit(EmopBase):
 
         if reserved < 1:
             logger.error("No pages reserved")
-            return None
+            return ""
 
         self.payload = EmopPayload(self.settings, proc_id)
         self.payload.save_input(results)
+
+        return proc_id
+
+    def submit_job(self, proc_id):
+        """Submit a job to SLURM
+
+        First reserve pages by sending PUT request to dashboard API.
+        The results from the dashboard API are then used to submit the job
+        to SLURM.
+
+        The PROC_ID environment variable is set so that the SLURM job can know
+        which JSON file to load.
+
+        Args:
+            proc_id (str or int): proc_id to be used by submitted job
+
+        Returns:
+            bool: True if successful, False otherwise.
+
+        """
+        if self.simulate:
+            return True
+
+        proc_id = self.reserve()
+        if not proc_id:
+            logger.error("EmopSubmit#submit_job(): No proc_id returned from reserve()")
+            return False
 
         os.environ['PROC_ID'] = proc_id
         cmd = [
@@ -129,6 +150,6 @@ class EmopSubmit(EmopBase):
         proc = EmopBase.exec_cmd(cmd, log_level="debug")
         if proc.exitcode != 0:
             logger.error("Failed to submit job to SLURM.")
-            return None
+            return False
         slurm_job_id = proc.stdout.rstrip()
         logger.info("SLURM job %s submitted for PROC_ID %s" % (slurm_job_id, proc_id))
