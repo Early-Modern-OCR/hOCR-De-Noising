@@ -1,7 +1,7 @@
-from emop.models.emop_model import EmopModel
+from emop.lib.models.emop_model import EmopModel
 
 
-class EmopPageResult(EmopModel):
+class EmopPostprocResult(EmopModel):
 
     def __init__(self):
         super(self.__class__, self).__init__()

@@ -24,10 +24,10 @@ class Tesseract(ProcessesBase):
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO: Remove once ready to run in production, this helps speed up testing
-        if os.path.isfile(self.job.xml_file) and os.path.isfile(self.job.txt_file):
-            self.job.page_result.ocr_text_path = self.job.txt_file
-            self.job.page_result.ocr_xml_path = self.job.xml_file
-            return Results(stdout=None, stderr=None, exitcode=0)
+        # if os.path.isfile(self.job.xml_file) and os.path.isfile(self.job.txt_file):
+        #    self.job.page_result.ocr_text_path = self.job.txt_file
+        #    self.job.page_result.ocr_xml_path = self.job.xml_file
+        #    return Results(stdout=None, stderr=None, exitcode=0)
 
         output_parent_dir = os.path.dirname(self.job.xml_file)
         if not os.path.isdir(output_parent_dir):

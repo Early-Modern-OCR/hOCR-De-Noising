@@ -1,7 +1,7 @@
 import os
 from emop.lib.emop_base import EmopBase
-from emop.models.emop_page_result import EmopPageResult
-from emop.models.emop_postproc_result import EmopPostprocResult
+from emop.lib.models.emop_page_result import EmopPageResult
+from emop.lib.models.emop_postproc_result import EmopPostprocResult
 
 
 class EmopJob(object):

@@ -1,4 +1,4 @@
-from emop.models.emop_model import EmopModel
+from emop.lib.models.emop_model import EmopModel
 
 
 class EmopFont(EmopModel):

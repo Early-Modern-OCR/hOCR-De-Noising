@@ -4,6 +4,7 @@ logs/*
 
 *.pyc
 config.ini
+config*.ini
 payload/**/*.json
 payload/**/**/*.json
 

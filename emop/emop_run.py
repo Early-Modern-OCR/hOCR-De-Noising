@@ -3,10 +3,10 @@ import logging
 from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
 from emop.lib.emop_job import EmopJob
-from emop.models.emop_batch_job import EmopBatchJob
-from emop.models.emop_font import EmopFont
-from emop.models.emop_page import EmopPage
-from emop.models.emop_work import EmopWork
+from emop.lib.models.emop_batch_job import EmopBatchJob
+from emop.lib.models.emop_font import EmopFont
+from emop.lib.models.emop_page import EmopPage
+from emop.lib.models.emop_work import EmopWork
 from emop.lib.processes.tesseract import Tesseract
 from emop.lib.processes.xml_to_text import XML_To_Text
 from emop.lib.processes.denoise import Denoise
