@@ -3,36 +3,47 @@ import logging
 import os
 from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
+from emop.lib.emop_scheduler import EmopScheduler
 
 logger = logging.getLogger('emop')
 
 
 class EmopSubmit(EmopBase):
 
-    def __init__(self, config_path, simulate=False):
+    def __init__(self, config_path):
         """ Initialize EmopSubmit object and attributes
 
         Args:
             config_path (str): path to application config file
-            simulate (bool, optional): Sets if the submission should
-              be a simulation or actual submission.  Defaults to False.
-
         """
         super(self.__class__, self).__init__(config_path)
-        self.simulate = simulate
+        self.scheduler = self.get_scheduler()
+    
+    def get_scheduler(self):
+        """Get the scheduler instance
 
-    def current_job_count(self):
-        """Get count of this application's active jobs
+        Based on the value of the scheduler setting, an instance
+        of that scheduler class is returned.
 
-        Currently this returns Running+Pending jobs
+        The logic in the function is dynamic so that only the
+        supported_schedulers dict in EmopScheduler needs to be
+        updated to add additional scheduler support.
+
+        Returns:
+            object: Instance of an EmopScheduler sub-class.
         """
-        cmd = ["squeue", "-r", "--noheader", "-p", self.settings.slurm_queue, "-n", self.settings.slurm_job_name]
-        proc = EmopBase.exec_cmd(cmd, log_level="debug")
-        lines = proc.stdout.splitlines()
-        num = len(lines)
-        return num
+        config_scheduler = self.settings.scheduler.lower()
+        supported_schedulers = EmopScheduler.supported_schedulers
+        if config_scheduler in supported_schedulers:
+            dict_ = supported_schedulers.get(config_scheduler)
+            module_ = __import__(dict_["module"], fromlist=[dict_["class"]])
+            class_ = getattr(module_, dict_["class"])
+            return class_(settings=self.settings)
+        else:
+            logger.error("Unsupported scheduler %s" % config_scheduler)
+            raise NotImplementedError
 
-    def optimize_submit(self, page_count, running_job_count):
+    def optimize_submit(self, page_count, running_job_count, sim=False):
         """Determine optimal job submission
 
         This function attempts to determine the best number of jobs
@@ -45,44 +56,52 @@ class EmopSubmit(EmopBase):
             page_count (int): Number of pages needing to be processed
             running_job_count (int): Number of active jobs
 
+        Returns:
+            list: First value is number of jobs and second value
+                is number of pages per job.
         """
+        num_jobs = 0
+        pages_per_job = 1
         job_slots_available = self.settings.max_jobs - running_job_count
         run_option_a = page_count / job_slots_available
         run_option_b = self.settings.max_job_runtime / self.settings.avg_page_runtime
         run_option_c = self.settings.min_job_runtime / self.settings.avg_page_runtime
+        logger.debug("RunOptA: %s , RunOptB: %s, RunOptC: %s" % (run_option_a, run_option_b, run_option_c))
 
         if run_option_a > run_option_b:
-            self.num_jobs = job_slots_available
-            self.pages_per_job = run_option_b
+            num_jobs = job_slots_available
+            pages_per_job = run_option_b
         elif page_count < run_option_c:
-            self.num_jobs = page_count / run_option_c
-            self.pages_per_job = page_count
+            num_jobs = page_count / run_option_c
+            pages_per_job = page_count
         elif run_option_a < run_option_c:
-            self.num_jobs = page_count / run_option_c
-            self.pages_per_job = run_option_c
+            num_jobs = page_count / run_option_c
+            pages_per_job = run_option_c
         else:
-            self.num_jobs = page_count / run_option_a
-            self.pages_per_job = run_option_a
+            num_jobs = page_count / run_option_a
+            pages_per_job = run_option_a
 
-        if not self.num_jobs:
-            self.num_jobs = 1
+        if not num_jobs:
+            num_jobs = 1
 
-        expected_runtime = self.pages_per_job * self.settings.avg_page_runtime
+        expected_runtime = pages_per_job * self.settings.avg_page_runtime
         expected_runtime_msg = "Expected job runtime: %s seconds" % expected_runtime
-        if self.simulate:
+        if sim:
             logger.info(expected_runtime_msg)
         else:
             logger.debug(expected_runtime_msg)
 
-        self.total_pages_to_run = self.num_jobs * self.pages_per_job
+        total_pages_to_run = num_jobs * pages_per_job
 
-        optimal_submit_msg = "Optimal submission is %s jobs with %s pages per job" % (self.num_jobs, self.pages_per_job)
-        if self.simulate:
+        optimal_submit_msg = "Optimal submission is %s jobs with %s pages per job" % (num_jobs, pages_per_job)
+        if sim:
             logger.info(optimal_submit_msg)
         else:
             logger.debug(optimal_submit_msg)
 
-    def reserve(self):
+        return num_jobs, pages_per_job
+
+    def reserve(self, num_pages):
         """Reserve pages for a job
 
         Reserve page(s) for work by sending PUT request to dashboard API.
@@ -91,7 +110,7 @@ class EmopSubmit(EmopBase):
             str: The reserved work's proc_id.
         """
         reserve_data = {
-            "job_queue": {"num_pages": self.pages_per_job}
+            "job_queue": {"num_pages": num_pages}
         }
         reserve_request = self.emop_api.put_request("/api/job_queues/reserve", reserve_data)
         if not reserve_request:
@@ -112,44 +131,3 @@ class EmopSubmit(EmopBase):
 
         return proc_id
 
-    def submit_job(self, proc_id):
-        """Submit a job to SLURM
-
-        First reserve pages by sending PUT request to dashboard API.
-        The results from the dashboard API are then used to submit the job
-        to SLURM.
-
-        The PROC_ID environment variable is set so that the SLURM job can know
-        which JSON file to load.
-
-        Args:
-            proc_id (str or int): proc_id to be used by submitted job
-
-        Returns:
-            bool: True if successful, False otherwise.
-
-        """
-        if self.simulate:
-            return True
-
-        proc_id = self.reserve()
-        if not proc_id:
-            logger.error("EmopSubmit#submit_job(): No proc_id returned from reserve()")
-            return False
-
-        os.environ['PROC_ID'] = proc_id
-        cmd = [
-            "sbatch", "--parsable",
-            "-p", self.settings.slurm_queue,
-            "-J", self.settings.slurm_job_name,
-            "-o", self.settings.slurm_logfile,
-            "--mem-per-cpu", self.settings.slurm_mem_per_cpu,
-            "--cpus-per-task", self.settings.slurm_cpus_per_task,
-            "emop.slrm"
-        ]
-        proc = EmopBase.exec_cmd(cmd, log_level="debug")
-        if proc.exitcode != 0:
-            logger.error("Failed to submit job to SLURM.")
-            return False
-        slurm_job_id = proc.stdout.rstrip()
-        logger.info("SLURM job %s submitted for PROC_ID %s" % (slurm_job_id, proc_id))

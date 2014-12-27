@@ -8,6 +8,7 @@ from emop.emop_query import EmopQuery
 from emop.emop_submit import EmopSubmit
 from emop.emop_run import EmopRun
 from emop.emop_upload import EmopUpload
+from emop.lib.emop_scheduler import EmopScheduler
 
 # Needed to prevent the _JAVA_OPTIONS value from breaking some of
 # the post processes that use Java
@@ -177,7 +178,7 @@ if opts.mode == 'query':
 
 # SUBMIT
 if opts.mode == 'submit':
-    emop_submit = EmopSubmit(opts.config_path, simulate=opts.submit_simulate)
+    emop_submit = EmopSubmit(opts.config_path)
     emop_query = EmopQuery(opts.config_path)
     pending_pages = emop_query.pending_pages()
 
@@ -192,33 +193,38 @@ if opts.mode == 'submit':
 
     # Exit if the number of submitted jobs has reached the limit
     if opts.schedule:
-        current_job_count = emop_submit.current_job_count()
+        current_job_count = emop_submit.scheduler.current_job_count()
         if current_job_count >= emop_submit.settings.max_jobs:
             print "Job limit of %s reached." % emop_submit.settings.max_jobs
             sys.exit(0)
 
     # Optimize job submission if --pages-per-job and --num-jobs was not set
     if not opts.pages_per_job and not opts.num_jobs:
-        emop_submit.optimize_submit(pending_pages, current_job_count)
+        num_jobs, pages_per_job = emop_submit.optimize_submit(pending_pages, current_job_count, sim=opts.submit_simulate)
     else:
-        emop_submit.num_jobs = opts.num_jobs
-        emop_submit.pages_per_job = opts.pages_per_job
+        num_jobs = opts.num_jobs
+        pages_per_job = opts.pages_per_job
 
-    if emop_submit.simulate:
+    if opts.submit_simulate:
         sys.exit(0)
 
     # Loop that performs the actual submission
-    for i in xrange(emop_submit.num_jobs):
-        proc_id = emop_submit.reserve()
+    for i in xrange(num_jobs):
+        proc_id = emop_submit.reserve(num_pages=pages_per_job)
         if not proc_id:
             print "Failed to reserve page"
             sys.exit(1)
-        emop_submit.submit_job(proc_id=proc_id)
+        emop_submit.scheduler.submit_job(proc_id=proc_id)
 
     sys.exit(0)
 
 # RUN - this is typically done from compute node
 if opts.mode == 'run':
+    # Do not use run mode if not in a valid cluster job environment
+    # This prevents accidently running resource intensive program on login nodes
+    if not EmopScheduler.is_job_environment():
+        print "Can only use run mode from within a cluster job environment"
+        sys.exit(1)
     emop_run = EmopRun(opts.config_path, opts.proc_id)
     run_status = emop_run.run()
     if run_status:
@@ -244,19 +250,12 @@ if opts.mode == 'upload':
 if opts.mode == 'testrun':
     # Do not run testrun mode if not in a valid cluster job environment
     # This prevents accidently running resource intensive program on login nodes
-    job_env_checks = ['SLURM_JOB_ID', 'SLURM_JOBID']
-    job_env = False
-    for job_env_check in job_env_checks:
-        if os.environ.get(job_env_check):
-            job_env = True
-    if not job_env:
-        print "Can only run testrun mode from within a cluster job environment"
+    if not EmopScheduler.is_job_environment():
+        print "Can only use testrun mode from within a cluster job environment"
         sys.exit(1)
     # Reserve pages equal to --num-pages
-    emop_submit = EmopSubmit(opts.config_path, simulate=False)
-    emop_submit.num_jobs = 1
-    emop_submit.pages_per_job = opts.testrun_num_pages
-    proc_id = emop_submit.reserve()
+    emop_submit = EmopSubmit(opts.config_path)
+    proc_id = emop_submit.reserve(num_pages=opts.testrun_num_pages)
     if not proc_id:
         print "Failed to reserve pages"
         sys.exit(1)

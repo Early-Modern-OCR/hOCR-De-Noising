@@ -3,6 +3,7 @@ import os
 
 # TODO: Need sane defaults for all settings
 defaults = {
+    "scheduler": "slurm",
     "mem_per_cpu": "4000",
     "cpus_per_task": "1",
 }
@@ -39,18 +40,19 @@ class EmopSettings(object):
         self.input_path_prefix = self.get_value('controller', 'input_path_prefix')
         self.output_path_prefix = self.get_value('controller', 'output_path_prefix')
         self.log_level = self.get_value('controller', 'log_level')
+        self.scheduler = self.get_value('controller', 'scheduler')
 
         # Settings used to interact with the cluster scheduler
         self.max_jobs = int(self.get_value('scheduler', 'max_jobs'))
-        self.slurm_queue = self.get_value('scheduler', 'queue')
-        self.slurm_job_name = self.get_value('scheduler', 'name')
+        self.scheduler_queue = self.get_value('scheduler', 'queue')
+        self.scheduler_job_name = self.get_value('scheduler', 'name')
         self.min_job_runtime = int(self.get_value('scheduler', 'min_job_runtime'))
         self.max_job_runtime = int(self.get_value('scheduler', 'max_job_runtime'))
         self.avg_page_runtime = int(self.get_value('scheduler', 'avg_page_runtime'))
-        self.slurm_logdir = self.get_value('scheduler', 'logdir')
-        self.slurm_logfile = os.path.join(self.slurm_logdir, "%s-%%j.out" % self.slurm_job_name)
-        self.slurm_mem_per_cpu = self.get_value('scheduler', 'mem_per_cpu')
-        self.slurm_cpus_per_task = self.get_value('scheduler', 'cpus_per_task')
+        self.scheduler_logdir = self.get_value('scheduler', 'logdir')
+        self.scheduler_logfile = os.path.join(self.scheduler_logdir, "%s-%%j.out" % self.scheduler_job_name)
+        self.scheduler_mem_per_cpu = self.get_value('scheduler', 'mem_per_cpu')
+        self.scheduler_cpus_per_task = self.get_value('scheduler', 'cpus_per_task')
 
         # Settings used by Juxta-cl
         self.juxta_cl_jx_algorithm = self.get_value('juxta-cl', 'jx_algorithm')

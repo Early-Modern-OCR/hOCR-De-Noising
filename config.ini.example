@@ -22,6 +22,7 @@ ocr_root = /data/shared/text-xml/IDHMC-ocr
 input_path_prefix = /dh
 output_path_prefix = /dh
 log_level = INFO
+scheduler = slurm
 
 [scheduler]
 max_jobs = 128

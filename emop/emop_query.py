@@ -58,7 +58,7 @@ class EmopQuery(EmopBase):
         runtimes["pages"] = []
         runtimes["total"] = []
 
-        glob_path = os.path.join(self.settings.slurm_logdir, "*.out")
+        glob_path = os.path.join(self.settings.scheduler_logdir, "*.out")
         files = glob.glob(glob_path)
 
         for f in files:
