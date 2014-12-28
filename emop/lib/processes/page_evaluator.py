@@ -15,7 +15,7 @@ class PageEvaluator(ProcessesBase):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
-            stderr = "PageEvaluator Error: Could not find XML file"
+            stderr = "Could not find XML file: %s" % self.job.xml_file
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO Move -Xms and -Xmx into config.ini
@@ -23,8 +23,7 @@ class PageEvaluator(ProcessesBase):
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:
-            stderr = "PageEvaluator Failed: %s" % proc.stderr
-            return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
+            return Results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()
         scores = out.split(",")

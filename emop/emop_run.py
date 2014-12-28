@@ -3,6 +3,7 @@ import logging
 from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
 from emop.lib.emop_job import EmopJob
+from emop.lib.emop_scheduler import EmopScheduler
 from emop.lib.models.emop_batch_job import EmopBatchJob
 from emop.lib.models.emop_font import EmopFont
 from emop.lib.models.emop_page import EmopPage
@@ -30,6 +31,7 @@ class EmopRun(EmopBase):
         super(self.__class__, self).__init__(config_path)
         self.proc_id = proc_id
         self.payload = EmopPayload(self.settings, proc_id)
+        self.scheduler = EmopScheduler.get_scheduler_instance(name=self.settings.scheduler, settings=self.settings)
         self.results = {}
         self.jobs_completed = []
         self.jobs_failed = []
@@ -48,8 +50,9 @@ class EmopRun(EmopBase):
             failed (bool, optional): Sets if the result is a failure
         """
         if failed:
-            logger.error(results)
-            self.jobs_failed.append({"id": job.id, "results": results})
+            results_ext = "%s JOB %s: %s" % (self.scheduler.name, self.scheduler.job_id, results)
+            logger.error(results_ext)
+            self.jobs_failed.append({"id": job.id, "results": results_ext})
         else:
             self.jobs_completed.append(job.id)
 
@@ -136,7 +139,7 @@ class EmopRun(EmopBase):
             return False
 
         if ocr_result.exitcode != 0:
-            ocr_err = "OCR Failed: %s" % ocr_result.stderr
+            ocr_err = "%s OCR Failed: %s" % (ocr_engine, ocr_result.stderr)
             self.append_result(job=job, results=ocr_err, failed=True)
             return False
         else:
@@ -264,7 +267,7 @@ class EmopRun(EmopBase):
                 font.setattrs(job["batch_job"]["font"])
                 page.setattrs(job["page"])
                 work.setattrs(job["work"])
-                emop_job = EmopJob(job["id"], batch_job, font, page, work, self.settings)
+                emop_job = EmopJob(job["id"], batch_job, font, page, work, self.settings, self.scheduler)
 
                 job_succcessful = self.do_job(job=emop_job)
                 if not job_succcessful:

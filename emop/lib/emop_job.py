@@ -6,7 +6,7 @@ from emop.lib.models.emop_postproc_result import EmopPostprocResult
 
 class EmopJob(object):
 
-    def __init__(self, job_id, batch_job, font, page, work, settings):
+    def __init__(self, job_id, batch_job, font, page, work, settings, scheduler):
         self.id = job_id
         self.output_root_dir = EmopBase.add_prefix(settings.output_path_prefix, settings.ocr_root)
         self.image_path = self.get_image_path(page, work, settings)
@@ -19,6 +19,7 @@ class EmopJob(object):
         else:
             self.ground_truth_file = None
         self.settings = settings
+        self.scheduler = scheduler
         self.page_result = EmopPageResult()
         self.postproc_result = EmopPostprocResult()
         self.page_result.page_id = self.page.id

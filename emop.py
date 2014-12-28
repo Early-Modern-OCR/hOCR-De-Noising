@@ -8,7 +8,6 @@ from emop.emop_query import EmopQuery
 from emop.emop_submit import EmopSubmit
 from emop.emop_run import EmopRun
 from emop.emop_upload import EmopUpload
-from emop.lib.emop_scheduler import EmopScheduler
 
 # Needed to prevent the _JAVA_OPTIONS value from breaking some of
 # the post processes that use Java
@@ -220,12 +219,13 @@ if opts.mode == 'submit':
 
 # RUN - this is typically done from compute node
 if opts.mode == 'run':
+    emop_run = EmopRun(opts.config_path, opts.proc_id)
+
     # Do not use run mode if not in a valid cluster job environment
     # This prevents accidently running resource intensive program on login nodes
-    if not EmopScheduler.is_job_environment():
+    if not emop_run.scheduler.is_job_environment():
         print "Can only use run mode from within a cluster job environment"
         sys.exit(1)
-    emop_run = EmopRun(opts.config_path, opts.proc_id)
     run_status = emop_run.run()
     if run_status:
         sys.exit(0)
@@ -248,13 +248,15 @@ if opts.mode == 'upload':
 
 # TESTRUN - Reserve pages, run pages and optionally upload pages
 if opts.mode == 'testrun':
+    emop_submit = EmopSubmit(opts.config_path)
+
     # Do not run testrun mode if not in a valid cluster job environment
     # This prevents accidently running resource intensive program on login nodes
-    if not EmopScheduler.is_job_environment():
+    if not emop_submit.scheduler.is_job_environment():
         print "Can only use testrun mode from within a cluster job environment"
         sys.exit(1)
+
     # Reserve pages equal to --num-pages
-    emop_submit = EmopSubmit(opts.config_path)
     proc_id = emop_submit.reserve(num_pages=opts.testrun_num_pages)
     if not proc_id:
         print "Failed to reserve pages"

@@ -8,6 +8,13 @@ logger = logging.getLogger('emop')
 
 class EmopSLURM(EmopScheduler):
 
+    name = "SLURM"
+
+    jobid_env_vars = [
+        'SLURM_JOB_ID',
+        'SLURM_JOBID',
+    ]
+
     def __init__(self, settings):
         """Initialize EmopSLURM object and attributes
 

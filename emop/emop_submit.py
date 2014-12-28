@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
 from emop.lib.emop_scheduler import EmopScheduler
@@ -17,31 +16,7 @@ class EmopSubmit(EmopBase):
             config_path (str): path to application config file
         """
         super(self.__class__, self).__init__(config_path)
-        self.scheduler = self.get_scheduler()
-    
-    def get_scheduler(self):
-        """Get the scheduler instance
-
-        Based on the value of the scheduler setting, an instance
-        of that scheduler class is returned.
-
-        The logic in the function is dynamic so that only the
-        supported_schedulers dict in EmopScheduler needs to be
-        updated to add additional scheduler support.
-
-        Returns:
-            object: Instance of an EmopScheduler sub-class.
-        """
-        config_scheduler = self.settings.scheduler.lower()
-        supported_schedulers = EmopScheduler.supported_schedulers
-        if config_scheduler in supported_schedulers:
-            dict_ = supported_schedulers.get(config_scheduler)
-            module_ = __import__(dict_["module"], fromlist=[dict_["class"]])
-            class_ = getattr(module_, dict_["class"])
-            return class_(settings=self.settings)
-        else:
-            logger.error("Unsupported scheduler %s" % config_scheduler)
-            raise NotImplementedError
+        self.scheduler = EmopScheduler.get_scheduler_instance(name=self.settings.scheduler, settings=self.settings)
 
     def optimize_submit(self, page_count, running_job_count, sim=False):
         """Determine optimal job submission
@@ -91,7 +66,7 @@ class EmopSubmit(EmopBase):
         else:
             logger.debug(expected_runtime_msg)
 
-        total_pages_to_run = num_jobs * pages_per_job
+        # total_pages_to_run = num_jobs * pages_per_job
 
         optimal_submit_msg = "Optimal submission is %s jobs with %s pages per job" % (num_jobs, pages_per_job)
         if sim:
@@ -130,4 +105,3 @@ class EmopSubmit(EmopBase):
         self.payload.save_input(results)
 
         return proc_id
-

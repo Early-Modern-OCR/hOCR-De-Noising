@@ -20,7 +20,7 @@ class PageCorrector(ProcessesBase):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
 
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
-            stderr = "PageCorrector Error: Could not find XML file"
+            stderr = "Could not find XML file: %s" % self.job.xml_file
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO Move -Xms and -Xmx into config.ini
@@ -37,7 +37,10 @@ class PageCorrector(ProcessesBase):
 
         if proc.exitcode != 0:
             # TODO: PageCorrector errors are going to stdout not stderr
-            stderr = "PageCorrector failed: %s" % proc.stdout
+            if not proc.stdout and proc.stderr:
+                stderr = proc.stderr
+            else:
+                stderr = proc.stdout
             return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()
