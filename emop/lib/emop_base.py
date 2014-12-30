@@ -8,7 +8,7 @@ import logging.config
 import time
 from emop.lib.emop_settings import EmopSettings
 from emop.lib.emop_api import EmopAPI
-from emop.lib.emop_stdlib import EmopStdlib
+# from emop.lib.emop_stdlib import EmopStdlib
 
 logger = logging.getLogger('emop')
 
@@ -65,11 +65,21 @@ class EmopBase(object):
         if isinstance(cmd, basestring):
             cmd_str = cmd
             cmd = shlex.split(cmd)
-        else:
+        elif isinstance(cmd, list):
+            cmd_flat = []
+            for i in cmd:
+                if hasattr(i, '__iter__'):
+                    for j in i:
+                        cmd_flat.append(j)
+                else:
+                    cmd_flat.append(i)
+            cmd = cmd_flat
             cmd_str = " ".join(cmd)
 
         try:
             getattr(logger, log_level)("Executing: '%s'" % cmd_str)
+            # TODO Eventually may just need to redirect all stderr to stdout for simplicity
+            # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=os.environ)
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
             process.wait()
             out, err = process.communicate()

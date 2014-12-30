@@ -41,6 +41,9 @@ cpus_per_task = 1
 [juxta-cl]
 jx_algorithm = jaro_winkler
 
+[page-corrector]
+java_args = ["-Xms128M", "-Xmx512M"]
+
 # DO NOT MODIFY BELOW THIS LINE
 [loggers]
 keys = root,emop

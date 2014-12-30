@@ -1,4 +1,5 @@
 import collections
+import itertools
 import glob
 import json
 import os
@@ -15,6 +16,7 @@ class PageCorrector(ProcessesBase):
         self.cfg = os.path.join(os.environ["EMOP_HOME"], "emop.properties")
         self.dicts_dir = os.path.join(self.home, "dictionaries")
         self.rules_file = os.path.join(self.home, "rules", "transformations.json")
+        self.java_args = json.loads(self.job.settings.get_value('page-corrector', 'java_args'))
 
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
@@ -23,16 +25,12 @@ class PageCorrector(ProcessesBase):
             stderr = "Could not find XML file: %s" % self.job.xml_file
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
-        # TODO Move -Xms and -Xmx into config.ini
+        dict_files = glob.glob("%s/*.dict" % self.dicts_dir)
         cmd = [
-            "java", "-Xms128M", "-Xmx512M", "-jar", self.executable, "--dbconf", self.cfg,
-            "-t", self.rules_file, "-o", self.job.output_dir, "--stats", "--dict"
+            "java", self.java_args, "-jar", self.executable, "--dbconf", self.cfg,
+            "-t", self.rules_file, "-o", self.job.output_dir, "--stats",
+            "--dict", dict_files, "--", self.job.xml_file
         ]
-        for file in glob.glob("%s/*.dict" % self.dicts_dir):
-            cmd.append(file)
-
-        cmd.append("--")
-        cmd.append(self.job.xml_file)
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:

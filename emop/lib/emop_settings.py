@@ -6,6 +6,7 @@ defaults = {
     "scheduler": "slurm",
     "mem_per_cpu": "4000",
     "cpus_per_task": "1",
+    "java_args": '["-Xms128M", "-Xmx512M"]',
 }
 
 

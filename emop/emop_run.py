@@ -156,9 +156,9 @@ class EmopRun(EmopBase):
             * PageEvaluator
             * PageCorrector
             * JuxtaCompare (postprocess)
-            * JuxtaCompare
+            * JuxtaCompare - COMMENTED OUT
             * RetasCompare (postprocess)
-            * RetasCompare
+            * RetasCompare - COMMENTED OUT
 
         If any step fails, the function terminates and returns False.
 
