@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # emop-controller documentation build configuration file, created by
-# sphinx-quickstart on Mon Dec 22 13:09:30 2014.
+# sphinx-quickstart on Mon Jan  5 12:10:44 2015.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -18,7 +18,7 @@ import os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-emop_lib = os.path.join(os.path.abspath('%s/..' % os.path.dirname(__file__)), 'emop')
+emop_lib = os.path.join(os.path.abspath('..'))
 sys.path.insert(0, emop_lib)
 
 # -- General configuration ------------------------------------------------
@@ -33,6 +33,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
@@ -52,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'emop-controller'
-copyright = u'2014, Trey Dockendorf'
+copyright = u'2015, Trey Dockendorf'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
