@@ -146,6 +146,7 @@ The use of this application relies heavily on sites using the following technolo
 Only the following versions of each dependency have been tested.
 
 * python-2.7.8
+  * requests-2.5.0
 * maven-3.2.1
 * java-1.7.0-67
 * tesseract - SVN revision 889
@@ -156,12 +157,12 @@ See `modulefiles/emop.lua` and `modulefiles/emop-build.lua` for a list of all th
 
 The following Python modules are needed for development
 
-* flake8
-* sphinx
+* flake8 - lint tests
+* sphinx - docs creation
 
 Install using the following
 
-    pip install --user <module name>
+    pip install --user --requirement .requirements.txt
 
 ### Lint tests
 

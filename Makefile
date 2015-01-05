@@ -7,14 +7,35 @@ SEASR_HOME ?= $(LIB_DIR)/seasr
 JUXTA_HOME ?= $(LIB_DIR)/juxta-cl
 RETAS_HOME ?= $(LIB_DIR)/retas
 
-.PHONY: all docs
+.PHONY: help all docs
 
-_default: all
+help:
+	@echo "Please use 'make <target>' where <target> is one of"
+	@echo "  all                to run 'build' and 'install' targets"
+	@echo "  docs               to build documentation"
+	@echo "  build              to build all dependencies"
+	@echo "  build_seasr        to build SEASR"
+	@echo "  build_juxta_cl     to build Juxta-CL"
+	@echo "  build_retas        to build RETAS"
+	@echo "  install            to install all dependencies"
+	@echo "  install_seasr      to build SEASR"
+	@echo "  install_juxta_cl   to build Juxta-CL"
+	@echo "  install_retas      to build RETAS"
+	@echo "  clean              to clean the build of all dependencies"
+	@echo "  clean_seasr        to clean the build of SEASR"
+	@echo "  clean_juxta_cl     to clean the build of Juxta-CL"
+	@echo "  clean_retas        to clean the build of RETAS"
+	@echo "  uninstall          to uninstall all dependencies"
+	@echo "  uninstall_seasr    to uninstall SEASR"
+	@echo "  uninstall_juxta_cl to uninstall Juxta-CL"
+	@echo "  uninstall_retas    to uninstall RETAS"
+
+_default: help
 
 all: build install
 
 docs:
-	cd docs && make html
+	cd docs && make clean && make html
 
 build: build_seasr build_juxta_cl build_retas
 
