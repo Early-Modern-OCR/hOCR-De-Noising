@@ -33,5 +33,5 @@ class PageEvaluator(ProcessesBase):
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         self.job.postproc_result.pp_ecorr = scores[0]
-        self.job.postproc_result.pp_stats = scores[1]
+        self.job.postproc_result.pp_pg_quality = scores[1]
         return Results(stdout=None, stderr=None, exitcode=0)

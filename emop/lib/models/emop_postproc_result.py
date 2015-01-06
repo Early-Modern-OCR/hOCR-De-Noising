@@ -11,7 +11,7 @@ class EmopPostprocResult(EmopModel):
         self.pp_juxta = None
         self.pp_health = None
         self.pp_ecorr = None
-        self.pp_stats = None
+        self.pp_pg_quality = None
         self.pp_retas = None
 
     def setattrs(self, dictionary):
@@ -25,7 +25,7 @@ class EmopPostprocResult(EmopModel):
             'pp_juxta': self.pp_juxta,
             'pp_health': self.pp_health,
             'pp_ecorr': self.pp_ecorr,
-            'pp_stats': self.pp_stats,
+            'pp_pg_quality': self.pp_pg_quality,
             'pp_retas': self.pp_retas,
         }
         return _dict
