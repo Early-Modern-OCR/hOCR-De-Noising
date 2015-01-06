@@ -20,8 +20,8 @@ class EmopJob(object):
             self.ground_truth_file = None
         self.settings = settings
         self.scheduler = scheduler
-        self.page_result = EmopPageResult()
-        self.postproc_result = EmopPostprocResult()
+        self.page_result = EmopPageResult(self.settings)
+        self.postproc_result = EmopPostprocResult(self.settings)
         self.page_result.page_id = self.page.id
         self.page_result.batch_id = self.batch_job.id
         self.postproc_result.page_id = self.page.id

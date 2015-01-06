@@ -61,6 +61,13 @@ class EmopBase(object):
         return full_path
 
     @staticmethod
+    def remove_prefix(prefix, path):
+        if path.startswith(prefix):
+            return path[len(prefix):]
+        else:
+            return path
+
+    @staticmethod
     def exec_cmd(cmd, log_level="info"):
         if isinstance(cmd, basestring):
             cmd_str = cmd

@@ -57,8 +57,8 @@ class EmopRun(EmopBase):
             self.jobs_completed.append(job.id)
 
         # TODO: Do we need to handle adding page_results and postproc_results differently??
-        self.page_results.append(job.page_result.__dict__)
-        self.postproc_results.append(job.postproc_result.__dict__)
+        self.page_results.append(job.page_result.to_dict())
+        self.postproc_results.append(job.postproc_result.to_dict())
 
         current_results = self.get_results()
         self.payload.save_output(data=current_results, overwrite=True)
@@ -257,13 +257,13 @@ class EmopRun(EmopBase):
             return False
 
         for job in data:
-            batch_job = EmopBatchJob()
+            batch_job = EmopBatchJob(self.settings)
             batch_job.setattrs(job["batch_job"])
 
             if batch_job.job_type == "ocr":
-                font = EmopFont()
-                page = EmopPage()
-                work = EmopWork()
+                font = EmopFont(self.settings)
+                page = EmopPage(self.settings)
+                work = EmopWork(self.settings)
                 font.setattrs(job["batch_job"]["font"])
                 page.setattrs(job["page"])
                 work.setattrs(job["work"])
