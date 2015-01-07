@@ -1,4 +1,5 @@
 import collections
+import json
 import os
 from emop.lib.emop_base import EmopBase
 from emop.lib.processes.processes_base import ProcessesBase
@@ -8,8 +9,9 @@ class PageEvaluator(ProcessesBase):
 
     def __init__(self, job):
         super(self.__class__, self).__init__(job)
-        self.home = os.environ["SEASR_HOME"]
+        self.home = self.job.settings.seasr_home
         self.executable = os.path.join(self.home, "PageEvaluator.jar")
+        self.java_args = json.loads(self.job.settings.get_value('page-evaluator', 'java_args'))
 
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
@@ -19,7 +21,7 @@ class PageEvaluator(ProcessesBase):
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO Move -Xms and -Xmx into config.ini
-        cmd = ["java", "-Xms128M", "-Xmx128M", "-jar", self.executable, "-q", self.job.xml_file]
+        cmd = ["java", self.java_args, "-jar", self.executable, "-q", self.job.xml_file]
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:

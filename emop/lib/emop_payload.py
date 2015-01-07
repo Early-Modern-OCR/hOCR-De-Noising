@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from emop.lib.emop_base import EmopBase
 
 logger = logging.getLogger('emop')
 
@@ -37,7 +38,7 @@ class EmopPayload(object):
     def save(self, data, dirname, filename, overwrite=False):
         if not os.path.isdir(dirname):
             logger.debug("Creating payload directory %s" % dirname)
-            os.makedirs(dirname)
+            EmopBase.mkdirs_exists_ok(dirname)
         if not overwrite and os.path.exists(filename):
             logger.error("payload file %s already exists" % filename)
             return None

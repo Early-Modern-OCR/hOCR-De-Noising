@@ -9,7 +9,7 @@ class Denoise(ProcessesBase):
 
     def __init__(self, job):
         super(self.__class__, self).__init__(job)
-        self.home = os.environ["DENOISE_HOME"]
+        self.home = self.job.settings.denoise_home
         self.executable = os.path.join(self.home, "deNoise_Post.py")
         # This adds a trailing /
         self.xml_file_dir = os.path.join(self.job.output_dir, '')

@@ -1,3 +1,4 @@
+import errno
 import subprocess
 import shlex
 import collections
@@ -68,7 +69,17 @@ class EmopBase(object):
             return path
 
     @staticmethod
+    def mkdirs_exists_ok(path):
+        try:
+            os.makedirs(path)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+    @staticmethod
     def exec_cmd(cmd, log_level="info"):
+        Proc = collections.namedtuple('Proc', ['stdout', 'stderr', 'exitcode'])
+
         if isinstance(cmd, basestring):
             cmd_str = cmd
             cmd = shlex.split(cmd)
@@ -93,11 +104,10 @@ class EmopBase(object):
             # TODO: set timeout??
             retval = process.returncode
 
-            proc = collections.namedtuple('Proc', ['stdout', 'stderr', 'exitcode'])
-            return proc(stdout=out, stderr=err, exitcode=retval)
+            return Proc(stdout=out, stderr=err, exitcode=retval)
         except OSError as e:
             if e.errno == os.errno.ENOENT:
-                logger.error("File not found for command: %s" % e.message)
-                return proc(stdout=None, stderr=None, exitcode=1)
+                logger.error("File not found for command: %s" % e)
+                return Proc(stdout=None, stderr=None, exitcode=1)
             else:
                 raise

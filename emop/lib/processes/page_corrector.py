@@ -11,7 +11,7 @@ class PageCorrector(ProcessesBase):
 
     def __init__(self, job):
         super(self.__class__, self).__init__(job)
-        self.home = os.environ["SEASR_HOME"]
+        self.home = self.job.settings.seasr_home
         self.executable = os.path.join(self.home, "PageCorrector.jar")
         self.cfg = os.path.join(os.environ["EMOP_HOME"], "emop.properties")
         self.dicts_dir = os.path.join(self.home, "dictionaries")

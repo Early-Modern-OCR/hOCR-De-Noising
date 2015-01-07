@@ -3,10 +3,19 @@ import os
 
 # TODO: Need sane defaults for all settings
 defaults = {
-    "scheduler": "slurm",
-    "mem_per_cpu": "4000",
-    "cpus_per_task": "1",
-    "java_args": '["-Xms128M", "-Xmx512M"]',
+    "controller": {
+        "scheduler": "slurm",
+    },
+    "scheduler": {
+        "mem_per_cpu": "4000",
+        "cpus_per_task": "1",
+    },
+    "page-corrector": {
+        "java_args": '["-Xms128M", "-Xmx512M"]',
+    },
+    "page-evaluator": {
+        "java_args": '["-Xms128M", "-Xmx128M"]',
+    },
 }
 
 
@@ -14,13 +23,30 @@ class EmopSettings(object):
 
     def __init__(self, config_path):
         self.config_path = config_path
-        self.config = ConfigParser.ConfigParser(defaults=defaults)
+        self.config = ConfigParser.ConfigParser()
         self.config.read(self.config_path)
 
+        # Settings based on environment variables
         if os.getenv("EMOP_HOME"):
             self.emop_home = os.getenv("EMOP_HOME")
         else:
             self.emop_home = os.path.dirname(self.config_path)
+        if os.getenv("DENOISE_HOME"):
+            self.denoise_home = os.getenv("DENOISE_HOME")
+        else:
+            raise RuntimeError("DENOISE_HOME environment variable not set")
+        if os.getenv("SEASR_HOME"):
+            self.seasr_home = os.getenv("SEASR_HOME")
+        else:
+            raise RuntimeError("SEASR_HOME environment variable not set")
+        if os.getenv("JUXTA_HOME"):
+            self.juxta_home = os.getenv("JUXTA_HOME")
+        else:
+            raise RuntimeError("JUXTA_HOME environment variable not set")
+        if os.getenv("RETAS_HOME"):
+            self.retas_home = os.getenv("RETAS_HOME")
+        else:
+            raise RuntimeError("RETAS_HOME environment variable not set")
 
         # Settings for communicating with dashboard
         self.api_version = self.get_value('dashboard', 'api_version')
@@ -63,6 +89,18 @@ class EmopSettings(object):
             "home": os.getenv("HOME"),
             "emop_home": self.emop_home,
         }
-        raw_value = self.config.get(section, option, 0, interpolation_map)
+
+        raw_value = None
+
+        try:
+            raw_value = self.config.get(section, option, 0, interpolation_map)
+        except ConfigParser.NoOptionError as e:
+            if default:
+                raw_value = default
+            elif section in defaults:
+                if option in defaults[section]:
+                    raw_value = defaults[section][option]
+                else:
+                    raise e
 
         return raw_value

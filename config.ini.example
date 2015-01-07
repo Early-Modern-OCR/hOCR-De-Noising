@@ -44,6 +44,9 @@ jx_algorithm = jaro_winkler
 [page-corrector]
 java_args = ["-Xms128M", "-Xmx512M"]
 
+[page-evaluator]
+java_args = ["-Xms128M", "-Xmx128M"]
+
 # DO NOT MODIFY BELOW THIS LINE
 [loggers]
 keys = root,emop

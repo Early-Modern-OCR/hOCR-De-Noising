@@ -9,7 +9,7 @@ class RetasCompare(ProcessesBase):
 
     def __init__(self, job):
         super(self.__class__, self).__init__(job)
-        self.home = os.environ["RETAS_HOME"]
+        self.home = self.job.settings.retas_home
         self.executable = os.path.join(self.home, "retas.jar")
         self.cfg = os.path.join(self.home, "config.txt")
 

@@ -23,15 +23,9 @@ class Tesseract(ProcessesBase):
             stderr = "Could not find page image %s" % self.job.image_path
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
-        # TODO: Remove once ready to run in production, this helps speed up testing
-        # if os.path.isfile(self.job.xml_file) and os.path.isfile(self.job.txt_file):
-        #    self.job.page_result.ocr_text_path = self.job.txt_file
-        #    self.job.page_result.ocr_xml_path = self.job.xml_file
-        #    return Results(stdout=None, stderr=None, exitcode=0)
-
         output_parent_dir = os.path.dirname(self.job.xml_file)
         if not os.path.isdir(output_parent_dir):
-            os.makedirs(output_parent_dir)
+            EmopBase.mkdirs_exists_ok(output_parent_dir)
 
         # Strip file extension, tesseract auto-appends it
         output_filename, output_extension = os.path.splitext(self.job.xml_file)

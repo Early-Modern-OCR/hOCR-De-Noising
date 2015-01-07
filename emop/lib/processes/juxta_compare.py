@@ -8,7 +8,7 @@ class JuxtaCompare(ProcessesBase):
 
     def __init__(self, job):
         super(self.__class__, self).__init__(job)
-        self.home = os.environ["JUXTA_HOME"]
+        self.home = self.job.settings.juxta_home
         self.executable = os.path.join(self.home, "juxta-cl.jar")
         self.jx_algorithm = self.job.settings.juxta_cl_jx_algorithm
 
