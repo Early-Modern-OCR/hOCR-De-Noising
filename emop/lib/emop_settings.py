@@ -12,6 +12,11 @@ defaults = {
     },
     "page-corrector": {
         "java_args": '["-Xms128M", "-Xmx512M"]',
+        "alt_arg": "2",
+        "max_transforms": "20",
+        "noise_cutoff": "0.5",
+        "ctx_min_match": None,
+        "ctx_min_vol": None,
     },
     "page-evaluator": {
         "java_args": '["-Xms128M", "-Xmx128M"]',

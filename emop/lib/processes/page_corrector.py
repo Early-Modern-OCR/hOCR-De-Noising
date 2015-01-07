@@ -1,5 +1,4 @@
 import collections
-import itertools
 import glob
 import json
 import os
@@ -17,6 +16,11 @@ class PageCorrector(ProcessesBase):
         self.dicts_dir = os.path.join(self.home, "dictionaries")
         self.rules_file = os.path.join(self.home, "rules", "transformations.json")
         self.java_args = json.loads(self.job.settings.get_value('page-corrector', 'java_args'))
+        self.alt_arg = self.job.settings.get_value('page-corrector', 'alt_arg')
+        self.max_transforms = self.job.settings.get_value('page-corrector', 'max_transforms')
+        self.noise_cutoff = self.job.settings.get_value('page-corrector', 'noise_cutoff')
+        self.ctx_min_match = self.job.settings.get_value('page-corrector', 'ctx_min_match')
+        self.ctx_min_vol = self.job.settings.get_value('page-corrector', 'ctx_min_vol')
 
     def run(self):
         Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
@@ -29,8 +33,17 @@ class PageCorrector(ProcessesBase):
         cmd = [
             "java", self.java_args, "-jar", self.executable, "--dbconf", self.cfg,
             "-t", self.rules_file, "-o", self.job.output_dir, "--stats",
-            "--dict", dict_files, "--", self.job.xml_file
+            "--alt", self.alt_arg, "--max-transforms", self.max_transforms, "--noiseCutoff", self.noise_cutoff,
+            "--dict", dict_files
         ]
+        if self.ctx_min_match:
+            cmd.append("--ctx-min-match")
+            cmd.append(self.ctx_min_match)
+        if self.ctx_min_vol:
+            cmd.append("--ctx-min-vol")
+            cmd.append(self.ctx_min_vol)
+        cmd.append("--")
+        cmd.append(self.job.xml_file)
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:
