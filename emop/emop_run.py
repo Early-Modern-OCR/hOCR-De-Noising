@@ -204,10 +204,10 @@ class EmopRun(EmopBase):
         #     return False
 
         # RetasCompare postprocess and OCR output #
-        retas_compare = RetasCompare(job=job)
-        retas_compare_proc_pp = self.do_process(obj=retas_compare, job=job, postproc=True)
-        if not retas_compare_proc_pp:
-            return False
+        # retas_compare = RetasCompare(job=job)
+        # retas_compare_proc_pp = self.do_process(obj=retas_compare, job=job, postproc=True)
+        # if not retas_compare_proc_pp:
+        #    return False
         # retas_compare_proc = self.do_process(obj=retas_compare, job=job, postproc=False)
         # if not retas_compare_proc:
         #     return False
