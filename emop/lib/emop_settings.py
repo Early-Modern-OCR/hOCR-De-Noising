@@ -99,7 +99,7 @@ class EmopSettings(object):
 
         try:
             raw_value = self.config.get(section, option, 0, interpolation_map)
-        except ConfigParser.NoOptionError as e:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as e:
             if default:
                 raw_value = default
             elif section in defaults:
