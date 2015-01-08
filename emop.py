@@ -166,14 +166,14 @@ if opts.mode == 'query':
         avg_runtimes = emop_query.get_runtimes()
         if avg_runtimes:
             print "Pages processed: %s" % avg_runtimes["total_pages"]
-            print "Total Page Runtime: %s seconds" % avg_runtimes["total_page_runtime"]
-            print "Average Page Runtime: %s seconds" % avg_runtimes["average_page_runtime"]
+            print "Total Page Runtime: %0.3f seconds" % avg_runtimes["total_page_runtime"]
+            print "Average Page Runtime: %0.3f seconds" % avg_runtimes["average_page_runtime"]
             print "Jobs run: %s" % avg_runtimes["total_jobs"]
-            print "Average Job Runtime: %s seconds" % avg_runtimes["average_job_runtime"]
+            print "Average Job Runtime: %0.3f seconds" % avg_runtimes["average_job_runtime"]
             print "Processes:"
             for process in avg_runtimes["processes"]:
-                print "\t%s Average: %s seconds" % (process["name"], process["avg"])
-                print "\t%s Total: %s seconds" % (process["name"], process["total"])
+                print "\t%s Average: %0.3f seconds" % (process["name"], process["avg"])
+                print "\t%s Total: %0.3f seconds" % (process["name"], process["total"])
         else:
             print "ERROR: querying average page runtimes"
             sys.exit(1)
