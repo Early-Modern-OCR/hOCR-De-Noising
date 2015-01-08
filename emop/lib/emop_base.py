@@ -33,22 +33,31 @@ class EmopBase(object):
         # logger.debug("%s: %s" % (self.settings.__class__.__name__, EmopStdlib.to_JSON(self.settings)))
 
     @staticmethod
-    def page_timing(func):
+    def run_timing(func):
         def wrap(*args, **kwargs):
-            start = time.time()
-            ret = func(*args, **kwargs)
-            elapsed = time.time() - start
-            logger.info("Job [%s] COMPLETE: Duration: %0.3f secs" % (kwargs.get('job').id, elapsed))
-            return ret
-        return wrap
+            klass = args[0].__class__.__name__
+            func_name = func.func_name
 
-    @staticmethod
-    def job_timing(func):
-        def wrap(*args, **kwargs):
+            if kwargs.get('obj'):
+                name = kwargs.get('obj').__class__.__name__
+                item = kwargs.get('job').id
+            elif func_name == "do_ocr":
+                name = "OCR"
+                item = kwargs.get('job').id
+            elif klass == "EmopRun" and func_name == "run":
+                name = "Total"
+                item = None
+            else:
+                name = "Job"
+                item = kwargs.get('job').id
+
             start = time.time()
             ret = func(*args, **kwargs)
             elapsed = time.time() - start
-            logger.info("TOTAL TIME: %0.3f" % elapsed)
+            if name == "Total":
+                logger.info("TOTAL TIME: %0.3f" % elapsed)
+            else:
+                logger.info("%s [%s] COMPLETE: Duration: %0.3f secs" % (name, item, elapsed))
             return ret
         return wrap
 

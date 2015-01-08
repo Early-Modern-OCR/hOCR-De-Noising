@@ -6,6 +6,16 @@ from emop.lib.emop_base import EmopBase
 
 logger = logging.getLogger('emop')
 
+processes = [
+    "OCR",
+    "Denoise",
+    "XML_To_Text",
+    "PageEvaluator",
+    "PageCorrector",
+    "JuxtaCompare",
+    "RetasCompare",
+]
+
 
 class EmopQuery(EmopBase):
 
@@ -35,11 +45,15 @@ class EmopQuery(EmopBase):
         runtimes = {}
         runtimes["pages"] = []
         runtimes["total"] = []
+        runtimes["processes"] = {}
+        for process in processes:
+            runtimes["processes"][process] = []
+
         with open(filename) as f:
             lines = f.readlines()
 
         for line in lines:
-            page_match = re.search("COMPLETE. Duration: ([0-9.]+) secs", line)
+            page_match = re.search("Job \[.*\] COMPLETE: Duration: ([0-9.]+) secs", line)
             total_match = re.search("TOTAL TIME: ([0-9.]+)$", line)
 
             if page_match:
@@ -49,22 +63,32 @@ class EmopQuery(EmopBase):
                 total_runtime = total_match.group(1)
                 runtimes["total"].append(float(total_runtime))
             else:
-                continue
+                for process in processes:
+                    process_match = re.search("%s \[.*\] COMPLETE: Duration: ([0-9.]+) secs" % process, line)
+                    if process_match:
+                        process_runtime = process_match.group(1)
+                        runtimes["processes"][process].append(float(process_runtime))
         return runtimes
 
     def get_runtimes(self):
         results = {}
+        results["processes"] = []
         runtimes = {}
         runtimes["pages"] = []
         runtimes["total"] = []
+        for process in processes:
+            results[process] = []
+            runtimes[process] = []
 
         glob_path = os.path.join(self.settings.scheduler_logdir, "*.out")
         files = glob.glob(glob_path)
 
         for f in files:
-            results = self.parse_file_for_runtimes(f)
-            runtimes["pages"] = runtimes["pages"] + results["pages"]
-            runtimes["total"] = runtimes["total"] + results["total"]
+            file_runtimes = self.parse_file_for_runtimes(f)
+            runtimes["pages"] = runtimes["pages"] + file_runtimes["pages"]
+            runtimes["total"] = runtimes["total"] + file_runtimes["total"]
+            for process in processes:
+                runtimes[process] = runtimes[process] + file_runtimes["processes"][process]
 
         total_pages = len(runtimes["pages"])
         total_jobs = len(runtimes["total"])
@@ -82,6 +106,18 @@ class EmopQuery(EmopBase):
         else:
             total_job_runtime = sum(runtimes["total"])
             average_job_runtime = 0
+
+        for process in processes:
+            process_runtimes = runtimes[process]
+            cnt = len(process_runtimes)
+            if cnt > 0:
+                total = sum(process_runtimes)
+                avg = total / cnt
+            else:
+                total = sum(process_runtimes)
+                avg = 0
+            process_results = {"name": process, "total": total, "avg": avg}
+            results["processes"].append(process_results.copy())
 
         results["total_pages"] = total_pages
         results["total_page_runtime"] = total_page_runtime

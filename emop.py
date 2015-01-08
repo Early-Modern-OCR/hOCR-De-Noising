@@ -170,6 +170,10 @@ if opts.mode == 'query':
             print "Average Page Runtime: %s seconds" % avg_runtimes["average_page_runtime"]
             print "Jobs run: %s" % avg_runtimes["total_jobs"]
             print "Average Job Runtime: %s seconds" % avg_runtimes["average_job_runtime"]
+            print "Processes:"
+            for process in avg_runtimes["processes"]:
+                print "\t%s Average: %s seconds" % (process["name"], process["avg"])
+                print "\t%s Total: %s seconds" % (process["name"], process["total"])
         else:
             print "ERROR: querying average page runtimes"
             sys.exit(1)

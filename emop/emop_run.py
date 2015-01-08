@@ -81,6 +81,7 @@ class EmopRun(EmopBase):
 
         return data
 
+    @EmopBase.run_timing
     def do_process(self, obj, job, **kwargs):
         """ Run a process
 
@@ -108,6 +109,7 @@ class EmopRun(EmopBase):
         else:
             return True
 
+    @EmopBase.run_timing
     def do_ocr(self, job):
         """Run the OCR
 
@@ -170,49 +172,49 @@ class EmopRun(EmopBase):
         """
         # DeNoise #
         denoise = Denoise(job=job)
-        denoise_proc = self.do_process(denoise, job)
+        denoise_proc = self.do_process(obj=denoise, job=job)
         if not denoise_proc:
             return False
 
         # _IDHMC.xml to _IDHMC.txt #
         xml_to_text = XML_To_Text(job=job)
-        xml_to_text_proc = self.do_process(xml_to_text, job)
+        xml_to_text_proc = self.do_process(obj=xml_to_text, job=job)
         if not xml_to_text_proc:
             return False
 
         # PageEvaluator #
         page_evaluator = PageEvaluator(job=job)
-        page_evaluator_proc = self.do_process(page_evaluator, job)
+        page_evaluator_proc = self.do_process(obj=page_evaluator, job=job)
         if not page_evaluator_proc:
             return False
 
         # PageCorrector #
         page_corrector = PageCorrector(job=job)
-        page_corrector_proc = self.do_process(page_corrector, job)
+        page_corrector_proc = self.do_process(obj=page_corrector, job=job)
         if not page_corrector_proc:
             return False
 
         # JuxtaCompare postprocess and OCR output #
         juxta_compare = JuxtaCompare(job=job)
-        juxta_compare_proc_pp = self.do_process(juxta_compare, job, postproc=True)
+        juxta_compare_proc_pp = self.do_process(obj=juxta_compare, job=job, postproc=True)
         if not juxta_compare_proc_pp:
             return False
-        # juxta_compare_proc = self.do_process(juxta_compare, job, postproc=False)
+        # juxta_compare_proc = self.do_process(obj=juxta_compare, job=job, postproc=False)
         # if not juxta_compare_proc:
         #     return False
 
         # RetasCompare postprocess and OCR output #
         retas_compare = RetasCompare(job=job)
-        retas_compare_proc_pp = self.do_process(retas_compare, job, postproc=True)
+        retas_compare_proc_pp = self.do_process(obj=retas_compare, job=job, postproc=True)
         if not retas_compare_proc_pp:
             return False
-        # retas_compare_proc = self.do_process(retas_compare, job, postproc=False)
+        # retas_compare_proc = self.do_process(obj=retas_compare, job=job, postproc=False)
         # if not retas_compare_proc:
         #     return False
 
         return True
 
-    @EmopBase.page_timing
+    @EmopBase.run_timing
     def do_job(self, job):
         """Execute the parts of a page's job
 
@@ -228,7 +230,7 @@ class EmopRun(EmopBase):
             return False
         return True
 
-    @EmopBase.job_timing
+    @EmopBase.run_timing
     def run(self):
         """Run the EmopJob
 
