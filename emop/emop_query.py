@@ -13,7 +13,7 @@ processes = [
     "PageEvaluator",
     "PageCorrector",
     "JuxtaCompare",
-    "RetasCompare",
+    # "RetasCompare",
 ]
 
 
