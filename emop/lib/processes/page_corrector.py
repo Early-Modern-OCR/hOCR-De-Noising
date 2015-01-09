@@ -64,4 +64,6 @@ class PageCorrector(ProcessesBase):
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         self.job.postproc_result.pp_health = out
+        self.job.page_result.corr_ocr_text_path = self.job.alto_txt_file
+        self.job.page_result.corr_ocr_xml_path = self.job.alto_xml_file
         return Results(stdout=None, stderr=None, exitcode=0)

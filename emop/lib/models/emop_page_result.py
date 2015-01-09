@@ -8,6 +8,8 @@ class EmopPageResult(EmopModel):
         super(self.__class__, self).__init__(settings)
         self._ocr_text_path = None
         self._ocr_xml_path = None
+        self._corr_ocr_text_path = None
+        self._corr_ocr_xml_path = None
         self.page_id = None
         self.batch_id = None
         self.juxta_change_index = None
@@ -22,6 +24,8 @@ class EmopPageResult(EmopModel):
             'batch_id': self.batch_id,
             'ocr_text_path': self.ocr_text_path,
             'ocr_xml_path': self.ocr_xml_path,
+            'corr_ocr_text_path': self.corr_ocr_text_path,
+            'corr_ocr_xml_path': self.corr_ocr_xml_path,
             'juxta_change_index': self.juxta_change_index,
             'alt_change_index': self.alt_change_index,
         }
@@ -48,3 +52,25 @@ class EmopPageResult(EmopModel):
         prefix = self.settings.output_path_prefix
         new_value = EmopBase.remove_prefix(prefix=prefix, path=value)
         self._ocr_xml_path = new_value
+
+    @property
+    def corr_ocr_text_path(self):
+        """The path to corrected text OCR output"""
+        return self._corr_ocr_text_path
+
+    @corr_ocr_text_path.setter
+    def corr_ocr_text_path(self, value):
+        prefix = self.settings.output_path_prefix
+        new_value = EmopBase.remove_prefix(prefix=prefix, path=value)
+        self._corr_ocr_text_path = new_value
+
+    @property
+    def corr_ocr_xml_path(self):
+        """The path to corrected XML OCR output"""
+        return self._corr_ocr_xml_path
+
+    @corr_ocr_xml_path.setter
+    def corr_ocr_xml_path(self, value):
+        prefix = self.settings.output_path_prefix
+        new_value = EmopBase.remove_prefix(prefix=prefix, path=value)
+        self._corr_ocr_xml_path = new_value

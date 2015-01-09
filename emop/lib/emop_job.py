@@ -36,6 +36,7 @@ class EmopJob(object):
         self.idhmc_txt_file = self.add_filename_suffix(self.txt_file, "IDHMC")
         self.idhmc_xml_file = self.add_filename_suffix(self.xml_file, "IDHMC")
         self.alto_txt_file = self.add_filename_suffix(self.txt_file, "ALTO")
+        self.alto_xml_file = self.add_filename_suffix(self.xml_file, "ALTO")
 
     def output_dir(self):
         """ Provide the job output directory
