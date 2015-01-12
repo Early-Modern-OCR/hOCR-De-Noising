@@ -34,6 +34,15 @@ class PageEvaluator(ProcessesBase):
             stderr = "PageEvaluator Error: unexpected response format: %s" % out
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
-        self.job.postproc_result.pp_ecorr = scores[0]
-        self.job.postproc_result.pp_pg_quality = scores[1]
+        pp_ecorr = scores[0]
+        pp_pg_quality = scores[1]
+
+        # Handle invalid values returned by PageEvaluator
+        if pp_ecorr == 'NaN':
+            pp_ecorr = '-1'
+        if pp_pg_quality == 'NaN':
+            pp_pg_quality = '-1'
+
+        self.job.postproc_result.pp_ecorr = pp_ecorr
+        self.job.postproc_result.pp_pg_quality = pp_pg_quality
         return Results(stdout=None, stderr=None, exitcode=0)
