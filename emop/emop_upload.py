@@ -26,7 +26,14 @@ class EmopUpload(EmopBase):
 
     def upload_proc_id(self, proc_id):
         payload = EmopPayload(self.settings, proc_id)
-        filename = payload.completed_output_filename
+        if payload.completed_output_exists():
+            filename = payload.completed_output_filename
+        elif payload.output_exists():
+            filename = payload.output_filename
+        else:
+            logger.error("EmopUpload: Could not find payload file for proc_id %s" % proc_id)
+            return False
+
         upload_status = self.upload_file(filename=filename)
         return upload_status
 
