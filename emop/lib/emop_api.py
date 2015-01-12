@@ -68,5 +68,5 @@ class EmopAPI(object):
         if put_r.status_code == requests.codes.ok:
             json_data = put_r.json()
         else:
-            logger.error("GET %s failed with error code %s" % (full_url, put_r.status_code))
+            logger.error("PUT %s failed with error code %s" % (full_url, put_r.status_code))
         return json_data
