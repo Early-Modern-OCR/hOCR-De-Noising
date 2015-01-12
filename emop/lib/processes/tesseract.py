@@ -34,7 +34,7 @@ class Tesseract(ProcessesBase):
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:
-            Results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)
+            return Results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)
 
         # Rename hOCR file to XML
         if os.path.isfile(self.job.hocr_file) and not os.path.isfile(self.job.xml_file):

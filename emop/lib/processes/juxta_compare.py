@@ -28,7 +28,8 @@ class JuxtaCompare(ProcessesBase):
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         cmd = [
-            "java", "-Xms128M", "-Xmx128M", "-jar", self.executable, "-diff", self.job.ground_truth_file, input_file,
+            "java", "-Xms128M", "-Xmx128M", "-jar", self.executable,
+            "-diff", self.job.page.ground_truth_file, input_file,
             "-algorithm", self.jx_algorithm, "-hyphen", "none"
         ]
 

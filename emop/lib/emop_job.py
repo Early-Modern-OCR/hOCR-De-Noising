@@ -14,10 +14,6 @@ class EmopJob(object):
         self.font = font
         self.page = page
         self.work = work
-        if page.hasGroundTruth():
-            self.ground_truth_file = EmopBase.add_prefix(settings.input_path_prefix, page.ground_truth_file)
-        else:
-            self.ground_truth_file = None
         self.settings = settings
         self.scheduler = scheduler
         self.page_result = EmopPageResult(self.settings)

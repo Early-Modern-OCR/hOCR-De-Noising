@@ -231,7 +231,7 @@ class EmopRun(EmopBase):
         return True
 
     @EmopBase.run_timing
-    def run(self):
+    def run(self, force=False):
         """Run the EmopJob
 
         This function is intended to be what's called by external scripts
@@ -242,6 +242,9 @@ class EmopRun(EmopBase):
         Once the loop of all jobs is complete the final results are saved
         to a file as completed payload
 
+        Args:
+            force (bool): Run even if output file exists.
+
         Returns:
             bool: True if successful, False otherwise.
         """
@@ -251,12 +254,13 @@ class EmopRun(EmopBase):
         if not data:
             logger.error("No payload data to load.")
             return False
-        if self.payload.output_exists():
-            logger.error("Output file %s already exists." % self.payload.output_filename)
-            return False
-        if self.payload.completed_output_exists():
-            logger.error("Output file %s already exists." % self.payload.completed_output_filename)
-            return False
+        if not force:
+            if self.payload.output_exists():
+                logger.error("Output file %s already exists." % self.payload.output_filename)
+                return False
+            if self.payload.completed_output_exists():
+                logger.error("Output file %s already exists." % self.payload.completed_output_filename)
+                return False
 
         for job in data:
             batch_job = EmopBatchJob(self.settings)

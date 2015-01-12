@@ -29,7 +29,7 @@ class RetasCompare(ProcessesBase):
             return Results(stdout=None, stderr=stderr, exitcode=1)
 
         cmd = [
-            "java", "-Xms128M", "-Xmx128M", "-jar", self.executable, self.job.ground_truth_file, input_file,
+            "java", "-Xms128M", "-Xmx128M", "-jar", self.executable, self.job.page.ground_truth_file, input_file,
             "-opt", self.cfg
         ]
         proc = EmopBase.exec_cmd(cmd)

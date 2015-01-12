@@ -78,6 +78,10 @@ submit_opt_grp.add_option('--no-schedule',
                           dest='schedule',
                           action='store_false',
                           default=True)
+run_opt_grp.add_option('--force-run',
+                          help='Force run even if output exists',
+                          dest='force_run',
+                          action='store_true')
 upload_opt_grp.add_option('--upload-file',
                           help='path to payload file to upload',
                           dest='upload_file',
@@ -107,7 +111,7 @@ parser.add_option_group(mandatory_opt_grp)
 parser.add_option_group(common_opt_grp)
 parser.add_option_group(query_opt_grp)
 parser.add_option_group(submit_opt_grp)
-# parser.add_option_group(run_opt_grp)
+parser.add_option_group(run_opt_grp)
 parser.add_option_group(upload_opt_grp)
 parser.add_option_group(testrun_opt_grp)
 (opts, args) = parser.parse_args()
@@ -230,7 +234,7 @@ if opts.mode == 'run':
     if not emop_run.scheduler.is_job_environment():
         print "Can only use run mode from within a cluster job environment"
         sys.exit(1)
-    run_status = emop_run.run()
+    run_status = emop_run.run(force=opts.force_run)
     if run_status:
         sys.exit(0)
     else:
@@ -267,7 +271,7 @@ if opts.mode == 'testrun':
         sys.exit(1)
     # Run reserved pages
     emop_run = EmopRun(opts.config_path, proc_id)
-    run_status = emop_run.run()
+    run_status = emop_run.run(force=True)
     if not run_status:
         sys.exit(1)
 
