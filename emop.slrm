@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --export=EMOP_HOME,PROC_ID
+#SBATCH --export=EMOP_HOME,EMOP_CONFIG_PATH,PROC_ID
 
 # load required modules
 module use ${EMOP_HOME}/modulefiles
@@ -9,6 +9,10 @@ module load emop
 
 export OPENBLAS_NUM_THREADS=$SLURM_JOB_CPUS_PER_NODE
 export OMP_NUM_THREADS=$SLURM_JOB_CPUS_PER_NODE
+
+if [ -z $EMOP_CONFIG_PATH ]; then
+    EMOP_CONFIG_PATH=${EMOP_HOME}/config.ini
+fi
 
 # Print out the starting time and host.
 echo "${SLURM_JOB_ID} started on $(hostname) at $(date)"
@@ -18,11 +22,11 @@ echo "-=-"
 umask 002
 
 # launch instance of the controller which runs until killed or no jobs remain
-RUN_CMD="python ${EMOP_HOME}/emop.py --mode run --proc-id ${PROC_ID}"
+RUN_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode run --proc-id ${PROC_ID}"
 echo "Executing: ${RUN_CMD}"
 eval ${RUN_CMD}
 
-UPLOAD_CMD="python ${EMOP_HOME}/emop.py --mode upload --proc-id ${PROC_ID}"
+UPLOAD_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode upload --proc-id ${PROC_ID}"
 echo "Executing: ${UPLOAD_CMD}"
 eval ${UPLOAD_CMD}
 

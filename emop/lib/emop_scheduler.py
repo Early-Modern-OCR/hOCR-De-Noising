@@ -65,7 +65,7 @@ class EmopScheduler(object):
     def current_job_count(self):
         raise NotImplementedError
 
-    def submit_job(self, proc_id):
+    def submit_job(self, proc_id, num_pages):
         raise NotImplementedError
 
     def is_job_environment(self):
@@ -119,3 +119,34 @@ class EmopScheduler(object):
             jobid = os.environ.get(jobid_env_var)
             if jobid:
                 return jobid
+
+    def walltime(self, num_pages):
+        """Determine walltime used for submitting job
+
+        This function determines the appropriate walltime to use
+        when submitting a job.  The first option is the average
+        page runtime times 200%.  If that value is over the max
+        allowed walltime then the average runtime times 150% is
+        checked.  If that value is over the max walltime then the
+        walltime from config.ini max_job is used.
+
+        Args:
+            num_pages (int): Number of pages to be run
+
+        Returns:
+            str: A walltime value in minutes.
+        
+        """
+        avg_page_runtime = self.settings.avg_page_runtime
+        max_runtime = self.settings.max_job_runtime
+        walltime = max_runtime
+        # 200% the average
+        walltime_opt1 = avg_page_runtime * 2 * num_pages
+        # 150% the average
+        walltime_opt2 = ((avg_page_runtime * 0.5) + avg_page_runtime) * num_pages
+
+        if walltime_opt1 < max_runtime:
+            walltime = walltime_opt1
+        elif walltime_opt2 < max_runtime:
+            walltime = walltime_opt2
+        return str(int(walltime / 60))

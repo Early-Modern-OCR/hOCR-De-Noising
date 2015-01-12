@@ -75,15 +75,16 @@ class EmopPayload(object):
         save_status = self.save(data=data, dirname=dirname, filename=filename, overwrite=overwrite)
         return save_status
 
-    def save_completed_output(self, data):
+    def save_completed_output(self, data, overwrite=False):
         dirname = self.completed_output_path
         filename = self.completed_output_filename
-        save_status = self.save(data=data, dirname=dirname, filename=filename, overwrite=False)
+        save_status = self.save(data=data, dirname=dirname, filename=filename, overwrite=overwrite)
         if save_status and os.path.isfile(self.output_filename):
             logger.debug("Removing payload file %s" % self.output_filename)
             os.remove(self.output_filename)
         return save_status
 
+    # TODO: Function is currently not used
     def save_uploaded_output(self, data):
         dirname = self.completed_output_path
         filename = self.completed_output_filename

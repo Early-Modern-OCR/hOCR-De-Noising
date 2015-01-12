@@ -79,9 +79,9 @@ submit_opt_grp.add_option('--no-schedule',
                           action='store_false',
                           default=True)
 run_opt_grp.add_option('--force-run',
-                          help='Force run even if output exists',
-                          dest='force_run',
-                          action='store_true')
+                       help='Force run even if output exists',
+                       dest='force_run',
+                       action='store_true')
 upload_opt_grp.add_option('--upload-file',
                           help='path to payload file to upload',
                           dest='upload_file',
@@ -221,7 +221,7 @@ if opts.mode == 'submit':
         if not proc_id:
             print "Failed to reserve page"
             sys.exit(1)
-        emop_submit.scheduler.submit_job(proc_id=proc_id)
+        emop_submit.scheduler.submit_job(proc_id=proc_id, num_pages=pages_per_job)
 
     sys.exit(0)
 

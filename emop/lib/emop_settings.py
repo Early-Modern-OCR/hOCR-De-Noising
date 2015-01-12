@@ -9,6 +9,7 @@ defaults = {
     "scheduler": {
         "mem_per_cpu": "4000",
         "cpus_per_task": "1",
+        "set_walltime": False,
     },
     "page-corrector": {
         "java_args": '["-Xms128M", "-Xmx512M"]',
@@ -85,11 +86,34 @@ class EmopSettings(object):
         self.scheduler_logfile = os.path.join(self.scheduler_logdir, "%s-%%j.out" % self.scheduler_job_name)
         self.scheduler_mem_per_cpu = self.get_value('scheduler', 'mem_per_cpu')
         self.scheduler_cpus_per_task = self.get_value('scheduler', 'cpus_per_task')
+        self.scheduler_set_walltime = self.get_bool_value('scheduler', 'set_walltime')
 
         # Settings used by Juxta-cl
         self.juxta_cl_jx_algorithm = self.get_value('juxta-cl', 'jx_algorithm')
 
     def get_value(self, section, option, default=None):
+        """Get settings value
+
+        This function is a warper for ConfigParser.get() that
+        handles missing values and substitutes them for defaults set
+        in a dict within global space of EmopSettings.
+
+        Interpolation is performed on specific items found in %() within
+        the INI file.
+
+        ``home`` - HOME environment variable
+        ``emop_home`` - The emop_home setting value
+
+        Args:
+            section (str): INI file section
+            option (str): INI file option name
+            default (str): Default value if one is not found.
+            Defaults to None.
+
+        Returns:
+            str: The config value based on what was found in 
+
+        """
         interpolation_map = {
             "home": os.getenv("HOME"),
             "emop_home": self.emop_home,
@@ -109,3 +133,35 @@ class EmopSettings(object):
                     raise e
 
         return raw_value
+
+    def get_bool_value(self, section, option, default=None):
+        """Get settings bool value
+
+        This function is a warper for RawConfigParser.getboolean() that
+        handles missing values and substitutes them for defaults set
+        in a dict within global space of EmopSettings.
+
+        Args:
+            section (str): INI file section
+            option (str): INI file option name
+            default (str): Default value if one is not found.
+            Defaults to None.
+
+        Returns:
+            bool: The config value based on what was found in 
+
+        """
+        bool_value = None
+
+        try:
+            bool_value = self.config.getboolean(section, option)
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as e:
+            if default:
+                bool_value = default
+            elif section in defaults:
+                if option in defaults[section]:
+                    bool_value = defaults[section][option]
+                else:
+                    raise e
+
+        return bool_value

@@ -287,5 +287,5 @@ class EmopRun(EmopBase):
                 return False
 
         logger.debug("Payload: \n%s" % json.dumps(self.get_results(), sort_keys=True, indent=4))
-        self.payload.save_completed_output(data=self.get_results())
+        self.payload.save_completed_output(data=self.get_results(), overwrite=force)
         return True

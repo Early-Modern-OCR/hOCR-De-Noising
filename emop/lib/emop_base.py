@@ -87,7 +87,7 @@ class EmopBase(object):
 
         Returns:
             str: The prefix + path.
-                None is returned if prefix or path are not present.
+            None is returned if prefix or path are not present.
         """
         if not prefix or not path:
             return None
@@ -105,7 +105,7 @@ class EmopBase(object):
 
         Returns:
             str: The path with prefix removed.
-                None is returned if prefix or path are not present.
+            None is returned if prefix or path are not present.
         """
         if not prefix or not path:
             return None

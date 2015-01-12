@@ -43,16 +43,21 @@ class EmopSubmit(EmopBase):
         run_option_c = self.settings.min_job_runtime / self.settings.avg_page_runtime
         logger.debug("RunOptA: %s , RunOptB: %s, RunOptC: %s" % (run_option_a, run_option_b, run_option_c))
 
+        # max pages per job > pages in max time
         if run_option_a > run_option_b:
             num_jobs = job_slots_available
             pages_per_job = run_option_b
+        # Pages less than pages in min time
         elif page_count < run_option_c:
             num_jobs = page_count / run_option_c
             pages_per_job = page_count
+        # max pages per job < pages in min time
         elif run_option_a < run_option_c:
             num_jobs = page_count / run_option_c
             pages_per_job = run_option_c
+        # max pages per job
         else:
+            # TODO: In some cases num_jobs will exceed max_jobs value
             num_jobs = page_count / run_option_a
             pages_per_job = run_option_a
 
