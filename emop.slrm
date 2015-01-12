@@ -4,6 +4,7 @@
 #SBATCH --export=EMOP_HOME,EMOP_CONFIG_PATH,PROC_ID
 
 # load required modules
+module load gcc mariadb/10.0.15
 module use ${EMOP_HOME}/modulefiles
 module load emop
 
@@ -21,6 +22,19 @@ echo "-=-"
 # Set umask so directories can be read/written by others
 umask 002
 
+# Bootstrap and start local MariaDB instance
+${EMOP_HOME}/bootstrap_mariadb.sh
+if [ $? -ne 0 ]; then
+    echo "Error bootstrapping MariaDB"
+    exit 1
+fi
+
+${EMOP_HOME}/start_mariadb.sh
+if [ $? -ne 0 ]; then
+    echo "Error starting MariaDB"
+    exit 1
+fi
+
 # launch instance of the controller which runs until killed or no jobs remain
 RUN_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode run --proc-id ${PROC_ID}"
 echo "Executing: ${RUN_CMD}"
@@ -29,6 +43,9 @@ eval ${RUN_CMD}
 UPLOAD_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode upload --proc-id ${PROC_ID}"
 echo "Executing: ${UPLOAD_CMD}"
 eval ${UPLOAD_CMD}
+
+# Shutdown MariaDB instance
+mysqladmin --defaults-file=${TMPDIR}/my.cnf --protocol=tcp shutdown
 
 # Done; print the end time and host.
 echo "-=-"

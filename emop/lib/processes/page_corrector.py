@@ -11,7 +11,7 @@ class PageCorrector(ProcessesBase):
         super(self.__class__, self).__init__(job)
         self.home = self.job.settings.seasr_home
         self.executable = os.path.join(self.home, "PageCorrector.jar")
-        self.cfg = os.path.join(os.environ["EMOP_HOME"], "emop.properties")
+        self.cfg = os.path.join(self.job.temp_dir, "emop.properties")
         self.dicts_dir = os.path.join(self.home, "dictionaries")
         self.rules_file = os.path.join(self.home, "rules", "transformations.json")
         self.java_args = json.loads(self.job.settings.get_value('page-corrector', 'java_args'))

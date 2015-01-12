@@ -9,6 +9,7 @@ class EmopJob(object):
     def __init__(self, job_id, batch_job, font, page, work, settings, scheduler):
         self.id = job_id
         self.output_root_dir = EmopBase.add_prefix(settings.output_path_prefix, settings.ocr_root)
+        self.temp_dir = EmopBase.get_temp_dir()
         self.image_path = self.get_image_path(page, work, settings)
         self.batch_job = batch_job
         self.font = font
