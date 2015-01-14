@@ -39,7 +39,12 @@ class JuxtaCompare(ProcessesBase):
             return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()
-        value = float(out)
+
+        # Handle invalid values returned by Juxta
+        if out == 'NaN':
+            value = '-1'
+        else:
+            value = float(out)
 
         if postproc:
             # self.job.postproc_result.pp_juxta = value

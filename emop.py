@@ -160,7 +160,7 @@ if opts.mode == 'query':
     # --pending-pages
     if opts.query_pending_pages:
         pending_pages = emop_query.pending_pages()
-        if pending_pages:
+        if pending_pages == 0 or pending_pages:
             print "Number of pending pages: %s" % pending_pages
         else:
             print "ERROR: querying pending pages failed"
@@ -169,15 +169,16 @@ if opts.mode == 'query':
     if opts.query_avg_runtimes:
         avg_runtimes = emop_query.get_runtimes()
         if avg_runtimes:
-            print "Pages processed: %s" % avg_runtimes["total_pages"]
-            print "Total Page Runtime: %0.3f seconds" % avg_runtimes["total_page_runtime"]
-            print "Average Page Runtime: %0.3f seconds" % avg_runtimes["average_page_runtime"]
-            print "Jobs run: %s" % avg_runtimes["total_jobs"]
-            print "Average Job Runtime: %0.3f seconds" % avg_runtimes["average_job_runtime"]
+            print "Pages completed: %d" % avg_runtimes["total_pages"]
+            print "Total Page Runtime: %d seconds" % avg_runtimes["total_page_runtime"]
+            print "Average Page Runtime: %d seconds" % avg_runtimes["average_page_runtime"]
+            print "Jobs completed: %d" % avg_runtimes["total_jobs"]
+            print "Average Job Runtime: %d seconds" % avg_runtimes["average_job_runtime"]
             print "Processes:"
             for process in avg_runtimes["processes"]:
-                print "\t%s Average: %0.3f seconds" % (process["name"], process["avg"])
-                print "\t%s Total: %0.3f seconds" % (process["name"], process["total"])
+                print "\t%s completed: %d" % (process["name"], process["count"])
+                print "\t%s Average: %d seconds" % (process["name"], process["avg"])
+                print "\t%s Total: %d seconds" % (process["name"], process["total"])
         else:
             print "ERROR: querying average page runtimes"
             sys.exit(1)
@@ -189,14 +190,14 @@ if opts.mode == 'submit':
     emop_query = EmopQuery(opts.config_path)
     pending_pages = emop_query.pending_pages()
 
-    if not pending_pages:
-        print "Error querying pending pages"
-        sys.exit(1)
-
     # Exit if no pages to run
     if pending_pages == 0:
         print "No work to be done"
         sys.exit(0)
+
+    if not pending_pages:
+        print "Error querying pending pages"
+        sys.exit(1)
 
     # Exit if the number of submitted jobs has reached the limit
     if opts.schedule:

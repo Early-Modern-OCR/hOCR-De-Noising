@@ -135,7 +135,6 @@ class EmopScheduler(object):
 
         Returns:
             str: A walltime value in minutes.
-        
         """
         avg_page_runtime = self.settings.avg_page_runtime
         max_runtime = self.settings.max_job_runtime

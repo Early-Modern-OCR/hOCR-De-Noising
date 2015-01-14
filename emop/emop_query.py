@@ -116,7 +116,7 @@ class EmopQuery(EmopBase):
             else:
                 total = sum(process_runtimes)
                 avg = 0
-            process_results = {"name": process, "total": total, "avg": avg}
+            process_results = {"name": process, "count": cnt, "total": total, "avg": avg}
             results["processes"].append(process_results.copy())
 
         results["total_pages"] = total_pages

@@ -1,4 +1,5 @@
 import ConfigParser
+import json
 import os
 
 # TODO: Need sane defaults for all settings
@@ -10,6 +11,7 @@ defaults = {
         "mem_per_cpu": "4000",
         "cpus_per_task": "1",
         "set_walltime": False,
+        "extra_args": '[]',
     },
     "page-corrector": {
         "java_args": '["-Xms128M", "-Xmx512M"]',
@@ -87,6 +89,8 @@ class EmopSettings(object):
         self.scheduler_mem_per_cpu = self.get_value('scheduler', 'mem_per_cpu')
         self.scheduler_cpus_per_task = self.get_value('scheduler', 'cpus_per_task')
         self.scheduler_set_walltime = self.get_bool_value('scheduler', 'set_walltime')
+        # Allow to fail if invalid type provided
+        self.scheduler_extra_args = json.loads(self.get_value('scheduler', 'extra_args'))
 
         # Settings used by Juxta-cl
         self.juxta_cl_jx_algorithm = self.get_value('juxta-cl', 'jx_algorithm')
@@ -111,8 +115,7 @@ class EmopSettings(object):
             Defaults to None.
 
         Returns:
-            str: The config value based on what was found in 
-
+            str: The config value
         """
         interpolation_map = {
             "home": os.getenv("HOME"),
@@ -148,8 +151,7 @@ class EmopSettings(object):
             Defaults to None.
 
         Returns:
-            bool: The config value based on what was found in 
-
+            bool: The config value
         """
         bool_value = None
 

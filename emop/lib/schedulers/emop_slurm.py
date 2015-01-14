@@ -75,6 +75,9 @@ class EmopSLURM(EmopScheduler):
             walltime = self.walltime(num_pages)
             cmd.append("--time")
             cmd.append(walltime)
+        extra_args = self.settings.scheduler_extra_args
+        if extra_args:
+            cmd.append(extra_args)
         cmd.append("emop.slrm")
         proc = EmopBase.exec_cmd(cmd, log_level="debug")
         if proc.exitcode != 0:
