@@ -24,9 +24,9 @@ ROOT_DIR="${TMPDIR}/mariadb"
 TMP_DIR="${ROOT_DIR}/tmp"
 #DATA_DIR="${ROOT_DIR}/data"
 DATA_DIR="${ROOT_DIR}/data"
-SRC="/dh/data/shared/db-backups/mariadb/data"
+SRC="/fdata/idhmc/serial/google_1grams/data"
 SOCKET="${ROOT_DIR}/mysql.sock"
-PORT=$(awk -vmin=60000 -vmax=65000 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
+PORT=60${SLURM_JOB_ID: -3} #TODO This is a huge assumption about value of SLURM_JOB_ID > 1000
 
 cat << EOF > ${TMPDIR}/emop.properties
 db_host: 127.0.0.1:${PORT}
@@ -86,6 +86,9 @@ innodb_lock_wait_timeout = 50
 innodb_change_buffering = none
 innodb_read_only = 1
 event_scheduler = DISABLED
+
+# Attempt to fix IO access issues when running on /fdata (BeeGFS)
+innodb_use_native_aio = 0
 
 #external-locking
 

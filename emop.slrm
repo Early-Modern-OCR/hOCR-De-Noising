@@ -23,17 +23,25 @@ echo "-=-"
 umask 002
 
 # Bootstrap and start local MariaDB instance
+bootstrap_begin=$(date +"%s")
 ${EMOP_HOME}/bootstrap_mariadb.sh
 if [ $? -ne 0 ]; then
     echo "Error bootstrapping MariaDB"
     exit 1
 fi
+bootstrap_end=$(date +"%s")
+bootstrap_duration=$(($bootstrap_end-$bootstrap_begin))
+echo "BOOTSTRAP TIME: ${bootstrap_duration}"
 
+start_mariadb_begin=$(date +"%s")
 ${EMOP_HOME}/start_mariadb.sh
 if [ $? -ne 0 ]; then
     echo "Error starting MariaDB"
     exit 1
 fi
+start_mariadb_end=$(date +"%s")
+start_mariadb_duration=$(($start_mariadb_end-$start_mariadb_begin))
+echo "START MARIADB TIME: ${start_mariadb_duration}"
 
 # launch instance of the controller which runs until killed or no jobs remain
 RUN_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode run --proc-id ${PROC_ID}"
