@@ -24,7 +24,10 @@ ROOT_DIR="${TMPDIR}/mariadb"
 TMP_DIR="${ROOT_DIR}/tmp"
 #DATA_DIR="${ROOT_DIR}/data"
 DATA_DIR="${ROOT_DIR}/data"
-SRC="/fdata/idhmc/serial/google_1grams/data"
+#SRC="/fdata/idhmc/serial/google_1grams/data"
+#SRC="/fdata/idhmc/parallel2/google_1grams/data"
+#SRC="/fdata/idhmc/parallel4/google_1grams/data"
+SRC="/fdata/idhmc/parallel6/google_1grams/data"
 SOCKET="${ROOT_DIR}/mysql.sock"
 PORT=60${SLURM_JOB_ID: -3} #TODO This is a huge assumption about value of SLURM_JOB_ID > 1000
 
