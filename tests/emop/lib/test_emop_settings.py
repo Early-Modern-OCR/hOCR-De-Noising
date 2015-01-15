@@ -1,14 +1,14 @@
 import os
+import pytest
 from unittest import TestCase
 from unittest import TestLoader
+from tests.utilities import default_settings
 from emop.lib.emop_settings import EmopSettings
 
 
 class TestEmopSettings(TestCase):
     def setUp(self):
-        app_root = os.path.abspath(os.path.join(__file__, '../../../..'))
-        config_path = os.path.join(app_root, 'config.ini.example')
-        self.settings = EmopSettings(config_path)
+        self.settings = default_settings()
 
     def test_config_path(self):
         config_file = 'config.ini.example'
