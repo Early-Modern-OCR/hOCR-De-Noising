@@ -8,13 +8,6 @@
 # nohup mysqld_safe --defaults-file=${TMPDIR}/my.cnf --innodb_fast_shutdown=0 --innodb_change_buffering=none &
 # mysql --defaults-file=${TMPDIR}/my.cnf -e 'CREATE DATABASE google_1grams DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci'
 # mysql --defaults-file=${TMPDIR}/my.cnf google_1grams < /dh/data/shared/db-backups/google_1grams.sql
-
-# mysql --defaults-file=${TMPDIR}/my.cnf google_1grams < /dh/data/shared/db-backups/google_1grams/ngram3_lower.sql
-# 
-# 
-
-# for file in /dh/data/shared/db-backups/google_1grams/chunks/ngram3_lower_* ; do  echo $file ; mysql --defaults-file=${TMPDIR}/my.cnf google_1grams -e "LOAD DATA INFILE '$file' INTO TABLE ngram3_lower"; done
-
 # mysqladmin --defaults-file=${TMPDIR}/my.cnf --protocol=tcp shutdown
 
 #########
@@ -48,8 +41,8 @@ tmpdir = $TMP_DIR
 datadir = $DATA_DIR
 user = $USER
 pid-file = ${TMPDIR}/mariadb-${SLURM_JOB_ID}.pid
-#log-error = ${TMPDIR}/mariadb-${SLURM_JOB_ID}.err
-log-error = /dh/data/shared/db-backups/mariadb/mariadb-${SLURM_JOB_ID}.err
+log-error = ${TMPDIR}/mariadb-${SLURM_JOB_ID}.err
+#log-error = /dh/data/shared/db-backups/mariadb/mariadb-${SLURM_JOB_ID}.err
 log-warnings = 2
 
 # From my-huge.cnf
