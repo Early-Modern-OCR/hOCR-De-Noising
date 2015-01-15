@@ -155,6 +155,7 @@ class EmopRun(EmopBase):
 
         Currently the steps are executed in the following order:
             * Denoise
+            * MultiColumnSkew
             * XML_To_Text
             * PageEvaluator
             * PageCorrector
