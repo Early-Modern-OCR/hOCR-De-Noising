@@ -29,11 +29,10 @@ SOCKET="${ROOT_DIR}/mysql.sock"
 PORT=60${SLURM_JOB_ID: -3} #TODO This is a huge assumption about value of SLURM_JOB_ID > 1000
 
 cat << EOF > ${TMPDIR}/emop.properties
-db_host: 127.0.0.1:${PORT}
-db_name: emop
-db_user: root
-db_pass:
-db_ngrams: google_1grams
+ctx_db_driver: com.mysql.jdbc.Driver
+ctx_db_url: jdbc:mysql://127.0.0.1:${PORT}/google_1grams
+ctx_db_user: root
+ctx_db_pass:
 EOF
 
 cat << EOF  > ${MY_CNF}
