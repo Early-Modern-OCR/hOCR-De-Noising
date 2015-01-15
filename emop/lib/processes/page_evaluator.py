@@ -1,4 +1,3 @@
-import collections
 import json
 import os
 from emop.lib.emop_base import EmopBase
@@ -14,25 +13,23 @@ class PageEvaluator(ProcessesBase):
         self.java_args = json.loads(self.job.settings.get_value('page-evaluator', 'java_args'))
 
     def run(self):
-        Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
-
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "Could not find XML file: %s" % self.job.xml_file
-            return Results(stdout=None, stderr=stderr, exitcode=1)
+            return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         # TODO Move -Xms and -Xmx into config.ini
         cmd = ["java", self.java_args, "-jar", self.executable, "-q", self.job.xml_file]
         proc = EmopBase.exec_cmd(cmd)
 
         if proc.exitcode != 0:
-            return Results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)
+            return self.results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()
         scores = out.split(",")
 
         if len(scores) != 2:
             stderr = "PageEvaluator Error: unexpected response format: %s" % out
-            return Results(stdout=None, stderr=stderr, exitcode=1)
+            return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         pp_ecorr = scores[0]
         pp_pg_quality = scores[1]
@@ -45,4 +42,4 @@ class PageEvaluator(ProcessesBase):
 
         self.job.postproc_result.pp_ecorr = pp_ecorr
         self.job.postproc_result.pp_pg_quality = pp_pg_quality
-        return Results(stdout=None, stderr=None, exitcode=0)
+        return self.results(stdout=None, stderr=None, exitcode=0)

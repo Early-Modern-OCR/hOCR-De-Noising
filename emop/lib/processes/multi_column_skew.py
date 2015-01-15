@@ -1,6 +1,5 @@
 import json
 import os
-import re
 from emop.lib.emop_base import EmopBase
 from emop.lib.processes.processes_base import ProcessesBase
 

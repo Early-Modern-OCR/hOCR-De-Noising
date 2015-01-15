@@ -1,4 +1,3 @@
-import collections
 import glob
 import json
 import os
@@ -23,11 +22,9 @@ class PageCorrector(ProcessesBase):
         self.ctx_min_vol = self.job.settings.get_value('page-corrector', 'ctx_min_vol')
 
     def run(self):
-        Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
-
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "Could not find XML file: %s" % self.job.xml_file
-            return Results(stdout=None, stderr=stderr, exitcode=1)
+            return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         dict_files = glob.glob("%s/*.dict" % self.dicts_dir)
         cmd = [
@@ -52,7 +49,7 @@ class PageCorrector(ProcessesBase):
                 stderr = proc.stderr
             else:
                 stderr = proc.stdout
-            return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
+            return self.results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()
 
@@ -61,9 +58,9 @@ class PageCorrector(ProcessesBase):
             json.loads(out)
         except ValueError:
             stderr = "PageCorrector Error: output is not valid JSON"
-            return Results(stdout=None, stderr=stderr, exitcode=1)
+            return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         self.job.postproc_result.pp_health = out
         self.job.page_result.corr_ocr_text_path = self.job.alto_txt_file
         self.job.page_result.corr_ocr_xml_path = self.job.alto_xml_file
-        return Results(stdout=None, stderr=None, exitcode=0)
+        return self.results(stdout=None, stderr=None, exitcode=0)

@@ -1,4 +1,3 @@
-import collections
 import os
 from emop.lib.emop_base import EmopBase
 from emop.lib.processes.processes_base import ProcessesBase
@@ -13,10 +12,8 @@ class JuxtaCompare(ProcessesBase):
         self.jx_algorithm = self.job.settings.juxta_cl_jx_algorithm
 
     def run(self, postproc):
-        Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
-
         if not self.job.page.hasGroundTruth():
-            return Results(stdout=None, stderr=None, exitcode=0)
+            return self.results(stdout=None, stderr=None, exitcode=0)
 
         if postproc:
             input_file = self.job.alto_txt_file
@@ -25,7 +22,7 @@ class JuxtaCompare(ProcessesBase):
 
         if not input_file or not os.path.isfile(input_file):
             stderr = "Could not find JuxtaCompare input file: %s" % input_file
-            return Results(stdout=None, stderr=stderr, exitcode=1)
+            return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         cmd = [
             "java", "-Xms128M", "-Xmx128M", "-jar", self.executable,
@@ -36,7 +33,7 @@ class JuxtaCompare(ProcessesBase):
         proc = EmopBase.exec_cmd(cmd)
         if proc.exitcode != 0:
             stderr = "JuxtaCompare of %s failed: %s" % (input_file, proc.stderr)
-            return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
+            return self.results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()
 
@@ -52,4 +49,4 @@ class JuxtaCompare(ProcessesBase):
         # else:
         #     self.job.page_result.juxta_change_index = value
 
-        return Results(stdout=None, stderr=None, exitcode=0)
+        return self.results(stdout=None, stderr=None, exitcode=0)

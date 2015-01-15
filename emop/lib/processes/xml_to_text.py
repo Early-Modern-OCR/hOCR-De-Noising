@@ -1,4 +1,3 @@
-import collections
 import logging
 import os
 import xml.etree.ElementTree as ET
@@ -13,11 +12,9 @@ class XML_To_Text(ProcessesBase):
         super(self.__class__, self).__init__(job)
 
     def run(self):
-        Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
-
         if not self.job.idhmc_xml_file or not os.path.isfile(self.job.idhmc_xml_file):
             stderr = "XML to Text: Could not find XML file"
-            return Results(stdout=None, stderr=stderr, exitcode=1)
+            return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         logger.info("XML_To_Text: Converting %s to %s" % (self.job.idhmc_xml_file, self.job.idhmc_txt_file))
 
@@ -48,4 +45,4 @@ class XML_To_Text(ProcessesBase):
         with open(self.job.idhmc_txt_file, 'w') as txt_file:
             txt_file.write(text)
 
-        return Results(stdout=None, stderr=None, exitcode=0)
+        return self.results(stdout=None, stderr=None, exitcode=0)

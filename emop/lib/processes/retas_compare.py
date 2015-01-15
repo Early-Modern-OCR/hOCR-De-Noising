@@ -1,4 +1,3 @@
-import collections
 import os
 import re
 from emop.lib.emop_base import EmopBase
@@ -14,10 +13,8 @@ class RetasCompare(ProcessesBase):
         self.cfg = os.path.join(self.home, "config.txt")
 
     def run(self, postproc):
-        Results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
-
         if not self.job.page.hasGroundTruth():
-            return Results(stdout=None, stderr=None, exitcode=0)
+            return self.results(stdout=None, stderr=None, exitcode=0)
 
         if postproc:
             input_file = self.job.alto_txt_file
@@ -26,7 +23,7 @@ class RetasCompare(ProcessesBase):
 
         if not input_file or not os.path.isfile(input_file):
             stderr = "Could not find RetasCompare input file: %s" % input_file
-            return Results(stdout=None, stderr=stderr, exitcode=1)
+            return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         cmd = [
             "java", "-Xms128M", "-Xmx128M", "-jar", self.executable, self.job.page.ground_truth_file, input_file,
@@ -35,7 +32,7 @@ class RetasCompare(ProcessesBase):
         proc = EmopBase.exec_cmd(cmd)
         if proc.exitcode != 0:
             stderr = "RetasCompare of %s failed: %s" % (input_file, proc.stderr)
-            return Results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
+            return self.results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)
 
         out = proc.stdout.strip()
         values = re.split(r"\t", out)
@@ -47,4 +44,4 @@ class RetasCompare(ProcessesBase):
         # else:
         #     self.job.page_result.alt_change_index = value
 
-        return Results(stdout=None, stderr=None, exitcode=0)
+        return self.results(stdout=None, stderr=None, exitcode=0)
