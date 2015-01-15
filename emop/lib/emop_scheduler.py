@@ -124,28 +124,33 @@ class EmopScheduler(object):
         """Determine walltime used for submitting job
 
         This function determines the appropriate walltime to use
-        when submitting a job.  The first option is the average
-        page runtime times 200%.  If that value is over the max
-        allowed walltime then the average runtime times 150% is
-        checked.  If that value is over the max walltime then the
-        walltime from config.ini max_job is used.
+        when submitting a job.
+
+        The optimal walltime is determined by using
+        avg_page_runtime * N * num_pages, where N is either
+        400%, 200% or 150%.  The first optimal walltime to be less
+        than the max_job_runtime is used.
 
         Args:
             num_pages (int): Number of pages to be run
 
         Returns:
-            str: A walltime value in minutes.
+            int: A walltime value in seconds.
         """
-        avg_page_runtime = self.settings.avg_page_runtime
+        avg_page_runtime = int(self.settings.avg_page_runtime)
+        num_pages = int(num_pages)
         max_runtime = self.settings.max_job_runtime
+        walltimes = []
         walltime = max_runtime
+        # 400% the average
+        walltimes.append((avg_page_runtime * 4 * num_pages))
         # 200% the average
-        walltime_opt1 = avg_page_runtime * 2 * num_pages
+        walltimes.append((avg_page_runtime * 2 * num_pages))
         # 150% the average
-        walltime_opt2 = ((avg_page_runtime * 0.5) + avg_page_runtime) * num_pages
+        walltimes.append((avg_page_runtime * 1.5 * num_pages))
 
-        if walltime_opt1 < max_runtime:
-            walltime = walltime_opt1
-        elif walltime_opt2 < max_runtime:
-            walltime = walltime_opt2
-        return str(int(walltime / 60))
+        for w in walltimes:
+            if w <= max_runtime:
+                walltime = w
+                break
+        return int(walltime)

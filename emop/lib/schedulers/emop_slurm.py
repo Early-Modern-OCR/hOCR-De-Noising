@@ -40,6 +40,38 @@ class EmopSLURM(EmopScheduler):
         num = len(lines)
         return num
 
+    def get_submit_cmd(self, num_pages):
+        """Generates a sbatch command
+
+        Based on settings a sbatch command is generated.
+
+        Args:
+            num_pages (int): Number of pages being scheduled
+
+        Returns:
+            list: The command to be executed
+        """
+        cmd = [
+            "sbatch", "--parsable",
+            "-p", self.settings.scheduler_queue,
+            "-J", self.settings.scheduler_job_name,
+            "-o", self.settings.scheduler_logfile,
+            "--mem-per-cpu", self.settings.scheduler_mem_per_cpu,
+            "--cpus-per-task", self.settings.scheduler_cpus_per_task,
+        ]
+        # Set walltime if configured to do so
+        if self.settings.scheduler_set_walltime:
+            walltime_seconds = self.walltime(num_pages)
+            # Convert walltime from seconds to minutes
+            walltime_minutes = int(walltime_seconds / 60)
+            cmd.append("--time")
+            cmd.append(str(walltime_minutes))
+        extra_args = self.settings.scheduler_extra_args
+        if extra_args:
+            cmd.append(extra_args)
+        cmd.append("emop.slrm")
+        return cmd
+
     def submit_job(self, proc_id, num_pages):
         """Submit a job to SLURM
 
@@ -55,7 +87,6 @@ class EmopSLURM(EmopScheduler):
 
         Returns:
             bool: True if successful, False otherwise.
-
         """
         if not proc_id:
             logger.error("EmopSLURM#submit_job(): Must provide valid proc_id.")
@@ -63,22 +94,7 @@ class EmopSLURM(EmopScheduler):
 
         os.environ['PROC_ID'] = proc_id
         os.environ['EMOP_CONFIG_PATH'] = self.settings.config_path
-        cmd = [
-            "sbatch", "--parsable",
-            "-p", self.settings.scheduler_queue,
-            "-J", self.settings.scheduler_job_name,
-            "-o", self.settings.scheduler_logfile,
-            "--mem-per-cpu", self.settings.scheduler_mem_per_cpu,
-            "--cpus-per-task", self.settings.scheduler_cpus_per_task,
-        ]
-        if self.settings.scheduler_set_walltime:
-            walltime = self.walltime(num_pages)
-            cmd.append("--time")
-            cmd.append(walltime)
-        extra_args = self.settings.scheduler_extra_args
-        if extra_args:
-            cmd.append(extra_args)
-        cmd.append("emop.slrm")
+        cmd = self.get_submit_cmd(num_pages)
         proc = EmopBase.exec_cmd(cmd, log_level="debug")
         if proc.exitcode != 0:
             logger.error("Failed to submit job to SLURM: %s" % proc.stderr)
