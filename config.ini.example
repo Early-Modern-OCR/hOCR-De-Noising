@@ -45,6 +45,9 @@ extra_args = []
 [juxta-cl]
 jx_algorithm = jaro_winkler
 
+[multi-column-skew]
+enabled = True
+
 [page-corrector]
 java_args = ["-Xms128M", "-Xmx512M"]
 alt_arg = 2

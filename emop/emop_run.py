@@ -179,10 +179,11 @@ class EmopRun(EmopBase):
             return False
 
         # MultiColumnSkew #
-        multi_column_skew = MultiColumnSkew(job=job)
-        multi_column_skew_proc = self.do_process(obj=multi_column_skew, job=job)
-        if not multi_column_skew_proc:
-            return False
+        if self.settings.multi_column_skew_enabled:
+            multi_column_skew = MultiColumnSkew(job=job)
+            multi_column_skew_proc = self.do_process(obj=multi_column_skew, job=job)
+            if not multi_column_skew_proc:
+                return False
 
         # _IDHMC.xml to _IDHMC.txt #
         xml_to_text = XML_To_Text(job=job)

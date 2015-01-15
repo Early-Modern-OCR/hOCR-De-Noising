@@ -13,6 +13,9 @@ defaults = {
         "set_walltime": False,
         "extra_args": '[]',
     },
+    "multi-column-skew": {
+        "enabled": True,
+    },
     "page-corrector": {
         "java_args": '["-Xms128M", "-Xmx512M"]',
         "alt_arg": "2",
@@ -91,6 +94,9 @@ class EmopSettings(object):
         self.scheduler_set_walltime = self.get_bool_value('scheduler', 'set_walltime')
         # Allow to fail if invalid type provided
         self.scheduler_extra_args = json.loads(self.get_value('scheduler', 'extra_args'))
+
+        # Settings used by MultiColumnSkew
+        self.multi_column_skew_enabled = self.get_bool_value('multi-column-skew', 'enabled')
 
         # Settings used by Juxta-cl
         self.juxta_cl_jx_algorithm = self.get_value('juxta-cl', 'jx_algorithm')
