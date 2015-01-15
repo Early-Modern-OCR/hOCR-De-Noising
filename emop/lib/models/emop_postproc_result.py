@@ -13,6 +13,8 @@ class EmopPostprocResult(EmopModel):
         self.pp_ecorr = None
         self.pp_pg_quality = None
         self.pp_retas = None
+        self.multicol = None
+        self.skew_idx = None
 
     def setattrs(self, dictionary):
         pass
@@ -27,5 +29,7 @@ class EmopPostprocResult(EmopModel):
             'pp_ecorr': self.pp_ecorr,
             'pp_pg_quality': self.pp_pg_quality,
             'pp_retas': self.pp_retas,
+            'multicol': self.multicol,
+            'skew_idx': self.skew_idx,
         }
         return _dict

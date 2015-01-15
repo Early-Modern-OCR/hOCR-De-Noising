@@ -11,6 +11,7 @@ from emop.lib.models.emop_work import EmopWork
 from emop.lib.processes.tesseract import Tesseract
 from emop.lib.processes.xml_to_text import XML_To_Text
 from emop.lib.processes.denoise import Denoise
+from emop.lib.processes.multi_column_skew import MultiColumnSkew
 from emop.lib.processes.page_evaluator import PageEvaluator
 from emop.lib.processes.page_corrector import PageCorrector
 from emop.lib.processes.juxta_compare import JuxtaCompare
@@ -174,6 +175,12 @@ class EmopRun(EmopBase):
         denoise = Denoise(job=job)
         denoise_proc = self.do_process(obj=denoise, job=job)
         if not denoise_proc:
+            return False
+
+        # MultiColumnSkew #
+        multi_column_skew = MultiColumnSkew(job=job)
+        multi_column_skew_proc = self.do_process(obj=multi_column_skew, job=job)
+        if not multi_column_skew_proc:
             return False
 
         # _IDHMC.xml to _IDHMC.txt #

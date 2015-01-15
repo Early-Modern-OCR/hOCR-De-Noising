@@ -32,7 +32,9 @@ queue = idhmc
 #queue = background
 name = emop-controller
 min_job_runtime = 300
-max_job_runtime = 3600
+max_job_runtime = 259200
+# Example values for submitting to background
+#max_job_runtime = 345600
 avg_page_runtime = 20
 logdir = %(emop_home)s/logs
 mem_per_cpu = 4000
@@ -83,5 +85,5 @@ datefmt=%Y-%m-%dT%H:%M:%S
 
 [flake8]
 ignore = E501
-exclude = lib/denoise/deNoise_Post.py,test.py,docs/conf.py
+exclude = lib/denoise/deNoise_Post.py,lib/MultiColumnSkew/*.py,test.py,docs/conf.py
 max-complexity = 10
