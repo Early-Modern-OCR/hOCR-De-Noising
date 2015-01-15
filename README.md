@@ -1,6 +1,8 @@
 # eMOP Controller
 
 [![Documentation Status](https://readthedocs.org/projects/emop-controller/badge/?version=latest)](https://readthedocs.org/projects/emop-controller/?badge=latest)
+[![Build Status](https://travis-ci.org/idhmc-tamu/emop-controller.svg?branch=master)](https://travis-ci.org/idhmc-tamu/emop-controller)
+[![Coverage Status](https://coveralls.io/repos/idhmc-tamu/emop-controller/badge.svg?branch=master)](https://coveralls.io/r/idhmc-tamu/emop-controller?branch=master)
 
 The Brazos Cluster controller process for the eMOP workflow.
 
