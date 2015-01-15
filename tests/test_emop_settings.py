@@ -3,7 +3,6 @@ import pytest
 from unittest import TestCase
 from unittest import TestLoader
 from tests.utilities import default_settings
-from emop.lib.emop_settings import EmopSettings
 
 
 class TestEmopSettings(TestCase):
@@ -22,4 +21,4 @@ class TestEmopSettings(TestCase):
 
 
 def suite():
-    return TestLoader().loadTestsFromTestCase(EmopSettingsTest)
+    return TestLoader().loadTestsFromTestCase(TestEmopSettings)

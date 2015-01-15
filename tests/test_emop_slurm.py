@@ -111,4 +111,4 @@ class TestEmopSLURM(TestCase):
 
 
 def suite():
-    return TestLoader().loadTestsFromTestCase(EmopSLURMTest)
+    return TestLoader().loadTestsFromTestCase(TestEmopSLURM)
