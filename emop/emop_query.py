@@ -9,6 +9,7 @@ logger = logging.getLogger('emop')
 processes = [
     "OCR",
     "Denoise",
+    "MultiColumnSkew",
     "XML_To_Text",
     "PageEvaluator",
     "PageCorrector",
