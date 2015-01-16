@@ -2,14 +2,14 @@ import os
 from emop.lib.emop_base import EmopBase
 from emop.lib.models.emop_page_result import EmopPageResult
 from emop.lib.models.emop_postproc_result import EmopPostprocResult
-
+from emop.lib.utilities import get_temp_dir
 
 class EmopJob(object):
 
     def __init__(self, job_id, batch_job, font, page, work, settings, scheduler):
         self.id = job_id
         self.output_root_dir = EmopBase.add_prefix(settings.output_path_prefix, settings.ocr_root)
-        self.temp_dir = EmopBase.get_temp_dir()
+        self.temp_dir = get_temp_dir()
         self.image_path = self.get_image_path(page, work, settings)
         self.batch_job = batch_job
         self.font = font
