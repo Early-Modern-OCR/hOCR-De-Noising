@@ -2,6 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --export=EMOP_HOME,EMOP_CONFIG_PATH,PROC_ID
+#SBATCH --signal=USR1@120
 
 # load required modules
 module load gcc mariadb/10.0.15
@@ -44,7 +45,7 @@ start_mariadb_duration=$(($start_mariadb_end-$start_mariadb_begin))
 echo "START MARIADB TIME: ${start_mariadb_duration}"
 
 # launch instance of the controller which runs until killed or no jobs remain
-RUN_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode run --proc-id ${PROC_ID}"
+RUN_CMD="srun python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode run --proc-id ${PROC_ID}"
 echo "Executing: ${RUN_CMD}"
 eval ${RUN_CMD}
 

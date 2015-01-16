@@ -1,5 +1,7 @@
 import json
 import logging
+import signal
+import sys
 from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
 from emop.lib.emop_job import EmopJob
@@ -18,7 +20,24 @@ from emop.lib.processes.juxta_compare import JuxtaCompare
 from emop.lib.processes.retas_compare import RetasCompare
 
 logger = logging.getLogger('emop')
+job_ids = []
+instance = None
 
+def signal_exit(signum, frame):
+    """Signal handler
+
+    This function will mark all non-completed jobs as failed
+    and exit.  This is intended to catch SIGUSR1 signals that indicate
+    a job is nearing its time limit.
+    """
+    for job_id in job_ids:
+        if not job_id in instance.jobs_completed:
+            results = "%s JOB %s: time limit reached" % (instance.scheduler.name, instance.scheduler.job_id)
+            logger.error(results)
+            instance.jobs_failed.append({"id": job_id, "results": results})
+    current_results = instance.get_results()
+    instance.payload.save_output(data=current_results, overwrite=True)
+    sys.exit(1)
 
 class EmopRun(EmopBase):
 
@@ -257,6 +276,8 @@ class EmopRun(EmopBase):
         Returns:
             bool: True if successful, False otherwise.
         """
+        global instance
+        global job_ids
         data = self.payload.load_input()
         logger.debug("Payload: \n%s" % json.dumps(data, sort_keys=True, indent=4))
 
@@ -271,6 +292,13 @@ class EmopRun(EmopBase):
                 logger.error("Output file %s already exists." % self.payload.completed_output_filename)
                 return False
 
+        # Assign global variables and respond to signals
+        for job in data:
+            job_ids.append(job["id"])
+        instance = self
+        signal.signal(signal.SIGUSR1, signal_exit)
+
+        # Loop over jobs to perform actual work
         for job in data:
             batch_job = EmopBatchJob(self.settings)
             batch_job.setattrs(job["batch_job"])
