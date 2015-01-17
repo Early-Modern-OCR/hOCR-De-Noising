@@ -1,10 +1,16 @@
 emop.properties
+!logs/
 logs/*
 !logs/.gitkeep
+!logs/test/
+logs/test/*
+!logs/test/.gitkeep
+
 
 *.pyc
 config.ini
 config*.ini
+!config-idhmc-test.ini
 payload/**/*.json
 payload/**/**/*.json
 

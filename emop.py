@@ -48,7 +48,7 @@ common_opt_grp.add_option('--proc-id',
                           dest='proc_id',
                           action='store',
                           nargs=1,
-                          type='int')
+                          type='string')
 query_opt_grp.add_option('--pending-pages',
                          help="query number of pending pages",
                          dest="query_pending_pages",
