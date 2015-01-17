@@ -11,13 +11,13 @@ if (mode() == "load") then
   if (not os.getenv("EMOP_HOME")) then
     local cwd = lfs.currentdir()
     LmodMessage("WARNING: EMOP_HOME is not set, setting to ", cwd)
-    pushenv("EMOP_HOME", cwd)
+    setenv("EMOP_HOME", cwd)
   end
 end
 
 local emop_home = os.getenv("EMOP_HOME")
-pushenv("JUXTA_HOME", pathJoin(emop_home, "lib/juxta-cl"))
-pushenv("RETAS_HOME", pathJoin(emop_home, "lib/retas"))
-pushenv("SEASR_HOME", pathJoin(emop_home, "lib/seasr"))
-pushenv("TESSDATA_PREFIX", "/dh/data/shared/")
-pushenv("DENOISE_HOME", pathJoin(emop_home, "lib/denoise"))
+setenv("JUXTA_HOME", pathJoin(emop_home, "lib/juxta-cl"))
+setenv("RETAS_HOME", pathJoin(emop_home, "lib/retas"))
+setenv("SEASR_HOME", pathJoin(emop_home, "lib/seasr"))
+setenv("TESSDATA_PREFIX", "/dh/data/shared/")
+setenv("DENOISE_HOME", pathJoin(emop_home, "lib/denoise"))
