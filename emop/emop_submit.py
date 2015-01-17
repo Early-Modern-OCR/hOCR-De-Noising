@@ -37,10 +37,11 @@ class EmopSubmit(EmopBase):
         """
         num_jobs = 0
         pages_per_job = 1
-        job_slots_available = self.settings.max_jobs - running_job_count
-        run_option_a = page_count / job_slots_available
-        run_option_b = self.settings.max_job_runtime / self.settings.avg_page_runtime
-        run_option_c = self.settings.min_job_runtime / self.settings.avg_page_runtime
+        job_slots_available = int(self.settings.max_jobs - running_job_count)
+        run_option_a = float(page_count) / float(job_slots_available)
+        run_option_b = float(self.settings.max_job_runtime) / float(self.settings.avg_page_runtime)
+        run_option_c = float(self.settings.min_job_runtime) / float(self.settings.avg_page_runtime)
+        logger.debug("JobSlotsAvailable: %s, PageCount: %s" % (job_slots_available, page_count))
         logger.debug("RunOptA: %s , RunOptB: %s, RunOptC: %s" % (run_option_a, run_option_b, run_option_c))
 
         # max pages per job > pages in max time
@@ -61,6 +62,11 @@ class EmopSubmit(EmopBase):
             num_jobs = page_count / run_option_a
             pages_per_job = run_option_a
 
+        # Convert values to integers
+        num_jobs = int(num_jobs)
+        pages_per_job = int(pages_per_job)
+
+        # Incase num_jobs was type casted to 0
         if not num_jobs:
             num_jobs = 1
 
