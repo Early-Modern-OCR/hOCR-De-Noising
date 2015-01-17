@@ -39,6 +39,9 @@ class EmopUpload(EmopBase):
 
     def upload_file(self, filename):
         filename_path = os.path.abspath(filename)
+        file_basename = os.path.basename(filename_path)
+        proc_id, file_ext = os.path.splitext(file_basename)
+        payload = EmopPayload(self.settings, proc_id)
         if not os.path.isfile(filename_path):
             logger.error("EmopUpload: Could not find file %s" % filename_path)
             return None
@@ -49,6 +52,7 @@ class EmopUpload(EmopBase):
         uploaded = self.upload(data)
         if uploaded:
             logger.info("Successfully uploaded payload file %s" % filename_path)
+            payload.save_uploaded_output(data)
             return True
         else:
             return False

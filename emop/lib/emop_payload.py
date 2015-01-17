@@ -18,7 +18,7 @@ class EmopPayload(object):
         self.input_filename = os.path.join(self.input_path, "%s.json" % self.proc_id)
         self.output_filename = os.path.join(self.output_path, "%s.json" % self.proc_id)
         self.completed_output_filename = os.path.join(self.completed_output_path, "%s.json" % self.proc_id)
-        self.uploaded_output_filename = os.path.join(self.completed_output_path, "%s.json" % self.proc_id)
+        self.uploaded_output_filename = os.path.join(self.uploaded_output_path, "%s.json" % self.proc_id)
 
     def file_exists(self, filename):
         if os.path.isfile(filename):
@@ -84,11 +84,17 @@ class EmopPayload(object):
             os.remove(self.output_filename)
         return save_status
 
-    # TODO: Function is currently not used
     def save_uploaded_output(self, data):
-        dirname = self.completed_output_path
-        filename = self.completed_output_filename
-        save_status = self.save(data=data, dirname=dirname, filename=filename, overwrite=False)
+        dirname = self.uploaded_output_path
+        filename = self.uploaded_output_filename
+        save_status = self.save(data=data, dirname=dirname, filename=filename, overwrite=True)
+        if save_status:
+            if self.completed_output_exists():
+                logger.debug("Removing payload file %s" % self.completed_output_filename)
+                os.remove(self.completed_output_filename)
+            elif self.output_exists():
+                logger.debug("Removing payload file %s" % self.output_filename)
+                os.remove(self.output_filename)
         return save_status
 
     def load_input(self):
