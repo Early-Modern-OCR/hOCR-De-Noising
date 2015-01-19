@@ -1,4 +1,3 @@
-import errno
 import subprocess
 import shlex
 import collections
@@ -113,24 +112,6 @@ class EmopBase(object):
             return path[len(prefix):]
         else:
             return path
-
-    @staticmethod
-    def mkdirs_exists_ok(path):
-        """Wrapper for os.makedirs
-
-        This function is needed to avoid race conditions
-        when the directory exists when attempting to use
-        os.makedirs.  This emulates the behavior of Python 3.x
-        os.makedirs exist_ok argument.
-
-        Args:
-            path (str): Path of directory to create
-        """
-        try:
-            os.makedirs(path)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
 
     @staticmethod
     def exec_cmd(cmd, log_level="info"):

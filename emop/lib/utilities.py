@@ -1,9 +1,9 @@
 import collections
+import errno
 import logging
 import os
 import shlex
 import subprocess
-import sys
 
 logger = logging.getLogger('emop')
 
@@ -30,6 +30,25 @@ def get_temp_dir():
     if not tmp_dir:
         logger.error("Temporary directory could not be found.")
     return tmp_dir
+
+
+def mkdirs_exists_ok(path):
+    """Wrapper for os.makedirs
+
+    This function is needed to avoid race conditions
+    when the directory exists when attempting to use
+    os.makedirs.  This emulates the behavior of Python 3.x
+    os.makedirs exist_ok argument.
+
+    Args:
+        path (str): Path of directory to create
+    """
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
 
 def exec_cmd(cmd, log_level="info"):
     """Executes a command

@@ -23,6 +23,7 @@ logger = logging.getLogger('emop')
 job_ids = []
 instance = None
 
+
 def signal_exit(signum, frame):
     """Signal handler
 
@@ -31,13 +32,14 @@ def signal_exit(signum, frame):
     a job is nearing its time limit.
     """
     for job_id in job_ids:
-        if not job_id in instance.jobs_completed:
+        if job_id not in instance.jobs_completed:
             results = "%s JOB %s: time limit reached" % (instance.scheduler.name, instance.scheduler.job_id)
             logger.error(results)
             instance.jobs_failed.append({"id": job_id, "results": results})
     current_results = instance.get_results()
     instance.payload.save_output(data=current_results, overwrite=True)
     sys.exit(1)
+
 
 class EmopRun(EmopBase):
 
