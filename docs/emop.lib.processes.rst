@@ -20,6 +20,14 @@ emop.lib.processes.juxta_compare module
     :undoc-members:
     :show-inheritance:
 
+emop.lib.processes.multi_column_skew module
+-------------------------------------------
+
+.. automodule:: emop.lib.processes.multi_column_skew
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 emop.lib.processes.page_corrector module
 ----------------------------------------
 

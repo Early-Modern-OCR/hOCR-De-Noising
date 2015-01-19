@@ -69,6 +69,14 @@ emop.lib.emop_stdlib module
     :undoc-members:
     :show-inheritance:
 
+emop.lib.utilities module
+-------------------------
+
+.. automodule:: emop.lib.utilities
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
