@@ -2,14 +2,10 @@ import pytest
 from unittest import TestCase
 from unittest import TestLoader
 from tests.utilities import default_settings
-#from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
 
 
 class TestEmopPayload(TestCase):
-    def setUp(self):
-        pass
-
     @pytest.fixture(autouse=True)
     def setup_settings(self, tmpdir):
         self.settings = default_settings()

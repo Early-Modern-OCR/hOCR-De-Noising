@@ -1,5 +1,6 @@
 import logging
 import os
+from emop.lib.utilities import exec_cmd
 from emop.lib.emop_base import EmopBase
 from emop.lib.emop_scheduler import EmopScheduler
 
@@ -35,7 +36,7 @@ class EmopSLURM(EmopScheduler):
             int: The numberof current jobs
         """
         cmd = ["squeue", "-r", "--noheader", "-p", self.settings.scheduler_queue, "-n", self.settings.scheduler_job_name]
-        proc = EmopBase.exec_cmd(cmd, log_level="debug")
+        proc = exec_cmd(cmd, log_level="debug")
         lines = proc.stdout.splitlines()
         num = len(lines)
         return num
