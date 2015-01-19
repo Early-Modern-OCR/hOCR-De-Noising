@@ -1,4 +1,5 @@
 import collections
+from flexmock import flexmock
 import mock
 import os
 from emop.lib.emop_settings import EmopSettings
@@ -20,6 +21,14 @@ def default_config_path():
 def default_settings():
     settings = EmopSettings(default_config_path())
     return settings
+
+
+def mock_mkdirs(path):
+    return flexmock(os).should_receive("makedirs").with_args(path)
+
+
+def mock_isfile_true(path):
+    return flexmock(os.path).should_receive("isfile").with_args(path).and_return(True)
 
 
 def mock_exec_cmd(stdout, stderr, exitcode):
