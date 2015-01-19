@@ -2,7 +2,6 @@ import os
 from unittest import TestCase
 from unittest import TestLoader
 from tests.utilities import default_settings, mock_exec_cmd
-from emop.lib.utilities import exec_cmd
 from emop.lib.schedulers.emop_slurm import EmopSLURM
 
 
@@ -173,6 +172,7 @@ class TestEmopSLURM(TestCase):
         os.environ["SLURM_JOB_ID"] = '0001'
         actual = scheduler.get_job_id()
         self.assertEqual('0001', actual)
+
 
 def suite():
     return TestLoader().loadTestsFromTestCase(TestEmopSLURM)

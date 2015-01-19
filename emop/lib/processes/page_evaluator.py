@@ -1,6 +1,6 @@
 import json
 import os
-from emop.lib.emop_base import EmopBase
+from emop.lib.utilities import exec_cmd
 from emop.lib.processes.processes_base import ProcessesBase
 
 
@@ -19,7 +19,7 @@ class PageEvaluator(ProcessesBase):
 
         # TODO Move -Xms and -Xmx into config.ini
         cmd = ["java", self.java_args, "-jar", self.executable, "-q", self.job.xml_file]
-        proc = EmopBase.exec_cmd(cmd)
+        proc = exec_cmd(cmd)
 
         if proc.exitcode != 0:
             return self.results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)

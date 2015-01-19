@@ -1,5 +1,5 @@
 import os
-from emop.lib.emop_base import EmopBase
+from emop.lib.utilities import exec_cmd
 from emop.lib.processes.processes_base import ProcessesBase
 
 
@@ -30,7 +30,7 @@ class JuxtaCompare(ProcessesBase):
             "-algorithm", self.jx_algorithm, "-hyphen", "none"
         ]
 
-        proc = EmopBase.exec_cmd(cmd)
+        proc = exec_cmd(cmd)
         if proc.exitcode != 0:
             stderr = "JuxtaCompare of %s failed: %s" % (input_file, proc.stderr)
             return self.results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)

@@ -52,5 +52,6 @@ class TestEmopSubmit(TestCase):
         self.assertEqual(num_jobs, 500)
         self.assertEqual(pages_per_job, 10)
 
+
 def suite():
     return TestLoader().loadTestsFromTestCase(TestEmopSubmit)

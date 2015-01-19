@@ -37,8 +37,9 @@ class TestTesseract(TestCase):
         self.assertTrue(mock_mkdirs_exists_ok.called)
         self.assertTrue(exec_cmd.called)
         self.assertEqual(expected_cmd, args[0])
-        #self.assertTrue(mock_os_rename.called)
+        # self.assertTrue(mock_os_rename.called)
         self.assertTupleEqual(expected_results, retval)
+
 
 def suite():
     return TestLoader().loadTestsFromTestCase(TestTesseract)

@@ -1,7 +1,7 @@
 import glob
 import json
 import os
-from emop.lib.emop_base import EmopBase
+from emop.lib.utilities import exec_cmd
 from emop.lib.processes.processes_base import ProcessesBase
 
 
@@ -41,7 +41,7 @@ class PageCorrector(ProcessesBase):
             cmd.append(self.ctx_min_vol)
         cmd.append("--")
         cmd.append(self.job.xml_file)
-        proc = EmopBase.exec_cmd(cmd)
+        proc = exec_cmd(cmd)
 
         if proc.exitcode != 0:
             # TODO: PageCorrector errors are going to stdout not stderr

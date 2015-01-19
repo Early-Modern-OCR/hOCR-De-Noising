@@ -1,7 +1,6 @@
 import logging
 import os
 from emop.lib.utilities import exec_cmd
-from emop.lib.emop_base import EmopBase
 from emop.lib.emop_scheduler import EmopScheduler
 
 logger = logging.getLogger('emop')
@@ -96,7 +95,7 @@ class EmopSLURM(EmopScheduler):
         os.environ['PROC_ID'] = proc_id
         os.environ['EMOP_CONFIG_PATH'] = self.settings.config_path
         cmd = self.get_submit_cmd(num_pages)
-        proc = EmopBase.exec_cmd(cmd, log_level="debug")
+        proc = exec_cmd(cmd, log_level="debug")
         if proc.exitcode != 0:
             logger.error("Failed to submit job to SLURM: %s" % proc.stderr)
             return False

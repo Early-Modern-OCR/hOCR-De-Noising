@@ -1,6 +1,6 @@
 import os
 import re
-from emop.lib.emop_base import EmopBase
+from emop.lib.utilities import exec_cmd
 from emop.lib.processes.processes_base import ProcessesBase
 
 
@@ -29,7 +29,7 @@ class RetasCompare(ProcessesBase):
             "java", "-Xms128M", "-Xmx128M", "-jar", self.executable, self.job.page.ground_truth_file, input_file,
             "-opt", self.cfg
         ]
-        proc = EmopBase.exec_cmd(cmd)
+        proc = exec_cmd(cmd)
         if proc.exitcode != 0:
             stderr = "RetasCompare of %s failed: %s" % (input_file, proc.stderr)
             return self.results(stdout=proc.stdout, stderr=stderr, exitcode=proc.exitcode)

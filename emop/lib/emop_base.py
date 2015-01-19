@@ -1,6 +1,3 @@
-import subprocess
-import shlex
-import collections
 import os
 import re
 import logging
@@ -112,56 +109,3 @@ class EmopBase(object):
             return path[len(prefix):]
         else:
             return path
-
-    @staticmethod
-    def exec_cmd(cmd, log_level="info"):
-        """Executes a command
-
-        This is the method used by this application to execute
-        shell commands.
-
-        If the cmd argument can be a 2D list but only one level deep.
-
-        The command's stdout, stderr and exitcode are turned as a namedtuple.
-
-        Args:
-            cmd (str or list): Command to execute
-            log_level (str, optional): log level when printing information
-                about the command being executed.
-
-        Returns:
-            tuple: (stdout, stderr, exitcode)
-        """
-        Proc = collections.namedtuple('Proc', ['stdout', 'stderr', 'exitcode'])
-
-        if isinstance(cmd, basestring):
-            cmd_str = cmd
-            cmd = shlex.split(cmd)
-        elif isinstance(cmd, list):
-            cmd_flat = []
-            for i in cmd:
-                if hasattr(i, '__iter__'):
-                    for j in i:
-                        cmd_flat.append(j)
-                else:
-                    cmd_flat.append(i)
-            cmd = cmd_flat
-            cmd_str = " ".join(cmd)
-
-        try:
-            getattr(logger, log_level)("Executing: '%s'" % cmd_str)
-            # TODO Eventually may just need to redirect all stderr to stdout for simplicity
-            # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=os.environ)
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
-            process.wait()
-            out, err = process.communicate()
-            # TODO: set timeout??
-            retval = process.returncode
-
-            return Proc(stdout=out, stderr=err, exitcode=retval)
-        except OSError as e:
-            if e.errno == os.errno.ENOENT:
-                logger.error("File not found for command: %s" % e)
-                return Proc(stdout=None, stderr=None, exitcode=1)
-            else:
-                raise

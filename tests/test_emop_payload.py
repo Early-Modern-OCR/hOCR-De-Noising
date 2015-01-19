@@ -40,5 +40,6 @@ class TestEmopPayload(TestCase):
         self.completed_path.join("1.json").write("text")
         self.assertEqual(self.payload.completed_output_exists(), True)
 
+
 def suite():
     return TestLoader().loadTestsFromTestCase(TestEmopPayload)

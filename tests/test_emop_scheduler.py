@@ -4,6 +4,7 @@ from tests.utilities import default_settings
 from emop.lib.emop_scheduler import EmopScheduler
 from emop.lib.schedulers.emop_slurm import EmopSLURM
 
+
 class TestEmopScheduler(TestCase):
     def setUp(self):
         self.settings = default_settings()
@@ -12,6 +13,7 @@ class TestEmopScheduler(TestCase):
         self.settings.scheduler = "slurm"
         scheduler = EmopScheduler.get_scheduler_instance(name="slurm", settings=self.settings)
         assert isinstance(scheduler, EmopSLURM), "scheduler is not an instance of EmopSLURM"
+
 
 def suite():
     return TestLoader().loadTestsFromTestCase(TestEmopScheduler)

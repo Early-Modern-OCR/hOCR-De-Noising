@@ -1,6 +1,6 @@
 import json
 import os
-from emop.lib.emop_base import EmopBase
+from emop.lib.utilities import exec_cmd
 from emop.lib.processes.processes_base import ProcessesBase
 
 
@@ -17,7 +17,7 @@ class MultiColumnSkew(ProcessesBase):
             return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         cmd = ["python", self.executable, self.job.idhmc_xml_file]
-        proc = EmopBase.exec_cmd(cmd)
+        proc = exec_cmd(cmd)
 
         if proc.exitcode != 0:
             return self.results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)

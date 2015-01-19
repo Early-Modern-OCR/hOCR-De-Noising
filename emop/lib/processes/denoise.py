@@ -1,6 +1,6 @@
 import os
 import re
-from emop.lib.emop_base import EmopBase
+from emop.lib.utilities import exec_cmd
 from emop.lib.processes.processes_base import ProcessesBase
 
 
@@ -20,7 +20,7 @@ class Denoise(ProcessesBase):
             return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         cmd = ["python", self.executable, "-p", self.xml_file_dir, "-n", self.xml_filename]
-        proc = EmopBase.exec_cmd(cmd)
+        proc = exec_cmd(cmd)
 
         if proc.exitcode != 0:
             return self.results(stdout=proc.stdout, stderr=proc.stderr, exitcode=proc.exitcode)
