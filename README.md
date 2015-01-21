@@ -12,8 +12,6 @@ Clone this repository and merge in the submodules
 
     git clone git@github.tamu.edu:emop/emop-controller.git
     cd emop-controller
-    # Temporary until python rewrite is merged into master
-    git checkout -b python-rewrite origin/python-rewrite
     git submodule update --init
 
 ## Build
