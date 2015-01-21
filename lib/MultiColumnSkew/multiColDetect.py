@@ -16,6 +16,8 @@ def multiColumnDetect(inFile):
     pageHeight = props[3]
     pageWidth = props[2]
     
+    if wordInfo.size==0:
+        return "",""
     def intersectArea(coor1,coor2):
         x11 = coor1[0]
         y11 = coor1[1]
@@ -270,7 +272,8 @@ def multiColumnDetect(inFile):
             
             # Iterative - NN filter
         scaledWCoorFilteredwordCoordinates = wordInfo[actualIndexToConsider,:];
-        if np.size(wordInfo)!=0:
+        numWords = np.shape(scaledWCoorFilteredwordCoordinates)[0]
+        if np.size(scaledWCoorFilteredwordCoordinates)!=0:
             numLines = np.ceil(1.0/np.median(scaledWCoorFilteredwordCoordinates[:,5]))
             scaleNum = np.ceil(numWords/numLines)
             nBins = np.ceil(scaleNum*numLines)
@@ -283,13 +286,13 @@ def multiColumnDetect(inFile):
                 count=0.0;
                 count_idx=0.0
                 while count_idx<numWords:
-                    InnerProduct[count]=np.sum(np.multiply(proj_vec,wordInfo[count_idx,[1,2]]))
+                    InnerProduct[count]=np.sum(np.multiply(proj_vec,scaledWCoorFilteredwordCoordinates[count_idx,[1,2]]))
                     count=count+1;
-                    InnerProduct[count]=np.sum(np.multiply(proj_vec,wordInfo[count_idx,[3,2]]))
+                    InnerProduct[count]=np.sum(np.multiply(proj_vec,scaledWCoorFilteredwordCoordinates[count_idx,[3,2]]))
                     count=count+1;
-                    InnerProduct[count]=np.sum(np.multiply(proj_vec,wordInfo[count_idx,[1,4]]))
+                    InnerProduct[count]=np.sum(np.multiply(proj_vec,scaledWCoorFilteredwordCoordinates[count_idx,[1,4]]))
                     count=count+1;
-                    InnerProduct[count]=np.sum(np.multiply(proj_vec,wordInfo[count_idx,[3,4]]))
+                    InnerProduct[count]=np.sum(np.multiply(proj_vec,scaledWCoorFilteredwordCoordinates[count_idx,[3,4]]))
                     count=count+1;
                     count_idx=count_idx+1;
                 hist,hist_edges=np.histogram(InnerProduct,bins=nBins,density=True)
