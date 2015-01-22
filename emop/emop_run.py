@@ -79,8 +79,10 @@ class EmopRun(EmopBase):
             self.jobs_completed.append(job.id)
 
         # TODO: Do we need to handle adding page_results and postproc_results differently??
-        self.page_results.append(job.page_result.to_dict())
-        self.postproc_results.append(job.postproc_result.to_dict())
+        if job.page_result.has_data():
+            self.page_results.append(job.page_result.to_dict())
+        if job.postproc_result.has_data():
+            self.postproc_results.append(job.postproc_result.to_dict())
 
         current_results = self.get_results()
         self.payload.save_output(data=current_results, overwrite=True)
@@ -122,6 +124,9 @@ class EmopRun(EmopBase):
             bool: True if successful, False otherwise.
         """
         klass = obj.__class__.__name__
+        if self.settings.controller_skip_existing and not obj.should_run():
+            logger.info("Skipping %s job [%s]" % (klass, job.id))
+            return True
         result = obj.run(**kwargs)
         if result.exitcode != 0:
             err = "%s Failed: %s" % (klass, result.stderr)
@@ -156,11 +161,15 @@ class EmopRun(EmopBase):
         ocr_engine = job.batch_job.ocr_engine
         if ocr_engine == "tesseract":
             ocr = Tesseract(job=job)
-            ocr_result = ocr.run()
         else:
             ocr_engine_err = "OCR with %s not yet supported" % ocr_engine
             self.append_result(job=job, results=ocr_engine_err, failed=True)
             return False
+
+        if self.settings.controller_skip_existing and not ocr.should_run():
+            logger.info("Skipping OCR job [%s]" % job.id)
+            return True
+        ocr_result = ocr.run()
 
         if ocr_result.exitcode != 0:
             ocr_err = "%s OCR Failed: %s" % (ocr_engine, ocr_result.stderr)

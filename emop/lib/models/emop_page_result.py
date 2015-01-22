@@ -29,7 +29,19 @@ class EmopPageResult(EmopModel):
             'juxta_change_index': self.juxta_change_index,
             'alt_change_index': self.alt_change_index,
         }
+        keys = _dict.keys()
+        for key in keys:
+            if _dict[key] is None:
+                del _dict[key]
         return _dict
+
+    def has_data(self):
+        keys = self.to_dict().keys()
+        data_keys = set(keys) - set(["page_id","batch_id"])
+        if len(data_keys) >= 1:
+            return True
+        else:
+            return False
 
     @property
     def ocr_text_path(self):

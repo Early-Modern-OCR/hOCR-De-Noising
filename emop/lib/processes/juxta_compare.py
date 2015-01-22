@@ -11,6 +11,9 @@ class JuxtaCompare(ProcessesBase):
         self.executable = os.path.join(self.home, "juxta-cl.jar")
         self.jx_algorithm = self.job.settings.juxta_cl_jx_algorithm
 
+    def should_run(self):
+        return True
+
     def run(self, postproc):
         if not self.job.page.hasGroundTruth():
             return self.results(stdout=None, stderr=None, exitcode=0)

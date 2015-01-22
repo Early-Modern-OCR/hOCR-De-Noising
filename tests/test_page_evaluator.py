@@ -35,6 +35,7 @@ class TestPageEvaluator(TestCase):
         self.assertEqual(job.postproc_result.pp_ecorr, "0.05")
         self.assertEqual(job.postproc_result.pp_pg_quality, "0.1")
         self.assertTupleEqual(expected_results, retval)
+        exec_cmd.stop()
 
 
 def suite():

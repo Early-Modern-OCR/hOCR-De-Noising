@@ -21,6 +21,13 @@ class PageCorrector(ProcessesBase):
         self.ctx_min_match = self.job.settings.get_value('page-corrector', 'ctx_min_match')
         self.ctx_min_vol = self.job.settings.get_value('page-corrector', 'ctx_min_vol')
 
+    def should_run(self):
+        if (self.job.alto_txt_file and os.path.isfile(self.job.alto_txt_file)) \
+        and (self.job.alto_xml_file and os.path.isfile(self.job.alto_xml_file)):
+            return False
+        else:
+            return True
+
     def run(self):
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "Could not find XML file: %s" % self.job.xml_file

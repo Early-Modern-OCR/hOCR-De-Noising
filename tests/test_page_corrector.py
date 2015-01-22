@@ -1,3 +1,4 @@
+from flexmock import flexmock
 import mock
 import os
 import pytest
@@ -50,6 +51,47 @@ class TestPageCorrector(TestCase):
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.postproc_result.pp_health, stdout)
         self.assertTupleEqual(expected_results, retval)
+        exec_cmd.stop()
+
+    def test_should_run_false(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        page_corrector = PageCorrector(job)
+
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(True)
+
+        self.assertFalse(page_corrector.should_run())
+
+    def test_should_run_true_alto_txt_file_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        page_corrector = PageCorrector(job)
+
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(False)
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(True)
+
+        self.assertTrue(page_corrector.should_run())
+
+    def test_should_run_true_alto_xml_file_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        page_corrector = PageCorrector(job)
+
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(False)
+
+        self.assertTrue(page_corrector.should_run())
+
+    def test_should_run_true_alto_files_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        page_corrector = PageCorrector(job)
+
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(False)
+        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(False)
+
+        self.assertTrue(page_corrector.should_run())
 
 
 def suite():

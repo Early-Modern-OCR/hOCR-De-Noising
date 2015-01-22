@@ -36,6 +36,7 @@ class TestRetasCompare(TestCase):
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.page_result.alt_change_index, 0.01)
         self.assertTupleEqual(expected_results, retval)
+        exec_cmd.stop()
 
 
 def suite():

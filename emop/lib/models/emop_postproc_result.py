@@ -32,4 +32,16 @@ class EmopPostprocResult(EmopModel):
             'multicol': self.multicol,
             'skew_idx': self.skew_idx,
         }
+        keys = _dict.keys()
+        for key in keys:
+            if _dict[key] is None:
+                del _dict[key]
         return _dict
+
+    def has_data(self):
+        keys = self.to_dict().keys()
+        data_keys = set(keys) - set(["page_id","batch_job_id"])
+        if len(data_keys) >= 1:
+            return True
+        else:
+            return False

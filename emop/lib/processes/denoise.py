@@ -14,6 +14,12 @@ class Denoise(ProcessesBase):
         self.xml_file_dir = os.path.join(self.job.output_dir, '')
         self.xml_filename = os.path.basename(self.job.xml_file)
 
+    def should_run(self):
+        if self.job.idhmc_xml_file and os.path.isfile(self.job.idhmc_xml_file):
+            return False
+        else:
+            return True
+
     def run(self):
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "Could not find XML file: %s" % self.job.xml_file

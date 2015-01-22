@@ -11,6 +11,9 @@ class MultiColumnSkew(ProcessesBase):
         self.home = os.path.join(self.job.settings.emop_home, "lib/MultiColumnSkew")
         self.executable = os.path.join(self.home, "multiColDetect.py")
 
+    def should_run(self):
+        return True
+
     def run(self):
         if not self.job.idhmc_xml_file or not os.path.isfile(self.job.idhmc_xml_file):
             stderr = "Could not find XML file: %s" % self.job.idhmc_xml_file

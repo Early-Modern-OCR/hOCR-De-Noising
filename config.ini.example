@@ -23,6 +23,7 @@ input_path_prefix = /dh
 output_path_prefix = /dh
 log_level = INFO
 scheduler = slurm
+skip_existing = True
 
 [scheduler]
 max_jobs = 128

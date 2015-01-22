@@ -12,6 +12,13 @@ class Tesseract(ProcessesBase):
         super(self.__class__, self).__init__(job)
         self.cfg = os.path.join(self.job.settings.emop_home, "tess_cfg.txt")
 
+    def should_run(self):
+        if (self.job.txt_file and os.path.isfile(self.job.txt_file)) \
+        and (self.job.xml_file and os.path.isfile(self.job.xml_file)):
+            return False
+        else:
+            return True
+
     def run(self):
         if not self.job.image_path:
             stderr = "No image path could be determined"

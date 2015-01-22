@@ -29,6 +29,7 @@ class TestEmopSLURM(TestCase):
         self.assertTrue(exec_cmd.called)
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(retval, 2)
+        exec_cmd.stop()
 
     def test_submit_job(self):
         scheduler = EmopSLURM(self.settings)
@@ -51,12 +52,14 @@ class TestEmopSLURM(TestCase):
         self.assertEqual(PROC_ID, '0001')
         self.assertEqual(EMOP_CONFIG_PATH, self.settings.config_path)
         self.assertTrue(retval)
+        exec_cmd.stop()
 
     def test_submit_job_failed(self):
         scheduler = EmopSLURM(self.settings)
         exec_cmd = mock_exec_cmd(stdout="1", stderr=None, exitcode=1)
         retval = scheduler.submit_job('0001', '1')
         self.assertFalse(retval)
+        exec_cmd.stop()
 
     def test_get_submit_cmd(self):
         scheduler = EmopSLURM(self.settings)
