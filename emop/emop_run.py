@@ -6,10 +6,6 @@ from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
 from emop.lib.emop_job import EmopJob
 from emop.lib.emop_scheduler import EmopScheduler
-from emop.lib.models.emop_batch_job import EmopBatchJob
-from emop.lib.models.emop_font import EmopFont
-from emop.lib.models.emop_page import EmopPage
-from emop.lib.models.emop_work import EmopWork
 from emop.lib.processes.tesseract import Tesseract
 from emop.lib.processes.xml_to_text import XML_To_Text
 from emop.lib.processes.denoise import Denoise
@@ -311,18 +307,8 @@ class EmopRun(EmopBase):
 
         # Loop over jobs to perform actual work
         for job in data:
-            batch_job = EmopBatchJob(self.settings)
-            batch_job.setattrs(job["batch_job"])
-
-            if batch_job.job_type == "ocr":
-                font = EmopFont(self.settings)
-                page = EmopPage(self.settings)
-                work = EmopWork(self.settings)
-                font.setattrs(job["batch_job"]["font"])
-                page.setattrs(job["page"])
-                work.setattrs(job["work"])
-                emop_job = EmopJob(job["id"], batch_job, font, page, work, self.settings, self.scheduler)
-
+            emop_job = EmopJob(job_data=job, settings=self.settings, scheduler=self.scheduler)
+            if emop_job.batch_job.job_type == "ocr":
                 job_succcessful = self.do_job(job=emop_job)
                 if not job_succcessful:
                     continue
@@ -331,7 +317,7 @@ class EmopRun(EmopBase):
             # TODO
             # elif batch_job.job_type == "ground truth compare":
             else:
-                logger.error("JobType of %s is not yet supported." % batch_job.job_type)
+                logger.error("JobType of %s is not yet supported." % emop_job.batch_job.job_type)
                 return False
 
         logger.debug("Payload: \n%s" % json.dumps(self.get_results(), sort_keys=True, indent=4))

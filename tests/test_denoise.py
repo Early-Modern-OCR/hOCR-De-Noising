@@ -19,7 +19,7 @@ class TestDenoise(TestCase):
 
         expected_cmd = [
             "python", "/foo/lib/denoise/deNoise_Post.py",
-            "-p", "/dh/data/shared/text-xml/IDHMC-ocr/1/1/", "-n", "1.xml"
+            "-p", denoise.xml_file_dir, "-n", denoise.xml_filename
         ]
         results = mock_results_tuple()
         expected_results = results(None, None, 0)

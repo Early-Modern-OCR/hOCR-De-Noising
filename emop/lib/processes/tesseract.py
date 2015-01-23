@@ -11,6 +11,10 @@ class Tesseract(ProcessesBase):
     def __init__(self, job):
         super(self.__class__, self).__init__(job)
         self.cfg = os.path.join(self.job.settings.emop_home, "tess_cfg.txt")
+        # Strip file extension, tesseract auto-appends it
+        output_filename, output_extension = os.path.splitext(self.job.xml_file)
+        self.output_filename = output_filename
+        self.output_parent_dir = os.path.dirname(self.job.xml_file)
 
     def should_run(self):
         if (self.job.txt_file and os.path.isfile(self.job.txt_file)) \
@@ -28,14 +32,10 @@ class Tesseract(ProcessesBase):
             return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         # Create output parent directory if it doesn't exist
-        output_parent_dir = os.path.dirname(self.job.xml_file)
-        if not os.path.isdir(output_parent_dir):
-            mkdirs_exists_ok(output_parent_dir)
+        if not os.path.isdir(self.output_parent_dir):
+            mkdirs_exists_ok(self.output_parent_dir)
 
-        # Strip file extension, tesseract auto-appends it
-        output_filename, output_extension = os.path.splitext(self.job.xml_file)
-
-        cmd = ["tesseract", self.job.image_path, output_filename, "-l", self.job.font.name, self.cfg]
+        cmd = ["tesseract", self.job.image_path, self.output_filename, "-l", self.job.font.name, self.cfg]
         proc = exec_cmd(cmd)
 
         if proc.exitcode != 0:

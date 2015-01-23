@@ -19,7 +19,7 @@ class TestPageEvaluator(TestCase):
 
         expected_cmd = [
             "java", "-Xms128M", "-Xmx128M", "-jar", "/foo/lib/seasr/PageEvaluator.jar",
-            "-q", "/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.xml"
+            "-q", job.xml_file
         ]
         results = mock_results_tuple()
         expected_results = results(None, None, 0)
@@ -36,6 +36,42 @@ class TestPageEvaluator(TestCase):
         self.assertEqual(job.postproc_result.pp_pg_quality, "0.1")
         self.assertTupleEqual(expected_results, retval)
         exec_cmd.stop()
+
+    def test_should_run_false(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_ecorr_exists = True
+        job.postproc_result.pp_pg_quality_exists = True
+        page_evaluator = PageEvaluator(job)
+
+        self.assertFalse(page_evaluator.should_run())
+
+    def test_should_run_true_if_pp_ecorr_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_ecorr_exists = False
+        job.postproc_result.pp_pg_quality_exists = True
+        page_evaluator = PageEvaluator(job)
+
+        self.assertTrue(page_evaluator.should_run())
+
+    def test_should_run_true_if_pp_pg_quality_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_ecorr_exists = True
+        job.postproc_result.pp_pg_quality_exists = False
+        page_evaluator = PageEvaluator(job)
+
+        self.assertTrue(page_evaluator.should_run())
+
+    def test_should_run_true_if_all_values_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_ecorr_exists = False
+        job.postproc_result.pp_pg_quality_exists = False
+        page_evaluator = PageEvaluator(job)
+
+        self.assertTrue(page_evaluator.should_run())
 
 
 def suite():

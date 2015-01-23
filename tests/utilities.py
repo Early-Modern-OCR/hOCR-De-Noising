@@ -1,5 +1,6 @@
 import collections
 from flexmock import flexmock
+import json
 import mock
 import os
 from emop.lib.emop_settings import EmopSettings
@@ -46,6 +47,13 @@ def mock_scheduler_slurm():
     scheduler = EmopScheduler.get_scheduler_instance(name="slurm", settings=settings)
     return scheduler
 
+def load_fixture_file(name):
+    test_root = os.path.dirname(__file__)
+    fixture_dir = os.path.join(test_root, 'fixtures')
+    fixture_file = os.path.join(fixture_dir, name)
+    with open(fixture_file) as datafile:
+        data = json.load(datafile)
+    return data
 
 def mock_batch_job():
     settings = default_settings()
@@ -98,7 +106,9 @@ def mock_emop_job(settings=None):
     page = mock_page()
     work = mock_work()
     scheduler = mock_scheduler_slurm()
-    job = EmopJob(1, batch_job, font, page, work, settings, scheduler)
+    input_data = load_fixture_file("input_payload_1.json")
+    job_data = input_data[0]
+    job = EmopJob(job_data, settings, scheduler)
     return job
 
 

@@ -81,6 +81,8 @@ class TestEmopRun(TestCase):
         page_corrector = PageCorrector(job=job)
         page_corrector.run = mock.MagicMock()
         results = mock_results_tuple()
+        page_corrector.should_run = mock.MagicMock()
+        page_corrector.should_run.return_value = True
         page_corrector.run.return_value = results(stdout=None, stderr=None, exitcode=0)
 
         retval = self.run.do_process(obj=page_corrector, job=job)
@@ -94,6 +96,8 @@ class TestEmopRun(TestCase):
         page_corrector = PageCorrector(job=job)
         page_corrector.run = mock.MagicMock()
         results = mock_results_tuple()
+        page_corrector.should_run = mock.MagicMock()
+        page_corrector.should_run.return_value = True
         page_corrector.run.return_value = results(stdout=None, stderr="Test", exitcode=1)
         self.run.append_result = mock.MagicMock()
 
@@ -140,11 +144,11 @@ class TestEmopRun(TestCase):
         tesseract = Tesseract(job=job)
         results = mock_results_tuple()
         expected_results = results(stdout=None, stderr=None, exitcode=0)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/dne/image.tiff").and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.image_path).and_return(True)
         mock_mkdirs(job.output_dir)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.txt").and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.hocr").and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.xml").and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.hocr_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
         flexmock(tesseract).should_receive("run").and_return(expected_results)
 
         retval = self.run.do_ocr(job=job)
@@ -157,11 +161,11 @@ class TestEmopRun(TestCase):
         results = mock_results_tuple()
         tesseract = Tesseract(job=job)
         results = mock_results_tuple()
-        expected_results = "tesseract OCR Failed: Could not find page image /dh/dne/image.tiff"
+        expected_results = "tesseract OCR Failed: Could not find page image %s" % job.image_path
         flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(False)
         flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(False)
         flexmock(tesseract).should_receive("should_run").and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/dne/image.tiff").and_return(False)
+        flexmock(os.path).should_receive("isfile").with_args(job.image_path).and_return(False)
         flexmock(tesseract).should_receive("run")
         self.run.append_result = mock.MagicMock()
 
@@ -198,7 +202,7 @@ class TestEmopRun(TestCase):
         flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(False)
         flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
         flexmock(os.path).should_receive("isfile").with_args(job.hocr_file).and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/dne/image.tiff").and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.image_path).and_return(True)
         flexmock(tesseract).should_receive("should_run").never()
         flexmock(tesseract).should_receive("run")
 

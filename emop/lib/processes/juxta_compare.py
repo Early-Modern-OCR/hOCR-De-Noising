@@ -12,7 +12,10 @@ class JuxtaCompare(ProcessesBase):
         self.jx_algorithm = self.job.settings.juxta_cl_jx_algorithm
 
     def should_run(self):
-        return True
+        if self.job.page_result.juxta_change_index_exists:
+            return False
+        else:
+            return True
 
     def run(self, postproc):
         if not self.job.page.hasGroundTruth():

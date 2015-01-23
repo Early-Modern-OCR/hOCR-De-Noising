@@ -13,7 +13,10 @@ class RetasCompare(ProcessesBase):
         self.cfg = os.path.join(self.home, "config.txt")
 
     def should_run(self):
-        return True
+        if self.job.page_result.alt_change_index_exists:
+            return False
+        else:
+            return True
 
     def run(self, postproc):
         if not self.job.page.hasGroundTruth():

@@ -38,6 +38,22 @@ class TestRetasCompare(TestCase):
         self.assertTupleEqual(expected_results, retval)
         exec_cmd.stop()
 
+    def test_should_run_false(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.alt_change_index_exists = True
+        retas_compare = RetasCompare(job)
+
+        self.assertFalse(retas_compare.should_run())
+
+    def test_should_run_true(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.alt_change_index_exists = False
+        retas_compare = RetasCompare(job)
+
+        self.assertTrue(retas_compare.should_run())
+
 
 def suite():
     return TestLoader().loadTestsFromTestCase(TestRetasCompare)

@@ -12,7 +12,10 @@ class MultiColumnSkew(ProcessesBase):
         self.executable = os.path.join(self.home, "multiColDetect.py")
 
     def should_run(self):
-        return True
+        if self.job.postproc_result.multicol_exists and self.job.postproc_result.skew_idx_exists:
+            return False
+        else:
+            return True
 
     def run(self):
         if not self.job.idhmc_xml_file or not os.path.isfile(self.job.idhmc_xml_file):

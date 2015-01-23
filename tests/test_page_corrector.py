@@ -33,9 +33,9 @@ class TestPageCorrector(TestCase):
         expected_cmd = [
             "java", "-Xms128M", "-Xmx512M", "-jar", "/foo/lib/seasr/PageCorrector.jar",
             "--dbconf", self.dbconf, "-t", "/foo/lib/seasr/rules/transformations.json",
-            "-o", "/dh/data/shared/text-xml/IDHMC-ocr/1/1", "--stats",
+            "-o", job.output_dir, "--stats",
             "--alt", "2", "--max-transforms", "20", "--noiseCutoff", "0.5",
-            "--dict", str(self.test_dict), "--", "/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.xml"
+            "--dict", str(self.test_dict), "--", job.xml_file
         ]
         stdout = "{\"total\":1,\"ignored\":0,\"correct\":0,\"corrected\":1,\"unchanged\":0}"
         results = mock_results_tuple()

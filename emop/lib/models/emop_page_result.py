@@ -4,35 +4,40 @@ from emop.lib.models.emop_model import EmopModel
 
 class EmopPageResult(EmopModel):
 
+    PROPERTIES = [
+        'page_id',
+        'batch_id',
+        'ocr_text_path',
+        'ocr_xml_path',
+        'corr_ocr_text_path',
+        'corr_ocr_xml_path',
+        'juxta_change_index',
+        'alt_change_index',
+    ]
+
     def __init__(self, settings):
         super(self.__class__, self).__init__(settings)
         self._ocr_text_path = None
         self._ocr_xml_path = None
         self._corr_ocr_text_path = None
         self._corr_ocr_xml_path = None
-        self.page_id = None
-        self.batch_id = None
-        self.juxta_change_index = None
-        self.alt_change_index = None
+        for _property in self.PROPERTIES:
+            setattr(self, _property, None)
+            setattr(self, ("%s_exists" % _property), False)
 
-    def setattrs(self, dictionary):
-        pass
+    def set_existing_attrs(self, dictionary):
+        if dictionary:
+            for _property in self.PROPERTIES:
+                if _property in dictionary:
+                    setattr(self, ("%s_exists" % _property), True)
 
     def to_dict(self):
-        _dict = {
-            'page_id': self.page_id,
-            'batch_id': self.batch_id,
-            'ocr_text_path': self.ocr_text_path,
-            'ocr_xml_path': self.ocr_xml_path,
-            'corr_ocr_text_path': self.corr_ocr_text_path,
-            'corr_ocr_xml_path': self.corr_ocr_xml_path,
-            'juxta_change_index': self.juxta_change_index,
-            'alt_change_index': self.alt_change_index,
-        }
-        keys = _dict.keys()
-        for key in keys:
-            if _dict[key] is None:
-                del _dict[key]
+        _dict = {}
+        for _property in self.PROPERTIES:
+            value = getattr(self, _property)
+            if value is None:
+                continue
+            _dict[_property] = value
         return _dict
 
     def has_data(self):

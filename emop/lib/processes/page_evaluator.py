@@ -13,7 +13,10 @@ class PageEvaluator(ProcessesBase):
         self.java_args = json.loads(self.job.settings.get_value('page-evaluator', 'java_args'))
 
     def should_run(self):
-        return True
+        if self.job.postproc_result.pp_ecorr_exists and self.job.postproc_result.pp_pg_quality_exists:
+            return False
+        else:
+            return True
 
     def run(self):
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):

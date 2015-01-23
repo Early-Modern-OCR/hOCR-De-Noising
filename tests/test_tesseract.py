@@ -23,8 +23,8 @@ class TestTesseract(TestCase):
         mock_path_isdir.return_value = False
 
         expected_cmd = [
-            "tesseract", "/dh/dne/image.tiff", "/dh/data/shared/text-xml/IDHMC-ocr/1/1/1",
-            "-l", "TEST Font", "/foo/tess_cfg.txt"
+            "tesseract", job.image_path, tesseract.output_filename,
+            "-l", job.font.name, tesseract.cfg
         ]
         results = mock_results_tuple()
         expected_results = results(None, None, 0)

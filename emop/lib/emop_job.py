@@ -1,5 +1,9 @@
 import os
 from emop.lib.emop_base import EmopBase
+from emop.lib.models.emop_batch_job import EmopBatchJob
+from emop.lib.models.emop_font import EmopFont
+from emop.lib.models.emop_page import EmopPage
+from emop.lib.models.emop_work import EmopWork
 from emop.lib.models.emop_page_result import EmopPageResult
 from emop.lib.models.emop_postproc_result import EmopPostprocResult
 from emop.lib.utilities import get_temp_dir
@@ -7,27 +11,15 @@ from emop.lib.utilities import get_temp_dir
 
 class EmopJob(object):
 
-    def __init__(self, job_id, batch_job, font, page, work, settings, scheduler):
-        self.id = job_id
-        self.output_root_dir = EmopBase.add_prefix(settings.output_path_prefix, settings.ocr_root)
-        self.temp_dir = get_temp_dir()
-        self.image_path = self.get_image_path(page, work, settings)
-        self.batch_job = batch_job
-        self.font = font
-        self.page = page
-        self.work = work
+    def __init__(self, job_data, settings, scheduler):
         self.settings = settings
         self.scheduler = scheduler
-        self.page_result = EmopPageResult(self.settings)
-        self.postproc_result = EmopPostprocResult(self.settings)
-        self.page_result.page_id = self.page.id
-        self.page_result.batch_id = self.batch_job.id
-        self.postproc_result.page_id = self.page.id
-        self.postproc_result.batch_job_id = self.batch_job.id
-        self.page_result.juxta_change_index = None
-        self.page_result.alt_change_index = None
+        self.parse_data(data=job_data)
+        self.output_root_dir = EmopBase.add_prefix(self.settings.output_path_prefix, self.settings.ocr_root)
+        self.temp_dir = get_temp_dir()
+        self.image_path = self.get_image_path(self.page, self.work, self.settings)
         # The values below rely on values set above
-        self.output_dir = self.output_dir()
+        self.output_dir = self.get_output_dir()
         self.txt_file = self.output_file("txt")
         self.xml_file = self.output_file("xml")
         self.hocr_file = self.output_file("hocr")
@@ -36,7 +28,26 @@ class EmopJob(object):
         self.alto_txt_file = self.add_filename_suffix(self.txt_file, "ALTO")
         self.alto_xml_file = self.add_filename_suffix(self.xml_file, "ALTO")
 
-    def output_dir(self):
+    def parse_data(self, data):
+        self.id = data["id"]
+        self.batch_job = EmopBatchJob(self.settings)
+        self.font = EmopFont(self.settings)
+        self.page = EmopPage(self.settings)
+        self.work = EmopWork(self.settings)
+        self.page_result = EmopPageResult(self.settings)
+        self.postproc_result = EmopPostprocResult(self.settings)
+        self.batch_job.setattrs(data["batch_job"])
+        self.font.setattrs(data["batch_job"]["font"])
+        self.page.setattrs(data["page"])
+        self.work.setattrs(data["work"])
+        self.page_result.set_existing_attrs(data.get("page_result"))
+        self.postproc_result.set_existing_attrs(data.get("postproc_result"))
+        self.page_result.page_id = self.page.id
+        self.page_result.batch_id = self.batch_job.id
+        self.postproc_result.page_id = self.page.id
+        self.postproc_result.batch_job_id = self.batch_job.id
+
+    def get_output_dir(self):
         """ Provide the job output directory
 
         Format is the following:
