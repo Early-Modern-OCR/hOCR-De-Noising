@@ -17,8 +17,8 @@ class Tesseract(ProcessesBase):
         self.output_parent_dir = os.path.dirname(self.job.xml_file)
 
     def should_run(self):
-        if (self.job.txt_file and os.path.isfile(self.job.txt_file)) \
-        and (self.job.xml_file and os.path.isfile(self.job.xml_file)):
+        if (self.job.page_result.ocr_text_path_exists
+                and self.job.page_result.ocr_xml_path_exists):
             return False
         else:
             return True

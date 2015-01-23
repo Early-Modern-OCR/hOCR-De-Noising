@@ -22,8 +22,9 @@ class PageCorrector(ProcessesBase):
         self.ctx_min_vol = self.job.settings.get_value('page-corrector', 'ctx_min_vol')
 
     def should_run(self):
-        if (self.job.alto_txt_file and os.path.isfile(self.job.alto_txt_file)) \
-        and (self.job.alto_xml_file and os.path.isfile(self.job.alto_xml_file)):
+        if (self.job.postproc_result.pp_health_exists
+                and self.job.page_result.corr_ocr_text_path_exists
+                and self.job.page_result.corr_ocr_xml_path_exists):
             return False
         else:
             return True

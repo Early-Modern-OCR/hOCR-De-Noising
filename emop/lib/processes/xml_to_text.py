@@ -12,6 +12,8 @@ class XML_To_Text(ProcessesBase):
         super(self.__class__, self).__init__(job)
 
     def should_run(self):
+        # TODO rest of steps rely on API data to know if they should run
+        # but this step produces only a file, not output to API
         if self.job.idhmc_txt_file and os.path.isfile(self.job.idhmc_txt_file):
             return False
         else:

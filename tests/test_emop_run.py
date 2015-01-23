@@ -158,6 +158,8 @@ class TestEmopRun(TestCase):
     def test_do_ocr_tesseract_failed(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = False
+        job.page_result.ocr_xml_path_exists = False
         results = mock_results_tuple()
         tesseract = Tesseract(job=job)
         results = mock_results_tuple()

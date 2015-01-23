@@ -42,7 +42,7 @@ class EmopPageResult(EmopModel):
 
     def has_data(self):
         keys = self.to_dict().keys()
-        data_keys = set(keys) - set(["page_id","batch_id"])
+        data_keys = set(keys) - set(["page_id", "batch_id"])
         if len(data_keys) >= 1:
             return True
         else:

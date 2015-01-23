@@ -38,18 +38,16 @@ class TestDenoise(TestCase):
     def test_should_run_false(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.postproc_result.pp_noisemsr_exists = True
         denoise = Denoise(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.idhmc_xml_file).and_return(True)
 
         self.assertFalse(denoise.should_run())
 
-    def test_should_run_true_file_missing(self):
+    def test_should_run_true(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.postproc_result.pp_noisemsr_exists = False
         denoise = Denoise(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.idhmc_xml_file).and_return(False)
 
         self.assertTrue(denoise.should_run())
 

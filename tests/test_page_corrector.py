@@ -56,40 +56,50 @@ class TestPageCorrector(TestCase):
     def test_should_run_false(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = True
+        job.page_result.corr_ocr_text_path_exists = True
+        job.page_result.corr_ocr_xml_path_exists = True
         page_corrector = PageCorrector(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(True)
 
         self.assertFalse(page_corrector.should_run())
 
-    def test_should_run_true_alto_txt_file_missing(self):
+    def test_should_run_true_pp_health_missing(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = False
+        job.page_result.corr_ocr_text_path_exists = True
+        job.page_result.corr_ocr_xml_path_exists = True
         page_corrector = PageCorrector(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(False)
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(True)
 
         self.assertTrue(page_corrector.should_run())
 
-    def test_should_run_true_alto_xml_file_missing(self):
+    def test_should_run_true_corr_ocr_text_path_missing(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = True
+        job.page_result.corr_ocr_text_path_exists = False
+        job.page_result.corr_ocr_xml_path_exists = True
         page_corrector = PageCorrector(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(False)
 
         self.assertTrue(page_corrector.should_run())
 
-    def test_should_run_true_alto_files_missing(self):
+    def test_should_run_true_corr_ocr_xml_path_missing(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = True
+        job.page_result.corr_ocr_text_path_exists = True
+        job.page_result.corr_ocr_xml_path_exists = False
         page_corrector = PageCorrector(job)
 
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_txt_file).and_return(False)
-        flexmock(os.path).should_receive("isfile").with_args(job.alto_xml_file).and_return(False)
+        self.assertTrue(page_corrector.should_run())
+
+    def test_should_run_true_all_values_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = False
+        job.page_result.corr_ocr_text_path_exists = False
+        job.page_result.corr_ocr_xml_path_exists = False
+        page_corrector = PageCorrector(job)
 
         self.assertTrue(page_corrector.should_run())
 

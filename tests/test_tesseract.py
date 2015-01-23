@@ -45,40 +45,36 @@ class TestTesseract(TestCase):
     def test_should_run_false(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = True
+        job.page_result.ocr_xml_path_exists = True
         tesseract = Tesseract(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
 
         self.assertFalse(tesseract.should_run())
 
-    def test_should_run_true_txt_file_missing(self):
+    def test_should_run_true_ocr_text_path_missing(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = False
+        job.page_result.ocr_xml_path_exists = True
         tesseract = Tesseract(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(False)
-        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
 
         self.assertTrue(tesseract.should_run())
 
-    def test_should_run_true_xml_file_missing(self):
+    def test_should_run_true_ocr_xml_path_missing(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = True
+        job.page_result.ocr_xml_path_exists = False
         tesseract = Tesseract(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(False)
 
         self.assertTrue(tesseract.should_run())
 
-    def test_should_run_true_files_missing(self):
+    def test_should_run_true_all_values_missing(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = False
+        job.page_result.ocr_xml_path_exists = False
         tesseract = Tesseract(job)
-
-        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(False)
-        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(False)
 
         self.assertTrue(tesseract.should_run())
 
