@@ -201,6 +201,7 @@ class TestEmopRun(TestCase):
         job = mock_emop_job(settings)
         results = mock_results_tuple()
         tesseract = Tesseract(job=job)
+        flexmock(os.path).should_receive("isdir").with_args(tesseract.output_parent_dir).and_return(True)
         flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(False)
         flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
         flexmock(os.path).should_receive("isfile").with_args(job.hocr_file).and_return(True)
