@@ -49,24 +49,24 @@ Add the following to your login scripts such as ~/.bashrc
 
 Rename the following configuration files and change their values as needed:
 
-* emop.properties.example to emop.properties
+* ~~emop.properties.example to emop.properties~~
 * config.ini.example to config.ini
 
 The file `config.ini` contains all the configuration options used by the emop-controller.
 
-The file `emop.properties` is legacy and currently only used by the PageCorrector post-process.
+~~The file `emop.properties` is legacy and currently only used by the PageCorrector post-process.~~
 
 ## Usage
 
-All interaction with the emop-controller is done through `emop.py`.  This script has a set of "modes" that determine the operations performed.
+All interaction with the emop-controller is done through `emop.py`.  This script has a set of subcommands that determine the operations performed.
 
-* check - query the number of pending pages
+* query - form various queries against API and local files
 * submit - submit jobs to the cluster
 * run - run a job
 * upload - upload completed job results
 * testrun - Reserve, run and upload results.  Intended for testing.
 
-For full list of options execute `emop.py --help`
+For full list of options execute `emop.py --help` and `emop.py <subcommand> --help`.
 
 Be sure the emop module is loaded before executing emop.py
 
@@ -77,30 +77,30 @@ Be sure the emop module is loaded before executing emop.py
 
 This is an example of submitting a single page to run in a single job:
 
-    ./emop.py --mode submit --num-jobs 1 --pages-per-job 1
+    ./emop.py submit --num-jobs 1 --pages-per-job 1
 
 This is an example of submitting and letting the emop-controller determine the optimal
 number of jobs and pages-per-job to submit:
 
-    ./emop.py --mode submit
+    ./emop.py submit
 
 ### Uploading
 
 This example is what is used to upload data from a SLURM job
 
-    ./emop.py --mode upload --proc-id 20141220211214811
+    ./emop.py upload --proc-id 20141220211214811
 
 This is an example of uploading a single file
 
-    ./emop.py --mode upload --upload-file payload/output/completed/20141220211214811.json
+    ./emop.py upload --upload-file payload/output/completed/20141220211214811.json
 
 This is an example of uploading an entire directory
 
-    ./emop.py --mode upload --upload-dir payload/output/completed
+    ./emop.py upload --upload-dir payload/output/completed
 
 ### Test Run
 
-The mode `testrun` is available so that small number of pages can be processed interactively
+The subcommand `testrun` is available so that small number of pages can be processed interactively
 from within a cluster job.
 
 First acquire an interactive job environment.  The following command is specific to Brazos and requests
@@ -118,11 +118,11 @@ specific to Brazos using Lmod.
 
 The following example will reserve 2 pages, process them and upload the results.
     
-    ./emop.py --mode testrun --num-pages 2
+    ./emop.py testrun --num-pages 2
 
 You can also run `testrun` with uploading of results disabled.
 
-    ./emop.py --mode testrun --num-pages 2 --no-upload
+    ./emop.py testrun --num-pages 2 --no-upload
 
 The same page can be reprocessed with a little bit of work.
 
@@ -130,9 +130,9 @@ First set the PROC_ID to the value that was output during the testrun:
 
     export PROC_ID=<some value>
 
-Then use mode `run` with the PROC_ID of the previous run and `--force-run` to overwrite previous output.  This will read the input JSON file and allow the same page(s) to be processed
+Then use subcommand `run` with the PROC_ID of the previous run and `--force-run` to overwrite previous output.  This will read the input JSON file and allow the same page(s) to be processed
 
-    ./emop.py --mode run --force-run --proc-id ${PROC_ID}
+    ./emop.py run --force-run --proc-id ${PROC_ID}
 
 ## Support
 

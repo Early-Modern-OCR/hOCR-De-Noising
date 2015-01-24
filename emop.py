@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import optparse
+import json
+import argparse
 import os
 import sys
 
@@ -14,159 +15,27 @@ from emop.emop_upload import EmopUpload
 if os.environ.get("_JAVA_OPTIONS"):
     del os.environ["_JAVA_OPTIONS"]
 
-# Define defaults and values used for command line options
-default_config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')
-mandatory_opts = ['mode']
-modes = ['query', 'submit', 'run', 'upload', 'testrun']
 
-# Define command line options
-parser = optparse.OptionParser()
-mandatory_opt_grp = optparse.OptionGroup(parser, "Mandatory Options")
-common_opt_grp = optparse.OptionGroup(parser, "Common Options")
-query_opt_grp = optparse.OptionGroup(parser, "Query Options")
-submit_opt_grp = optparse.OptionGroup(parser, "Submit Options")
-run_opt_grp = optparse.OptionGroup(parser, "Run Options")
-upload_opt_grp = optparse.OptionGroup(parser, "Upload Options")
-testrun_opt_grp = optparse.OptionGroup(parser, "Test Run Options")
-
-mandatory_opt_grp.add_option('-m', '--mode',
-                             type='choice',
-                             help='Modes of operation. Choices: %s' % ", ".join(modes),
-                             dest='mode',
-                             action='store',
-                             choices=modes,
-                             nargs=1)
-common_opt_grp.add_option('-c', '--config',
-                          help='path to config.ini',
-                          dest='config_path',
-                          action='store',
-                          default=default_config_path,
-                          nargs=1,
-                          type='string')
-common_opt_grp.add_option('--proc-id',
-                          help='job proc-id',
-                          dest='proc_id',
-                          action='store',
-                          nargs=1,
-                          type='string')
-query_opt_grp.add_option('--pending-pages',
-                         help="query number of pending pages",
-                         dest="query_pending_pages",
-                         action="store_true")
-query_opt_grp.add_option('--avg-runtimes',
-                         help="query average runtimes of completed jobs",
-                         dest="query_avg_runtimes",
-                         action="store_true")
-submit_opt_grp.add_option('--pages-per-job',
-                          help='number of pages per job',
-                          dest='pages_per_job',
-                          action='store',
-                          nargs=1,
-                          type='int')
-submit_opt_grp.add_option('--num-jobs',
-                          help='number jobs to submit',
-                          dest='num_jobs',
-                          action='store',
-                          nargs=1,
-                          type='int')
-submit_opt_grp.add_option('--sim',
-                          help='simulate job submission',
-                          dest='submit_simulate',
-                          action='store_true')
-submit_opt_grp.add_option('--no-schedule',
-                          help='disable submitting to scheduler',
-                          dest='schedule',
-                          action='store_false',
-                          default=True)
-run_opt_grp.add_option('--force-run',
-                       help='Force run even if output exists',
-                       dest='force_run',
-                       action='store_true')
-upload_opt_grp.add_option('--upload-file',
-                          help='path to payload file to upload',
-                          dest='upload_file',
-                          action='store',
-                          nargs=1,
-                          type='string')
-upload_opt_grp.add_option('--upload-dir',
-                          help='path to payload directory to upload',
-                          dest='upload_dir',
-                          action='store',
-                          nargs=1,
-                          type='string')
-testrun_opt_grp.add_option('--num-pages',
-                           help='number pages to reserve and run',
-                           dest='testrun_num_pages',
-                           action='store',
-                           nargs=1,
-                           type='int',
-                           default=1)
-testrun_opt_grp.add_option('--no-upload',
-                           help='disable uploading of results',
-                           dest='testrun_no_upload',
-                           action='store_true',
-                           default=False)
-
-parser.add_option_group(mandatory_opt_grp)
-parser.add_option_group(common_opt_grp)
-parser.add_option_group(query_opt_grp)
-parser.add_option_group(submit_opt_grp)
-parser.add_option_group(run_opt_grp)
-parser.add_option_group(upload_opt_grp)
-parser.add_option_group(testrun_opt_grp)
-(opts, args) = parser.parse_args()
-
-# Option validation
-# Check for mandatory arguments
-for m in mandatory_opts:
-    if not opts.__dict__[m]:
-        print "Must provide the %s option" % m
-        parser.print_help()
+def query(args, parser):
+    """QUERY
+    """
+    try:
+        q_filter = json.loads(args.filter)
+    except ValueError:
+        print "--filter must be a valid JSON string"
         sys.exit(1)
 
-# Ensure --num-jobs and --pages-per-job are both present
-# if either is used
-if (opts.num_jobs and not opts.pages_per_job
-        or not opts.num_jobs and opts.pages_per_job):
-    print "--num-jobs and --pages-per-job must be used together"
-    parser.print_help()
-    sys.exit(1)
-
-# Ensure mode=run also has --proc-id
-if opts.mode == 'run' and not opts.proc_id:
-    print "--mode run requires --proc-id"
-    parser.print_help()
-    sys.exit(1)
-
-# Ensure upload mode was given at least --upload-file or --upload-dir
-if opts.mode == 'upload' and not opts.upload_file and not opts.upload_dir and not opts.proc_id:
-    print "Mode upload requires either --upload-file or --upload-dir"
-    parser.print_help()
-    sys.exit(1)
-
-# Ensure --upload-file and --upload-dir aren't used together
-if ((opts.upload_file and opts.upload_dir) or
-        (opts.upload_file and opts.proc_id) or
-        (opts.upload_dir and opts.proc_id)):
-    print "--proc-id, --upload-file, and --upload-dir can not be used together"
-    parser.print_help()
-    sys.exit(1)
-
-# Perform actions based on the mode
-
-# QUERY
-if opts.mode == 'query':
-    emop_query = EmopQuery(opts.config_path)
+    emop_query = EmopQuery(args.config_path)
     # --pending-pages
-    if opts.query_pending_pages:
-        pending_pages = emop_query.pending_pages()
+    if args.query_pending_pages:
+        pending_pages = emop_query.pending_pages(q_filter=q_filter)
         if pending_pages == 0 or pending_pages:
             print "Number of pending pages: %s" % pending_pages
         else:
             print "ERROR: querying pending pages failed"
             sys.exit(1)
     # --avg-runtimes
-    if opts.query_avg_runtimes:
+    if args.query_avg_runtimes:
         avg_runtimes = emop_query.get_runtimes()
         if avg_runtimes:
             print "Pages completed: %d" % avg_runtimes["total_pages"]
@@ -184,11 +53,28 @@ if opts.mode == 'query':
             sys.exit(1)
     sys.exit(0)
 
-# SUBMIT
-if opts.mode == 'submit':
-    emop_submit = EmopSubmit(opts.config_path)
-    emop_query = EmopQuery(opts.config_path)
-    pending_pages = emop_query.pending_pages()
+
+def submit(args, parser):
+    """SUBMIT
+    """
+    # Ensure --num-jobs and --pages-per-job are both present
+    # if either is used
+    if (args.num_jobs and not args.pages_per_job
+            or not args.num_jobs and args.pages_per_job):
+        print "--num-jobs and --pages-per-job must be used together"
+        parser.print_help()
+        sys.exit(1)
+
+    try:
+        q_filter = json.loads(args.filter)
+        r_filter = json.loads(args.filter)
+    except ValueError:
+        print "--filter must be a valid JSON string"
+        sys.exit(1)
+
+    emop_submit = EmopSubmit(args.config_path)
+    emop_query = EmopQuery(args.config_path)
+    pending_pages = emop_query.pending_pages(q_filter=q_filter)
 
     # Exit if no pages to run
     if pending_pages == 0:
@@ -200,89 +86,214 @@ if opts.mode == 'submit':
         sys.exit(1)
 
     # Exit if the number of submitted jobs has reached the limit
-    if opts.schedule:
+    if args.schedule:
         current_job_count = emop_submit.scheduler.current_job_count()
         if current_job_count >= emop_submit.settings.max_jobs:
             print "Job limit of %s reached." % emop_submit.settings.max_jobs
             sys.exit(0)
 
     # Optimize job submission if --pages-per-job and --num-jobs was not set
-    if not opts.pages_per_job and not opts.num_jobs:
-        num_jobs, pages_per_job = emop_submit.optimize_submit(pending_pages, current_job_count, sim=opts.submit_simulate)
+    if not args.pages_per_job and not args.num_jobs:
+        num_jobs, pages_per_job = emop_submit.optimize_submit(pending_pages, current_job_count, sim=args.submit_simulate)
     else:
-        num_jobs = opts.num_jobs
-        pages_per_job = opts.pages_per_job
+        num_jobs = args.num_jobs
+        pages_per_job = args.pages_per_job
 
-    if opts.submit_simulate:
+    if args.submit_simulate:
         sys.exit(0)
 
     # Loop that performs the actual submission
     for i in xrange(num_jobs):
-        proc_id = emop_submit.reserve(num_pages=pages_per_job)
+        proc_id = emop_submit.reserve(num_pages=pages_per_job, r_filter=r_filter)
         if not proc_id:
             print "Failed to reserve page"
             sys.exit(1)
         emop_submit.scheduler.submit_job(proc_id=proc_id, num_pages=pages_per_job)
-
     sys.exit(0)
 
-# RUN - this is typically done from compute node
-if opts.mode == 'run':
-    emop_run = EmopRun(opts.config_path, opts.proc_id)
 
-    # Do not use run mode if not in a valid cluster job environment
-    # This prevents accidently running resource intensive program on login nodes
+def run(args, parser):
+    """Run subcommand function
+
+    This is done from a compute node
+    """
+    emop_run = EmopRun(args.config_path, args.proc_id)
+
+    # Do not use run subcommand if not in a valid cluster job environment
+    # This prevents accidentally running resource intensive program on login nodes
     if not emop_run.scheduler.is_job_environment():
-        print "Can only use run mode from within a cluster job environment"
+        print "Can only use run subcommand from within a cluster job environment"
         sys.exit(1)
-    run_status = emop_run.run(force=opts.force_run)
+    run_status = emop_run.run(force=args.force_run)
     if run_status:
         sys.exit(0)
     else:
         sys.exit(1)
 
-if opts.mode == 'upload':
-    emop_upload = EmopUpload(opts.config_path)
-    if opts.proc_id:
-        upload_status = emop_upload.upload_proc_id(proc_id=opts.proc_id)
-    elif opts.upload_file:
-        upload_status = emop_upload.upload_file(filename=opts.upload_file)
-    elif opts.upload_dir:
-        upload_status = emop_upload.upload_dir(dirname=opts.upload_dir)
+
+def upload(args, parser):
+    """Upload
+    """
+    emop_upload = EmopUpload(args.config_path)
+    if args.proc_id:
+        upload_status = emop_upload.upload_proc_id(proc_id=args.proc_id)
+    elif args.upload_file:
+        upload_status = emop_upload.upload_file(filename=args.upload_file)
+    elif args.upload_dir:
+        upload_status = emop_upload.upload_dir(dirname=args.upload_dir)
 
     if upload_status:
         sys.exit(0)
     else:
         sys.exit(1)
 
-# TESTRUN - Reserve pages, run pages and optionally upload pages
-if opts.mode == 'testrun':
-    emop_submit = EmopSubmit(opts.config_path)
 
-    # Do not run testrun mode if not in a valid cluster job environment
-    # This prevents accidently running resource intensive program on login nodes
+def testrun(args, parser):
+    """TESTRUN
+
+    Reserve pages, run pages and optionally upload pages
+    """
+    try:
+        r_filter = json.loads(args.filter)
+    except ValueError:
+        print "--filter must be a valid JSON string"
+        sys.exit(1)
+
+    emop_submit = EmopSubmit(args.config_path)
+
+    # Do not run testrun subcommand if not in a valid cluster job environment
+    # This prevents accidentally running resource intensive program on login nodes
     if not emop_submit.scheduler.is_job_environment():
-        print "Can only use testrun mode from within a cluster job environment"
+        print "Can only use testrun subcommand from within a cluster job environment"
         sys.exit(1)
 
     # Reserve pages equal to --num-pages
-    proc_id = emop_submit.reserve(num_pages=opts.testrun_num_pages)
+    proc_id = emop_submit.reserve(num_pages=args.testrun_num_pages, r_filter=r_filter)
     if not proc_id:
         print "Failed to reserve pages"
         sys.exit(1)
     # Run reserved pages
-    emop_run = EmopRun(opts.config_path, proc_id)
+    emop_run = EmopRun(args.config_path, proc_id)
     run_status = emop_run.run(force=True)
     if not run_status:
         sys.exit(1)
 
     # Exit if --no-upload
-    if opts.testrun_no_upload:
+    if args.testrun_no_upload:
         sys.exit(0)
     # Upload results
-    emop_upload = EmopUpload(opts.config_path)
+    emop_upload = EmopUpload(args.config_path)
     upload_status = emop_upload.upload_proc_id(proc_id=proc_id)
     if not upload_status:
         sys.exit(1)
 
     sys.exit(0)
+
+
+# Define defaults and values used for command line options
+default_config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')
+
+# Define command line options
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers(dest='mode')
+parser_query = subparsers.add_parser('query')
+parser_submit = subparsers.add_parser('submit')
+parser_run = subparsers.add_parser('run')
+parser_upload = subparsers.add_parser('upload')
+parser_testrun = subparsers.add_parser('testrun')
+
+proc_id_args = '--proc-id',
+proc_id_kwargs = {
+    'help': 'job proc-id',
+    'dest': 'proc_id',
+    'action': 'store',
+    'type': str
+}
+filter_args = '--filter',
+filter_kwargs = {
+    'help': 'filter to apply',
+    'dest': 'filter',
+    'action': 'store',
+    'default': '{}',
+    'type': str
+}
+
+# Global config options
+parser.add_argument('-c', '--config',
+                    help="path to config file",
+                    dest="config_path",
+                    action="store",
+                    default=default_config_path,
+                    type=str)
+
+# query args
+parser_query.add_argument(*filter_args, **filter_kwargs)
+parser_query.add_argument('--pending-pages',
+                          help="query number of pending pages",
+                          dest="query_pending_pages",
+                          action="store_true")
+parser_query.add_argument('--avg-runtimes',
+                          help="query average runtimes of completed jobs",
+                          dest="query_avg_runtimes",
+                          action="store_true")
+parser_query.set_defaults(func=query)
+# submit args
+parser_submit.add_argument(*filter_args, **filter_kwargs)
+parser_submit.add_argument('--pages-per-job',
+                           help='number of pages per job',
+                           dest='pages_per_job',
+                           action='store',
+                           type=int)
+parser_submit.add_argument('--num-jobs',
+                           help='number jobs to submit',
+                           dest='num_jobs',
+                           action='store',
+                           type=int)
+parser_submit.add_argument('--sim',
+                           help='simulate job submission',
+                           dest='submit_simulate',
+                           action='store_true')
+parser_submit.add_argument('--no-schedule',
+                           help='disable submitting to scheduler',
+                           dest='schedule',
+                           action='store_false',
+                           default=True)
+parser_submit.set_defaults(func=submit)
+# run args
+parser_run.add_argument(*proc_id_args, required=True, **proc_id_kwargs)
+parser_run.add_argument('--force-run',
+                        help='Force run even if output exists',
+                        dest='force_run',
+                        action='store_true')
+parser_run.set_defaults(func=run)
+# upload args
+upload_group = parser_upload.add_mutually_exclusive_group(required=True)
+upload_group.add_argument(*proc_id_args, **proc_id_kwargs)
+upload_group.add_argument('--upload-file',
+                          help='path to payload file to upload',
+                          dest='upload_file',
+                          action='store',
+                          type=str)
+upload_group.add_argument('--upload-dir',
+                          help='path to payload directory to upload',
+                          dest='upload_dir',
+                          action='store',
+                          type=str)
+parser_upload.set_defaults(func=upload)
+# testrun args
+parser_testrun.add_argument(*filter_args, **filter_kwargs)
+parser_testrun.add_argument('--num-pages',
+                            help='number pages to reserve and run',
+                            dest='testrun_num_pages',
+                            action='store',
+                            type=int,
+                            default=1)
+parser_testrun.add_argument('--no-upload',
+                            help='disable uploading of results',
+                            dest='testrun_no_upload',
+                            action='store_true',
+                            default=False)
+parser_testrun.set_defaults(func=testrun)
+
+args = parser.parse_args()
+args.func(args, parser)

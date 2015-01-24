@@ -87,7 +87,7 @@ class EmopSubmit(EmopBase):
 
         return num_jobs, pages_per_job
 
-    def reserve(self, num_pages):
+    def reserve(self, num_pages, r_filter):
         """Reserve pages for a job
 
         Reserve page(s) for work by sending PUT request to dashboard API.
@@ -95,9 +95,13 @@ class EmopSubmit(EmopBase):
         Returns:
             str: The reserved work's proc_id.
         """
-        reserve_data = {
-            "job_queue": {"num_pages": num_pages}
-        }
+        reserve_data = {}
+        if r_filter and isinstance(r_filter, dict):
+            job_queue = r_filter
+        else:
+            job_queue = {}
+        job_queue["num_pages"] = num_pages
+        reserve_data["job_queue"] = job_queue
         reserve_request = self.emop_api.put_request("/api/job_queues/reserve", reserve_data)
         if not reserve_request:
             return ""

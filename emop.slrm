@@ -45,11 +45,11 @@ start_mariadb_duration=$(($start_mariadb_end-$start_mariadb_begin))
 echo "START MARIADB TIME: ${start_mariadb_duration}"
 
 # launch instance of the controller which runs until killed or no jobs remain
-RUN_CMD="srun python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode run --proc-id ${PROC_ID}"
+RUN_CMD="srun python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} run --proc-id ${PROC_ID}"
 echo "Executing: ${RUN_CMD}"
 eval ${RUN_CMD}
 
-UPLOAD_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} --mode upload --proc-id ${PROC_ID}"
+UPLOAD_CMD="python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} upload --proc-id ${PROC_ID}"
 echo "Executing: ${UPLOAD_CMD}"
 eval ${UPLOAD_CMD}
 
