@@ -21,6 +21,14 @@ class PageCorrector(ProcessesBase):
         self.ctx_min_match = self.job.settings.get_value('page-corrector', 'ctx_min_match')
         self.ctx_min_vol = self.job.settings.get_value('page-corrector', 'ctx_min_vol')
 
+    def should_run(self):
+        if (self.job.postproc_result.pp_health_exists
+                and self.job.page_result.corr_ocr_text_path_exists
+                and self.job.page_result.corr_ocr_xml_path_exists):
+            return False
+        else:
+            return True
+
     def run(self):
         if not self.job.xml_file or not os.path.isfile(self.job.xml_file):
             stderr = "Could not find XML file: %s" % self.job.xml_file

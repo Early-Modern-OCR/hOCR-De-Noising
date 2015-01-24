@@ -36,6 +36,23 @@ class TestJuxtaCompare(TestCase):
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.page_result.juxta_change_index, 0.01)
         self.assertTupleEqual(expected_results, retval)
+        exec_cmd.stop()
+
+    def test_should_run_false(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.juxta_change_index_exists = True
+        juxta_compare = JuxtaCompare(job)
+
+        self.assertFalse(juxta_compare.should_run())
+
+    def test_should_run_true(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.juxta_change_index_exists = False
+        juxta_compare = JuxtaCompare(job)
+
+        self.assertTrue(juxta_compare.should_run())
 
 
 def suite():

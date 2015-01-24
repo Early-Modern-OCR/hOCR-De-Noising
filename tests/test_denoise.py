@@ -19,7 +19,7 @@ class TestDenoise(TestCase):
 
         expected_cmd = [
             "python", "/foo/lib/denoise/deNoise_Post.py",
-            "-p", "/dh/data/shared/text-xml/IDHMC-ocr/1/1/", "-n", "1.xml"
+            "-p", denoise.xml_file_dir, "-n", denoise.xml_filename
         ]
         results = mock_results_tuple()
         expected_results = results(None, None, 0)
@@ -33,6 +33,23 @@ class TestDenoise(TestCase):
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.postproc_result.pp_noisemsr, "1.0")
         self.assertTupleEqual(expected_results, retval)
+        exec_cmd.stop()
+
+    def test_should_run_false(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_noisemsr_exists = True
+        denoise = Denoise(job)
+
+        self.assertFalse(denoise.should_run())
+
+    def test_should_run_true(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_noisemsr_exists = False
+        denoise = Denoise(job)
+
+        self.assertTrue(denoise.should_run())
 
 
 def suite():

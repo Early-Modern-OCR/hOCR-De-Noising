@@ -1,3 +1,4 @@
+from flexmock import flexmock
 import mock
 import os
 import pytest
@@ -32,9 +33,9 @@ class TestPageCorrector(TestCase):
         expected_cmd = [
             "java", "-Xms128M", "-Xmx512M", "-jar", "/foo/lib/seasr/PageCorrector.jar",
             "--dbconf", self.dbconf, "-t", "/foo/lib/seasr/rules/transformations.json",
-            "-o", "/dh/data/shared/text-xml/IDHMC-ocr/1/1", "--stats",
+            "-o", job.output_dir, "--stats",
             "--alt", "2", "--max-transforms", "20", "--noiseCutoff", "0.5",
-            "--dict", str(self.test_dict), "--", "/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.xml"
+            "--dict", str(self.test_dict), "--", job.xml_file
         ]
         stdout = "{\"total\":1,\"ignored\":0,\"correct\":0,\"corrected\":1,\"unchanged\":0}"
         results = mock_results_tuple()
@@ -50,6 +51,57 @@ class TestPageCorrector(TestCase):
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.postproc_result.pp_health, stdout)
         self.assertTupleEqual(expected_results, retval)
+        exec_cmd.stop()
+
+    def test_should_run_false(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = True
+        job.page_result.corr_ocr_text_path_exists = True
+        job.page_result.corr_ocr_xml_path_exists = True
+        page_corrector = PageCorrector(job)
+
+        self.assertFalse(page_corrector.should_run())
+
+    def test_should_run_true_pp_health_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = False
+        job.page_result.corr_ocr_text_path_exists = True
+        job.page_result.corr_ocr_xml_path_exists = True
+        page_corrector = PageCorrector(job)
+
+        self.assertTrue(page_corrector.should_run())
+
+    def test_should_run_true_corr_ocr_text_path_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = True
+        job.page_result.corr_ocr_text_path_exists = False
+        job.page_result.corr_ocr_xml_path_exists = True
+        page_corrector = PageCorrector(job)
+
+        self.assertTrue(page_corrector.should_run())
+
+    def test_should_run_true_corr_ocr_xml_path_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = True
+        job.page_result.corr_ocr_text_path_exists = True
+        job.page_result.corr_ocr_xml_path_exists = False
+        page_corrector = PageCorrector(job)
+
+        self.assertTrue(page_corrector.should_run())
+
+    def test_should_run_true_all_values_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.postproc_result.pp_health_exists = False
+        job.page_result.corr_ocr_text_path_exists = False
+        job.page_result.corr_ocr_xml_path_exists = False
+        page_corrector = PageCorrector(job)
+
+        self.assertTrue(page_corrector.should_run())
 
 
 def suite():

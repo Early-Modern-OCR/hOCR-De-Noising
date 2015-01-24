@@ -1,3 +1,4 @@
+from flexmock import flexmock
 import mock
 import os
 import pytest
@@ -22,8 +23,8 @@ class TestTesseract(TestCase):
         mock_path_isdir.return_value = False
 
         expected_cmd = [
-            "tesseract", "/dh/dne/image.tiff", "/dh/data/shared/text-xml/IDHMC-ocr/1/1/1",
-            "-l", "TEST Font", "/foo/tess_cfg.txt"
+            "tesseract", job.image_path, tesseract.output_filename,
+            "-l", job.font.name, tesseract.cfg
         ]
         results = mock_results_tuple()
         expected_results = results(None, None, 0)
@@ -39,6 +40,43 @@ class TestTesseract(TestCase):
         self.assertEqual(expected_cmd, args[0])
         # self.assertTrue(mock_os_rename.called)
         self.assertTupleEqual(expected_results, retval)
+        exec_cmd.stop()
+
+    def test_should_run_false(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = True
+        job.page_result.ocr_xml_path_exists = True
+        tesseract = Tesseract(job)
+
+        self.assertFalse(tesseract.should_run())
+
+    def test_should_run_true_ocr_text_path_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = False
+        job.page_result.ocr_xml_path_exists = True
+        tesseract = Tesseract(job)
+
+        self.assertTrue(tesseract.should_run())
+
+    def test_should_run_true_ocr_xml_path_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = True
+        job.page_result.ocr_xml_path_exists = False
+        tesseract = Tesseract(job)
+
+        self.assertTrue(tesseract.should_run())
+
+    def test_should_run_true_all_values_missing(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = False
+        job.page_result.ocr_xml_path_exists = False
+        tesseract = Tesseract(job)
+
+        self.assertTrue(tesseract.should_run())
 
 
 def suite():

@@ -81,6 +81,8 @@ class TestEmopRun(TestCase):
         page_corrector = PageCorrector(job=job)
         page_corrector.run = mock.MagicMock()
         results = mock_results_tuple()
+        page_corrector.should_run = mock.MagicMock()
+        page_corrector.should_run.return_value = True
         page_corrector.run.return_value = results(stdout=None, stderr=None, exitcode=0)
 
         retval = self.run.do_process(obj=page_corrector, job=job)
@@ -94,6 +96,8 @@ class TestEmopRun(TestCase):
         page_corrector = PageCorrector(job=job)
         page_corrector.run = mock.MagicMock()
         results = mock_results_tuple()
+        page_corrector.should_run = mock.MagicMock()
+        page_corrector.should_run.return_value = True
         page_corrector.run.return_value = results(stdout=None, stderr="Test", exitcode=1)
         self.run.append_result = mock.MagicMock()
 
@@ -102,6 +106,37 @@ class TestEmopRun(TestCase):
         self.run.append_result.assert_called_with(job=job, results="PageCorrector Failed: Test", failed=True)
         self.assertFalse(retval)
 
+    def test_do_process_page_corrector_skipped(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        page_corrector = PageCorrector(job=job)
+        page_corrector.run = mock.MagicMock()
+        results = mock_results_tuple()
+        page_corrector.run.return_value = results(stdout=None, stderr="Test", exitcode=1)
+        flexmock(page_corrector).should_receive("should_run").and_return(False)
+        self.run.append_result = mock.MagicMock()
+
+        retval = self.run.do_process(obj=page_corrector, job=job)
+
+        self.assertFalse(self.run.append_result.called)
+        self.assertTrue(retval)
+
+    def test_do_process_page_corrector_not_skipped(self):
+        settings = default_settings()
+        self.run.settings.controller_skip_existing = False
+        job = mock_emop_job(settings)
+        page_corrector = PageCorrector(job=job)
+        page_corrector.run = mock.MagicMock()
+        results = mock_results_tuple()
+        page_corrector.run.return_value = results(stdout=None, stderr=None, exitcode=0)
+        page_corrector.should_run = mock.MagicMock()
+        self.run.append_result = mock.MagicMock()
+
+        retval = self.run.do_process(obj=page_corrector, job=job)
+
+        self.assertFalse(page_corrector.should_run.called)
+        self.assertTrue(retval)
+
     def test_do_ocr_tesseract(self):
         settings = default_settings()
         job = mock_emop_job(settings)
@@ -109,10 +144,11 @@ class TestEmopRun(TestCase):
         tesseract = Tesseract(job=job)
         results = mock_results_tuple()
         expected_results = results(stdout=None, stderr=None, exitcode=0)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/dne/image.tiff").and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.image_path).and_return(True)
         mock_mkdirs(job.output_dir)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.hocr").and_return(True)
-        flexmock(os.path).should_receive("isfile").with_args("/dh/data/shared/text-xml/IDHMC-ocr/1/1/1.xml").and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.hocr_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
         flexmock(tesseract).should_receive("run").and_return(expected_results)
 
         retval = self.run.do_ocr(job=job)
@@ -122,11 +158,16 @@ class TestEmopRun(TestCase):
     def test_do_ocr_tesseract_failed(self):
         settings = default_settings()
         job = mock_emop_job(settings)
+        job.page_result.ocr_text_path_exists = False
+        job.page_result.ocr_xml_path_exists = False
         results = mock_results_tuple()
         tesseract = Tesseract(job=job)
         results = mock_results_tuple()
-        expected_results = "tesseract OCR Failed: Could not find page image /dh/dne/image.tiff"
-        flexmock(os.path).should_receive("isfile").with_args("/dh/dne/image.tiff").and_return(False)
+        expected_results = "tesseract OCR Failed: Could not find page image %s" % job.image_path
+        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(False)
+        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(False)
+        flexmock(tesseract).should_receive("should_run").and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.image_path).and_return(False)
         flexmock(tesseract).should_receive("run")
         self.run.append_result = mock.MagicMock()
 
@@ -134,6 +175,43 @@ class TestEmopRun(TestCase):
 
         self.run.append_result.assert_called_with(job=job, results=expected_results, failed=True)
         self.assertFalse(retval)
+
+    def test_do_ocr_tesseract_skipped(self):
+        settings = default_settings()
+        job = mock_emop_job(settings)
+        results = mock_results_tuple()
+        tesseract = Tesseract(job=job)
+        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
+        flexmock(tesseract).should_receive("should_run").and_return(False)
+        flexmock(tesseract).should_receive("run")
+        self.run.append_result = mock.MagicMock()
+
+        retval = self.run.do_ocr(job=job)
+
+        self.assertFalse(self.run.append_result.called)
+        self.assertTrue(retval)
+
+    # This test doesn't correctly validate should_run is not called.
+    # When self.run.settings.controller_skip_existing is not set to False
+    # the test still passes
+    def test_do_ocr_tesseract_not_skipped(self):
+        settings = default_settings()
+        self.run.settings.controller_skip_existing = False
+        job = mock_emop_job(settings)
+        results = mock_results_tuple()
+        tesseract = Tesseract(job=job)
+        flexmock(os.path).should_receive("isdir").with_args(tesseract.output_parent_dir).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.txt_file).and_return(False)
+        flexmock(os.path).should_receive("isfile").with_args(job.xml_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.hocr_file).and_return(True)
+        flexmock(os.path).should_receive("isfile").with_args(job.image_path).and_return(True)
+        flexmock(tesseract).should_receive("should_run").never()
+        flexmock(tesseract).should_receive("run")
+
+        retval = self.run.do_ocr(job=job)
+
+        self.assertTrue(retval)
 
     def test_do_postprocesses(self):
         settings = default_settings()

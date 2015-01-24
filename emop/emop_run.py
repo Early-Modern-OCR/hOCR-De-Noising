@@ -6,10 +6,6 @@ from emop.lib.emop_base import EmopBase
 from emop.lib.emop_payload import EmopPayload
 from emop.lib.emop_job import EmopJob
 from emop.lib.emop_scheduler import EmopScheduler
-from emop.lib.models.emop_batch_job import EmopBatchJob
-from emop.lib.models.emop_font import EmopFont
-from emop.lib.models.emop_page import EmopPage
-from emop.lib.models.emop_work import EmopWork
 from emop.lib.processes.tesseract import Tesseract
 from emop.lib.processes.xml_to_text import XML_To_Text
 from emop.lib.processes.denoise import Denoise
@@ -79,8 +75,10 @@ class EmopRun(EmopBase):
             self.jobs_completed.append(job.id)
 
         # TODO: Do we need to handle adding page_results and postproc_results differently??
-        self.page_results.append(job.page_result.to_dict())
-        self.postproc_results.append(job.postproc_result.to_dict())
+        if job.page_result.has_data():
+            self.page_results.append(job.page_result.to_dict())
+        if job.postproc_result.has_data():
+            self.postproc_results.append(job.postproc_result.to_dict())
 
         current_results = self.get_results()
         self.payload.save_output(data=current_results, overwrite=True)
@@ -122,6 +120,9 @@ class EmopRun(EmopBase):
             bool: True if successful, False otherwise.
         """
         klass = obj.__class__.__name__
+        if self.settings.controller_skip_existing and not obj.should_run():
+            logger.info("Skipping %s job [%s]" % (klass, job.id))
+            return True
         result = obj.run(**kwargs)
         if result.exitcode != 0:
             err = "%s Failed: %s" % (klass, result.stderr)
@@ -156,11 +157,15 @@ class EmopRun(EmopBase):
         ocr_engine = job.batch_job.ocr_engine
         if ocr_engine == "tesseract":
             ocr = Tesseract(job=job)
-            ocr_result = ocr.run()
         else:
             ocr_engine_err = "OCR with %s not yet supported" % ocr_engine
             self.append_result(job=job, results=ocr_engine_err, failed=True)
             return False
+
+        if self.settings.controller_skip_existing and not ocr.should_run():
+            logger.info("Skipping OCR job [%s]" % job.id)
+            return True
+        ocr_result = ocr.run()
 
         if ocr_result.exitcode != 0:
             ocr_err = "%s OCR Failed: %s" % (ocr_engine, ocr_result.stderr)
@@ -302,18 +307,8 @@ class EmopRun(EmopBase):
 
         # Loop over jobs to perform actual work
         for job in data:
-            batch_job = EmopBatchJob(self.settings)
-            batch_job.setattrs(job["batch_job"])
-
-            if batch_job.job_type == "ocr":
-                font = EmopFont(self.settings)
-                page = EmopPage(self.settings)
-                work = EmopWork(self.settings)
-                font.setattrs(job["batch_job"]["font"])
-                page.setattrs(job["page"])
-                work.setattrs(job["work"])
-                emop_job = EmopJob(job["id"], batch_job, font, page, work, self.settings, self.scheduler)
-
+            emop_job = EmopJob(job_data=job, settings=self.settings, scheduler=self.scheduler)
+            if emop_job.batch_job.job_type == "ocr":
                 job_succcessful = self.do_job(job=emop_job)
                 if not job_succcessful:
                     continue
@@ -322,7 +317,7 @@ class EmopRun(EmopBase):
             # TODO
             # elif batch_job.job_type == "ground truth compare":
             else:
-                logger.error("JobType of %s is not yet supported." % batch_job.job_type)
+                logger.error("JobType of %s is not yet supported." % emop_job.batch_job.job_type)
                 return False
 
         logger.debug("Payload: \n%s" % json.dumps(self.get_results(), sort_keys=True, indent=4))

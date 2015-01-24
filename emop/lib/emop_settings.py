@@ -6,6 +6,7 @@ import os
 defaults = {
     "controller": {
         "scheduler": "slurm",
+        "skip_existing": True
     },
     "scheduler": {
         "mem_per_cpu": "4000",
@@ -79,6 +80,7 @@ class EmopSettings(object):
         self.output_path_prefix = self.get_value('controller', 'output_path_prefix')
         self.log_level = self.get_value('controller', 'log_level')
         self.scheduler = self.get_value('controller', 'scheduler')
+        self.controller_skip_existing = self.get_bool_value('controller', 'skip_existing')
 
         # Settings used to interact with the cluster scheduler
         self.max_jobs = int(self.get_value('scheduler', 'max_jobs'))

@@ -1,0 +1,128 @@
+[
+    {
+        "batch_job": {
+            "font": {
+                "font_bold": null, 
+                "font_fixed": null, 
+                "font_fraktur": null, 
+                "font_italic": null, 
+                "font_library_path": null, 
+                "font_line_height": null, 
+                "font_name": "SC8b-R7-D2b", 
+                "font_serif": null, 
+                "id": 207
+            }, 
+            "id": 16, 
+            "job_type": {
+                "id": 2, 
+                "name": "OCR"
+            }, 
+            "name": "VarEEBO w/GT - Re-run 128-133 - SC8b - BENCH", 
+            "notes": "", 
+            "ocr_engine": {
+                "id": 2, 
+                "name": "Tesseract"
+            }, 
+            "parameters": ""
+        }, 
+        "id": 67584, 
+        "page": {
+            "id": 42715440, 
+            "pg_gale_ocr_file": null, 
+            "pg_ground_truth_file": null, 
+            "pg_image_path": "/data/eebo/e0029/40241/00007.000.001.tif", 
+            "pg_ref_number": 7, 
+            "work": {
+                "id": 121, 
+                "wks_author": "Patrick, Simon, 1626-1707.", 
+                "wks_book_id": null, 
+                "wks_ecco_corrected_text_path": "/data/shared/text-xml/EEBO-TCP-document-text/e0029/40241.txt", 
+                "wks_ecco_corrected_xml_path": null, 
+                "wks_ecco_directory": null, 
+                "wks_ecco_gale_ocr_xml_path": "", 
+                "wks_ecco_number": null, 
+                "wks_ecco_uncorrected_gale_ocr_path": null, 
+                "wks_eebo_citation_id": 7874126, 
+                "wks_eebo_directory": "/data/eebo/e0029/40241", 
+                "wks_eebo_image_id": "40241", 
+                "wks_eebo_url": "http://gateway.proquest.com/openurl?ctx_ver=Z39.88-2003&res_id=xri:eebo&rft_id=xri:eebo:image:40241", 
+                "wks_estc_number": "b2538", 
+                "wks_last_trawled": "2013-06-26", 
+                "wks_marc_record": "A27900", 
+                "wks_organizational_unit": 0, 
+                "wks_primary_print_font": 6, 
+                "wks_pub_date": "1680", 
+                "wks_publisher": "London : Printed by M. Flesher for R. Royston, 1680.", 
+                "wks_tcp_bibno": 7874126, 
+                "wks_tcp_number": null, 
+                "wks_title": "The Book of Psalms paraphras'd. with arguments to each Psalm / by Symon Patrick.", 
+                "wks_word_count": null
+            }
+        }, 
+        "page_result": {
+            "alt_change_index": null, 
+            "batch_id": 16, 
+            "corr_ocr_text_path": "/data/shared/text-xml/IDHMC-ocr/16/121/7_ALTO.txt", 
+            "corr_ocr_xml_path": "/data/shared/text-xml/IDHMC-ocr/16/121/7_ALTO.xml", 
+            "id": 29193, 
+            "juxta_change_index": null, 
+            "ocr_completed": "2015-01-22T04:41:35.000Z", 
+            "ocr_text_path": "/data/shared/text-xml/IDHMC-ocr/16/121/7.txt", 
+            "ocr_xml_path": "/data/shared/text-xml/IDHMC-ocr/16/121/7.xml", 
+            "page_id": 42715440
+        }, 
+        "postproc_result": {
+            "batch_job_id": 16, 
+            "id": 29193, 
+            "multicol": "924.20,1436.72,1894.58", 
+            "noisiness_idx": null, 
+            "page_id": 42715440, 
+            "pp_ecorr": 0.989933, 
+            "pp_health": {
+                "correct": 318, 
+                "corrected": 19, 
+                "ignored": 25, 
+                "total": 381, 
+                "unchanged": 19
+            }, 
+            "pp_juxta": null, 
+            "pp_noisemsr": 0.0362, 
+            "pp_pg_quality": 0.758355, 
+            "pp_retas": null, 
+            "skew_idx": "0.000000,2.400000,-0.200000,0.200000,"
+        }, 
+        "proc_id": "20150122161222832", 
+        "results": null, 
+        "status": {
+            "id": 2, 
+            "name": "Processing"
+        }, 
+        "tries": 0, 
+        "work": {
+            "id": 121, 
+            "wks_author": "Patrick, Simon, 1626-1707.", 
+            "wks_book_id": null, 
+            "wks_ecco_corrected_text_path": "/data/shared/text-xml/EEBO-TCP-document-text/e0029/40241.txt", 
+            "wks_ecco_corrected_xml_path": null, 
+            "wks_ecco_directory": null, 
+            "wks_ecco_gale_ocr_xml_path": "", 
+            "wks_ecco_number": null, 
+            "wks_ecco_uncorrected_gale_ocr_path": null, 
+            "wks_eebo_citation_id": 7874126, 
+            "wks_eebo_directory": "/data/eebo/e0029/40241", 
+            "wks_eebo_image_id": "40241", 
+            "wks_eebo_url": "http://gateway.proquest.com/openurl?ctx_ver=Z39.88-2003&res_id=xri:eebo&rft_id=xri:eebo:image:40241", 
+            "wks_estc_number": "b2538", 
+            "wks_last_trawled": "2013-06-26", 
+            "wks_marc_record": "A27900", 
+            "wks_organizational_unit": 0, 
+            "wks_primary_print_font": 6, 
+            "wks_pub_date": "1680", 
+            "wks_publisher": "London : Printed by M. Flesher for R. Royston, 1680.", 
+            "wks_tcp_bibno": 7874126, 
+            "wks_tcp_number": null, 
+            "wks_title": "The Book of Psalms paraphras'd. with arguments to each Psalm / by Symon Patrick.", 
+            "wks_word_count": null
+        }
+    }
+]
