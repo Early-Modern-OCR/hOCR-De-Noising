@@ -17,18 +17,10 @@ if os.environ.get("_JAVA_OPTIONS"):
 
 
 def query(args, parser):
-    """QUERY
-    """
-    try:
-        q_filter = json.loads(args.filter)
-    except ValueError:
-        print "--filter must be a valid JSON string"
-        sys.exit(1)
-
     emop_query = EmopQuery(args.config_path)
     # --pending-pages
     if args.query_pending_pages:
-        pending_pages = emop_query.pending_pages(q_filter=q_filter)
+        pending_pages = emop_query.pending_pages(q_filter=args.filter)
         if pending_pages == 0 or pending_pages:
             print "Number of pending pages: %s" % pending_pages
         else:
@@ -65,16 +57,9 @@ def submit(args, parser):
         parser.print_help()
         sys.exit(1)
 
-    try:
-        q_filter = json.loads(args.filter)
-        r_filter = json.loads(args.filter)
-    except ValueError:
-        print "--filter must be a valid JSON string"
-        sys.exit(1)
-
     emop_submit = EmopSubmit(args.config_path)
     emop_query = EmopQuery(args.config_path)
-    pending_pages = emop_query.pending_pages(q_filter=q_filter)
+    pending_pages = emop_query.pending_pages(q_filter=args.filter)
 
     # Exit if no pages to run
     if pending_pages == 0:
@@ -104,7 +89,8 @@ def submit(args, parser):
 
     # Loop that performs the actual submission
     for i in xrange(num_jobs):
-        proc_id = emop_submit.reserve(num_pages=pages_per_job, r_filter=r_filter)
+        proc_id = emop_submit.reserve(num_pages=pages_per_job, r_filter=args.filter)
+        sys.exit(0)
         if not proc_id:
             print "Failed to reserve page"
             sys.exit(1)
@@ -153,12 +139,6 @@ def testrun(args, parser):
 
     Reserve pages, run pages and optionally upload pages
     """
-    try:
-        r_filter = json.loads(args.filter)
-    except ValueError:
-        print "--filter must be a valid JSON string"
-        sys.exit(1)
-
     emop_submit = EmopSubmit(args.config_path)
 
     # Do not run testrun subcommand if not in a valid cluster job environment
@@ -168,7 +148,7 @@ def testrun(args, parser):
         sys.exit(1)
 
     # Reserve pages equal to --num-pages
-    proc_id = emop_submit.reserve(num_pages=args.testrun_num_pages, r_filter=r_filter)
+    proc_id = emop_submit.reserve(num_pages=args.testrun_num_pages, r_filter=args.filter)
     if not proc_id:
         print "Failed to reserve pages"
         sys.exit(1)
@@ -215,7 +195,7 @@ filter_kwargs = {
     'dest': 'filter',
     'action': 'store',
     'default': '{}',
-    'type': str
+    'type': json.loads
 }
 
 # Global config options

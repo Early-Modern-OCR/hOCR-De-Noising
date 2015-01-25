@@ -97,7 +97,7 @@ class EmopSubmit(EmopBase):
         """
         reserve_data = {}
         if r_filter and isinstance(r_filter, dict):
-            job_queue = r_filter
+            job_queue = r_filter.copy()
         else:
             job_queue = {}
         job_queue["num_pages"] = num_pages

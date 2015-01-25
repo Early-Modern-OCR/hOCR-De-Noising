@@ -73,6 +73,20 @@ Be sure the emop module is loaded before executing emop.py
     module use ./modulefiles
     module load emop
 
+### Query
+
+The following is an example of querying the dashboard API for count of pending pages (job_queues)
+
+    ./emop.py query --pending-pages
+
+This example will count pending pages (job_queues) that are part with batch_id 16
+
+    ./emop.py query --filter '{"batch_id": 16}' --pending-pages
+
+The log files can be queried for statistics of application runtimes.
+
+    ./emop.py query --avg-runtimes
+
 ### Submitting
 
 This is an example of submitting a single page to run in a single job:
@@ -83,6 +97,10 @@ This is an example of submitting and letting the emop-controller determine the o
 number of jobs and pages-per-job to submit:
 
     ./emop.py submit
+
+The `submit` subcommand can filter the jobs that get reserved via API by using the `--filter` argument.  The following example would reserve job_queues via API that match batch_id 16.
+
+    ./emop.py submit --filter '{"batch_id": 16}'
 
 ### Uploading
 
@@ -117,7 +135,7 @@ specific to Brazos using Lmod.
     module load emop
 
 The following example will reserve 2 pages, process them and upload the results.
-    
+
     ./emop.py testrun --num-pages 2
 
 You can also run `testrun` with uploading of results disabled.

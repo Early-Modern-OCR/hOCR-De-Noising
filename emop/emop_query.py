@@ -33,7 +33,7 @@ class EmopQuery(EmopBase):
         job_status_results = job_status_request.get('results')[0]
         job_status_id = job_status_results.get('id')
         if q_filter and isinstance(q_filter, dict):
-            job_queue_params = q_filter
+            job_queue_params = q_filter.copy()
         else:
             job_queue_params = {}
         job_queue_params["job_status_id"] = str(job_status_id)
