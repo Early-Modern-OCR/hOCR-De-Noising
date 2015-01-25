@@ -90,7 +90,6 @@ def submit(args, parser):
     # Loop that performs the actual submission
     for i in xrange(num_jobs):
         proc_id = emop_submit.reserve(num_pages=pages_per_job, r_filter=args.filter)
-        sys.exit(0)
         if not proc_id:
             print "Failed to reserve page"
             sys.exit(1)
