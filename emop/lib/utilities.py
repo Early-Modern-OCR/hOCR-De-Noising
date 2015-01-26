@@ -3,6 +3,7 @@ import errno
 import logging
 import os
 import shlex
+import signal
 import subprocess
 
 logger = logging.getLogger('emop')
@@ -50,7 +51,7 @@ def mkdirs_exists_ok(path):
             raise
 
 
-def exec_cmd(cmd, log_level="info"):
+def exec_cmd(cmd, log_level="info", timeout=-1):
     """Executes a command
 
     This is the method used by this application to execute
@@ -64,10 +65,18 @@ def exec_cmd(cmd, log_level="info"):
         cmd (str or list): Command to execute
         log_level (str, optional): log level when printing information
             about the command being executed.
+        timeout (int, optional): The time in seconds the command should
+            be allowed to run before timing out.
 
     Returns:
         tuple: (stdout, stderr, exitcode)
     """
+    # REF: http://stackoverflow.com/a/3326559
+    class Alarm(Exception):
+        pass
+    def alarm_handler(signum, frame):
+        raise Alarm
+
     Proc = collections.namedtuple('Proc', ['stdout', 'stderr', 'exitcode'])
 
     if isinstance(cmd, basestring):
@@ -84,6 +93,10 @@ def exec_cmd(cmd, log_level="info"):
         cmd = cmd_flat
         cmd_str = " ".join(cmd)
 
+    if timeout != -1:
+        signal.signal(signal.SIGALRM, alarm_handler)
+        signal.alarm(timeout)
+
     try:
         getattr(logger, log_level)("Executing: '%s'" % cmd_str)
         # TODO Eventually may just need to redirect all stderr to stdout for simplicity
@@ -91,13 +104,24 @@ def exec_cmd(cmd, log_level="info"):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
         process.wait()
         out, err = process.communicate()
+        if timeout != -1:
+            signal.alarm(0)
         # TODO: set timeout??
         retval = process.returncode
 
         return Proc(stdout=out, stderr=err, exitcode=retval)
+    except Alarm:
+        process.kill()
+        timeout_msg = "Command timed out"
+        return Proc(stdout=timeout_msg, stderr=timeout_msg, exitcode=1)
     except OSError as e:
         if e.errno == os.errno.ENOENT:
-            logger.error("File not found for command: %s" % e)
-            return Proc(stdout=None, stderr=None, exitcode=1)
+            error_msg = "File not found for command: %s" % e
+            return Proc(stdout=error_msg, stderr=error_msg, exitcode=1)
         else:
             raise
+
+def get_process_children(pid):
+    p = subprocess.Popen('ps --no-headers -o pid --ppid %d' % pid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return [int(p) for p in stdout.split()]

@@ -9,6 +9,17 @@ from emop.lib.processes.page_corrector import PageCorrector
 
 
 class TestPageCorrector(TestCase):
+    def setUp(self):
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.mock_popen = self.popen_patcher.start()
+        self.mock_rv = mock.Mock()
+        self.mock_rv.communicate.return_value = ["", ""]
+        self.mock_rv.returncode = 0
+        self.mock_popen.return_value = self.mock_rv
+
+    def tearDown(self):
+        self.popen_patcher.stop()
+
     @pytest.fixture(autouse=True)
     def setup_files(self, tmpdir):
         self.tmpdir = tmpdir
@@ -40,18 +51,17 @@ class TestPageCorrector(TestCase):
         stdout = "{\"total\":1,\"ignored\":0,\"correct\":0,\"corrected\":1,\"unchanged\":0}"
         results = mock_results_tuple()
         expected_results = results(None, None, 0)
-        exec_cmd = mock_exec_cmd(stdout=stdout, stderr=None, exitcode=0)
+        self.mock_rv.communicate.return_value[0] = stdout
 
         retval = page_corrector.run()
-        args, kwargs = exec_cmd.call_args
+        args, kwargs = self.mock_popen.call_args
 
         self.maxDiff = None
         self.assertTrue(mock_path_isfile.called)
-        self.assertTrue(exec_cmd.called)
+        self.assertTrue(self.mock_popen.called)
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.postproc_result.pp_health, stdout)
         self.assertTupleEqual(expected_results, retval)
-        exec_cmd.stop()
 
     def test_should_run_false(self):
         settings = default_settings()

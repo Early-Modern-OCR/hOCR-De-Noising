@@ -1,3 +1,4 @@
+import mock
 import os
 from unittest import TestCase
 from unittest import TestLoader
@@ -7,10 +8,19 @@ from emop.lib.schedulers.emop_slurm import EmopSLURM
 
 class TestEmopSLURM(TestCase):
     def setUp(self):
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.mock_popen = self.popen_patcher.start()
+        self.mock_rv = mock.Mock()
+        self.mock_rv.communicate.return_value = ["", ""]
+        self.mock_rv.returncode = 0
+        self.mock_popen.return_value = self.mock_rv
         self.settings = default_settings()
         self.settings.avg_page_runtime = 60
         self.settings.max_job_runtime = 3600
         self.settings.scheduler_logfile = "/dne/log.out"
+
+    def tearDown(self):
+        self.popen_patcher.stop()
 
     def clear_job_id_env(self):
         if os.environ.get("SLURM_JOB_ID"):
@@ -23,13 +33,12 @@ class TestEmopSLURM(TestCase):
         ]
         mock_stdout = ("       0001                 idhmc emop-controller treydock  R    0:01:00      1 c0101\n"
                        "       0002                 idhmc emop-controller treydock  R    0:01:00      1 c0102\n")
-        exec_cmd = mock_exec_cmd(stdout=mock_stdout, stderr=None, exitcode=0)
+        self.mock_rv.communicate.return_value[0] = mock_stdout
         retval = scheduler.current_job_count()
-        args, kwargs = exec_cmd.call_args
-        self.assertTrue(exec_cmd.called)
+        args, kwargs = self.mock_popen.call_args
+        self.assertTrue(self.mock_popen.called)
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(retval, 2)
-        exec_cmd.stop()
 
     def test_submit_job(self):
         scheduler = EmopSLURM(self.settings)
@@ -42,24 +51,23 @@ class TestEmopSLURM(TestCase):
             "--cpus-per-task", "1",
             "emop.slrm"
         ]
-        exec_cmd = mock_exec_cmd(stdout="1", stderr=None, exitcode=0)
+        self.mock_rv.communicate.return_value[0] = "1"
         retval = scheduler.submit_job('0001', '1')
-        args, kwargs = exec_cmd.call_args
+        args, kwargs = self.mock_popen.call_args
         PROC_ID = os.environ.get('PROC_ID')
         EMOP_CONFIG_PATH = os.environ.get('EMOP_CONFIG_PATH')
-        self.assertTrue(exec_cmd.called)
+        self.assertTrue(self.mock_popen.called)
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(PROC_ID, '0001')
         self.assertEqual(EMOP_CONFIG_PATH, self.settings.config_path)
         self.assertTrue(retval)
-        exec_cmd.stop()
 
     def test_submit_job_failed(self):
         scheduler = EmopSLURM(self.settings)
-        exec_cmd = mock_exec_cmd(stdout="1", stderr=None, exitcode=1)
+        self.mock_rv.communicate.return_value[0] = "1"
+        self.mock_rv.returncode = 1
         retval = scheduler.submit_job('0001', '1')
         self.assertFalse(retval)
-        exec_cmd.stop()
 
     def test_get_submit_cmd(self):
         scheduler = EmopSLURM(self.settings)
