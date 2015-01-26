@@ -20,6 +20,7 @@ class PageCorrector(ProcessesBase):
         self.noise_cutoff = self.job.settings.get_value('page-corrector', 'noise_cutoff')
         self.ctx_min_match = self.job.settings.get_value('page-corrector', 'ctx_min_match')
         self.ctx_min_vol = self.job.settings.get_value('page-corrector', 'ctx_min_vol')
+        self.timeout = self.job.settings.page_corrector_timeout
 
     def should_run(self):
         if (self.job.postproc_result.pp_health_exists
@@ -49,7 +50,7 @@ class PageCorrector(ProcessesBase):
             cmd.append(self.ctx_min_vol)
         cmd.append("--")
         cmd.append(self.job.xml_file)
-        proc = exec_cmd(cmd)
+        proc = exec_cmd(cmd, timeout=self.timeout)
 
         if proc.exitcode != 0:
             # TODO: PageCorrector errors are going to stdout not stderr

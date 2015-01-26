@@ -24,6 +24,7 @@ defaults = {
         "noise_cutoff": "0.5",
         "ctx_min_match": None,
         "ctx_min_vol": None,
+        "timeout": -1,
     },
     "page-evaluator": {
         "java_args": '["-Xms128M", "-Xmx128M"]',
@@ -99,6 +100,9 @@ class EmopSettings(object):
 
         # Settings used by MultiColumnSkew
         self.multi_column_skew_enabled = self.get_bool_value('multi-column-skew', 'enabled')
+
+        # Settings used by PageCorrector
+        self.page_corrector_timeout = int(self.get_value('page-corrector', 'timeout'))
 
         # Settings used by Juxta-cl
         self.juxta_cl_jx_algorithm = self.get_value('juxta-cl', 'jx_algorithm')

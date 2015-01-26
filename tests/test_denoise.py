@@ -8,6 +8,17 @@ from emop.lib.processes.denoise import Denoise
 
 
 class TestDenoise(TestCase):
+    def setUp(self):
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.mock_popen = self.popen_patcher.start()
+        self.mock_rv = mock.Mock()
+        self.mock_rv.communicate.return_value = ["", ""]
+        self.mock_rv.returncode = 0
+        self.mock_popen.return_value = self.mock_rv
+
+    def tearDown(self):
+        self.popen_patcher.stop()
+
     @mock.patch("emop.lib.processes.denoise.os.path.isfile")
     def test_run(self, mock_path_isfile):
         settings = default_settings()
@@ -23,17 +34,16 @@ class TestDenoise(TestCase):
         ]
         results = mock_results_tuple()
         expected_results = results(None, None, 0)
-        exec_cmd = mock_exec_cmd(stdout="NOISEMEASURE: 1.0", stderr=None, exitcode=0)
+        self.mock_rv.communicate.return_value[0] = "NOISEMEASURE: 1.0"
 
         retval = denoise.run()
-        args, kwargs = exec_cmd.call_args
+        args, kwargs = self.mock_popen.call_args
 
         self.assertTrue(mock_path_isfile.called)
-        self.assertTrue(exec_cmd.called)
+        self.assertTrue(self.mock_popen.called)
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.postproc_result.pp_noisemsr, "1.0")
         self.assertTupleEqual(expected_results, retval)
-        exec_cmd.stop()
 
     def test_should_run_false(self):
         settings = default_settings()

@@ -111,6 +111,9 @@ def mock_emop_job(settings=None):
     job = EmopJob(job_data, settings, scheduler)
     return job
 
+def mock_proc_tuple(stdout, stderr, exitcode):
+    proc = collections.namedtuple('Proc', ['stdout', 'stderr', 'exitcode'])
+    return proc(stdout=stdout, stderr=stderr, exitcode=exitcode)
 
 def mock_results_tuple():
     results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])

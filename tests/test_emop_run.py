@@ -19,8 +19,17 @@ from emop.lib.processes.retas_compare import RetasCompare
 
 class TestEmopRun(TestCase):
     def setUp(self):
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.mock_popen = self.popen_patcher.start()
+        self.mock_rv = mock.Mock()
+        self.mock_rv.communicate.return_value = ["", ""]
+        self.mock_rv.returncode = 0
+        self.mock_popen.return_value = self.mock_rv
         os.environ["SLURM_JOB_ID"] = "2"
         self.run = EmopRun(config_path=default_config_path(), proc_id='0001')
+
+    def tearDown(self):
+        self.popen_patcher.stop()
 
     @pytest.fixture(autouse=True)
     def setup_files(self, tmpdir):

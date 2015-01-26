@@ -9,6 +9,17 @@ from emop.lib.processes.multi_column_skew import MultiColumnSkew
 
 
 class TestMultiColumnSkew(TestCase):
+    def setUp(self):
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.mock_popen = self.popen_patcher.start()
+        self.mock_rv = mock.Mock()
+        self.mock_rv.communicate.return_value = ["", ""]
+        self.mock_rv.returncode = 0
+        self.mock_popen.return_value = self.mock_rv
+
+    def tearDown(self):
+        self.popen_patcher.stop()
+
     def test_run(self):
         settings = default_settings()
         settings.emop_home = "/foo"
@@ -23,17 +34,16 @@ class TestMultiColumnSkew(TestCase):
         results = mock_results_tuple()
         expected_results = results(None, None, 0)
         mock_stdout = "{\"skew_idx\": \"0.000000,2.400000,-0.200000,0.200000,\", \"multicol\": \"924.20,1436.72,1894.58\"}"
-        exec_cmd = mock_exec_cmd(stdout=mock_stdout, stderr=None, exitcode=0)
+        self.mock_rv.communicate.return_value[0] = mock_stdout
 
         retval = multi_column_skew.run()
-        args, kwargs = exec_cmd.call_args
+        args, kwargs = self.mock_popen.call_args
 
-        self.assertTrue(exec_cmd.called)
+        self.assertTrue(self.mock_popen.called)
         self.assertEqual(expected_cmd, args[0])
         self.assertEqual(job.postproc_result.multicol, "924.20,1436.72,1894.58")
         self.assertEqual(job.postproc_result.skew_idx, "0.000000,2.400000,-0.200000,0.200000,")
         self.assertTupleEqual(expected_results, retval)
-        exec_cmd.stop()
 
     def test_should_run_false(self):
         settings = default_settings()
