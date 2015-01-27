@@ -1,7 +1,7 @@
 from flexmock import flexmock
 import os
 import signal
-import subprocess
+import subprocess32
 from unittest import TestCase
 from unittest import TestLoader
 from tests.utilities import *
@@ -11,7 +11,7 @@ from emop.lib.utilities import *
 
 class TestUtilities(TestCase):
     def setUp(self):
-        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess32.Popen")
         self.mock_popen = self.popen_patcher.start()
         self.mock_rv = mock.Mock()
         self.mock_rv.communicate.return_value = ["", ""]
@@ -68,21 +68,16 @@ class TestUtilities(TestCase):
         retval = exec_cmd(cmd="sleep 2", timeout=1)
         self.popen_patcher.start()
 
+        self.assertRaises(subprocess32.TimeoutExpired)
         self.assertEqual(expected_proc, retval)
 
-    def test_exec_cmd_timeout_signal_not_set(self):
-        with mock.patch("emop.lib.utilities.signal") as mock_signal:
-            exec_cmd(cmd="sleep 1")
-            self.assertFalse(mock_signal.signal.called)
-            self.assertFalse(mock_signal.alarm.called)
+    def test_exec_cmd_timeout_disabled(self):
+        self.popen_patcher.stop()
+        expected_proc = mock_proc_tuple("", "", 0)
+        retval = exec_cmd(cmd="sleep 2")
+        self.popen_patcher.start()
 
-    def test_exec_cmd_timeout_signal_set(self):
-        with mock.patch("emop.lib.utilities.signal") as mock_signal:
-            exec_cmd(cmd="sleep 1", timeout=1)
-            self.assertTrue(mock_signal.signal.called)
-            self.assertTrue(mock_signal.alarm.called)
-            calls = [mock.call(1), mock.call(0)]
-            mock_signal.alarm.assert_has_calls(calls)
+        self.assertEqual(expected_proc, retval)
 
 
 def suite():

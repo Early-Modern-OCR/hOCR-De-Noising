@@ -2,13 +2,13 @@ import mock
 import os
 from unittest import TestCase
 from unittest import TestLoader
-from tests.utilities import default_settings, mock_exec_cmd
+from tests.utilities import *
 from emop.lib.schedulers.emop_slurm import EmopSLURM
 
 
 class TestEmopSLURM(TestCase):
     def setUp(self):
-        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess32.Popen")
         self.mock_popen = self.popen_patcher.start()
         self.mock_rv = mock.Mock()
         self.mock_rv.communicate.return_value = ["", ""]

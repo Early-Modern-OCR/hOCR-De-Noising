@@ -9,7 +9,7 @@ from emop.lib.processes.juxta_compare import JuxtaCompare
 
 class TestJuxtaCompare(TestCase):
     def setUp(self):
-        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
+        self.popen_patcher = mock.patch("emop.lib.utilities.subprocess32.Popen")
         self.mock_popen = self.popen_patcher.start()
         self.mock_rv = mock.Mock()
         self.mock_rv.communicate.return_value = ["", ""]

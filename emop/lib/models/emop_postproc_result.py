@@ -39,7 +39,7 @@ class EmopPostprocResult(EmopModel):
         return _dict
 
     def has_data(self):
-        keys = self.to_dict().keys()
+        keys = list(self.to_dict().keys())
         data_keys = set(keys) - set(["page_id", "batch_job_id"])
         if len(data_keys) >= 1:
             return True

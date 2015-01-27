@@ -32,20 +32,11 @@ def mock_isfile_true(path):
     return flexmock(os.path).should_receive("isfile").with_args(path).and_return(True)
 
 
-def mock_exec_cmd(stdout, stderr, exitcode):
-    popen_patcher = mock.patch("emop.lib.utilities.subprocess.Popen")
-    mock_popen = popen_patcher.start()
-    mock_rv = mock.Mock()
-    mock_rv.communicate.return_value = [stdout, stderr]
-    mock_rv.returncode = exitcode
-    mock_popen.return_value = mock_rv
-    return mock_popen
-
-
 def mock_scheduler_slurm():
     settings = default_settings()
     scheduler = EmopScheduler.get_scheduler_instance(name="slurm", settings=settings)
     return scheduler
+
 
 def load_fixture_file(name):
     test_root = os.path.dirname(__file__)
@@ -54,6 +45,7 @@ def load_fixture_file(name):
     with open(fixture_file) as datafile:
         data = json.load(datafile)
     return data
+
 
 def mock_batch_job():
     settings = default_settings()
