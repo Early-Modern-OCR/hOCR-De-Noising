@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import json
 import argparse
 import os
@@ -22,26 +23,26 @@ def query(args, parser):
     if args.query_pending_pages:
         pending_pages = emop_query.pending_pages(q_filter=args.filter)
         if pending_pages == 0 or pending_pages:
-            print "Number of pending pages: %s" % pending_pages
+            print("Number of pending pages: %s" % pending_pages)
         else:
-            print "ERROR: querying pending pages failed"
+            print("ERROR: querying pending pages failed")
             sys.exit(1)
     # --avg-runtimes
     if args.query_avg_runtimes:
         avg_runtimes = emop_query.get_runtimes()
         if avg_runtimes:
-            print "Pages completed: %d" % avg_runtimes["total_pages"]
-            print "Total Page Runtime: %d seconds" % avg_runtimes["total_page_runtime"]
-            print "Average Page Runtime: %d seconds" % avg_runtimes["average_page_runtime"]
-            print "Jobs completed: %d" % avg_runtimes["total_jobs"]
-            print "Average Job Runtime: %d seconds" % avg_runtimes["average_job_runtime"]
-            print "Processes:"
+            print("Pages completed: %d" % avg_runtimes["total_pages"])
+            print("Total Page Runtime: %d seconds" % avg_runtimes["total_page_runtime"])
+            print("Average Page Runtime: %d seconds" % avg_runtimes["average_page_runtime"])
+            print("Jobs completed: %d" % avg_runtimes["total_jobs"])
+            print("Average Job Runtime: %d seconds" % avg_runtimes["average_job_runtime"])
+            print("Processes:")
             for process in avg_runtimes["processes"]:
-                print "\t%s completed: %d" % (process["name"], process["count"])
-                print "\t%s Average: %d seconds" % (process["name"], process["avg"])
-                print "\t%s Total: %d seconds" % (process["name"], process["total"])
+                print("\t%s completed: %d" % (process["name"], process["count"]))
+                print("\t%s Average: %d seconds" % (process["name"], process["avg"]))
+                print("\t%s Total: %d seconds" % (process["name"], process["total"]))
         else:
-            print "ERROR: querying average page runtimes"
+            print("ERROR: querying average page runtimes")
             sys.exit(1)
     sys.exit(0)
 
@@ -53,7 +54,7 @@ def submit(args, parser):
     # if either is used
     if (args.num_jobs and not args.pages_per_job
             or not args.num_jobs and args.pages_per_job):
-        print "--num-jobs and --pages-per-job must be used together"
+        print("--num-jobs and --pages-per-job must be used together")
         parser.print_help()
         sys.exit(1)
 
@@ -63,18 +64,18 @@ def submit(args, parser):
 
     # Exit if no pages to run
     if pending_pages == 0:
-        print "No work to be done"
+        print("No work to be done")
         sys.exit(0)
 
     if not pending_pages:
-        print "Error querying pending pages"
+        print("Error querying pending pages")
         sys.exit(1)
 
     # Exit if the number of submitted jobs has reached the limit
     if args.schedule:
         current_job_count = emop_submit.scheduler.current_job_count()
         if current_job_count >= emop_submit.settings.max_jobs:
-            print "Job limit of %s reached." % emop_submit.settings.max_jobs
+            print("Job limit of %s reached." % emop_submit.settings.max_jobs)
             sys.exit(0)
 
     # Optimize job submission if --pages-per-job and --num-jobs was not set
@@ -91,7 +92,7 @@ def submit(args, parser):
     for i in xrange(num_jobs):
         proc_id = emop_submit.reserve(num_pages=pages_per_job, r_filter=args.filter)
         if not proc_id:
-            print "Failed to reserve page"
+            print("Failed to reserve page")
             sys.exit(1)
         emop_submit.scheduler.submit_job(proc_id=proc_id, num_pages=pages_per_job)
     sys.exit(0)
@@ -107,7 +108,7 @@ def run(args, parser):
     # Do not use run subcommand if not in a valid cluster job environment
     # This prevents accidentally running resource intensive program on login nodes
     if not emop_run.scheduler.is_job_environment():
-        print "Can only use run subcommand from within a cluster job environment"
+        print("Can only use run subcommand from within a cluster job environment")
         sys.exit(1)
     run_status = emop_run.run(force=args.force_run)
     if run_status:
@@ -143,13 +144,13 @@ def testrun(args, parser):
     # Do not run testrun subcommand if not in a valid cluster job environment
     # This prevents accidentally running resource intensive program on login nodes
     if not emop_submit.scheduler.is_job_environment():
-        print "Can only use testrun subcommand from within a cluster job environment"
+        print("Can only use testrun subcommand from within a cluster job environment")
         sys.exit(1)
 
     # Reserve pages equal to --num-pages
     proc_id = emop_submit.reserve(num_pages=args.testrun_num_pages, r_filter=args.filter)
     if not proc_id:
-        print "Failed to reserve pages"
+        print("Failed to reserve pages")
         sys.exit(1)
     # Run reserved pages
     emop_run = EmopRun(args.config_path, proc_id)

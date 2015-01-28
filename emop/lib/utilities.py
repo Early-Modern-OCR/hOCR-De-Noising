@@ -4,7 +4,7 @@ import logging
 import os
 import shlex
 import signal
-import subprocess
+import subprocess32
 
 logger = logging.getLogger('emop')
 
@@ -50,7 +50,6 @@ def mkdirs_exists_ok(path):
         if exception.errno != errno.EEXIST:
             raise
 
-
 def exec_cmd(cmd, log_level="info", timeout=-1):
     """Executes a command
 
@@ -72,20 +71,17 @@ def exec_cmd(cmd, log_level="info", timeout=-1):
         tuple: (stdout, stderr, exitcode)
     """
     # REF: http://stackoverflow.com/a/3326559
-    class Alarm(Exception):
-        pass
-    def alarm_handler(signum, frame):
-        raise Alarm
-
     Proc = collections.namedtuple('Proc', ['stdout', 'stderr', 'exitcode'])
+    if timeout == -1:
+        timeout = None
 
-    if isinstance(cmd, basestring):
+    if isinstance(cmd, str):
         cmd_str = cmd
         cmd = shlex.split(cmd)
     elif isinstance(cmd, list):
         cmd_flat = []
         for i in cmd:
-            if hasattr(i, '__iter__'):
+            if isinstance(i, list):
                 for j in i:
                     cmd_flat.append(j)
             else:
@@ -93,24 +89,15 @@ def exec_cmd(cmd, log_level="info", timeout=-1):
         cmd = cmd_flat
         cmd_str = " ".join(cmd)
 
-    if timeout != -1:
-        signal.signal(signal.SIGALRM, alarm_handler)
-        signal.alarm(timeout)
-
+    getattr(logger, log_level)("Executing: '%s'" % cmd_str)
     try:
-        getattr(logger, log_level)("Executing: '%s'" % cmd_str)
         # TODO Eventually may just need to redirect all stderr to stdout for simplicity
-        # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=os.environ)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
-        process.wait()
-        out, err = process.communicate()
-        if timeout != -1:
-            signal.alarm(0)
-        # TODO: set timeout??
+        # process = subprocess32.Popen(cmd, stdout=subprocess32.PIPE, stderr=subprocess32.STDOUT, env=os.environ)
+        process = subprocess32.Popen(cmd, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, env=os.environ)
+        out, err = process.communicate(timeout=timeout)
         retval = process.returncode
-
         return Proc(stdout=out, stderr=err, exitcode=retval)
-    except Alarm:
+    except subprocess32.TimeoutExpired:
         process.kill()
         timeout_msg = "Command timed out"
         return Proc(stdout=timeout_msg, stderr=timeout_msg, exitcode=1)
@@ -120,8 +107,3 @@ def exec_cmd(cmd, log_level="info", timeout=-1):
             return Proc(stdout=error_msg, stderr=error_msg, exitcode=1)
         else:
             raise
-
-def get_process_children(pid):
-    p = subprocess.Popen('ps --no-headers -o pid --ppid %d' % pid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    return [int(p) for p in stdout.split()]
