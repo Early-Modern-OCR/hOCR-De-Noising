@@ -1,5 +1,5 @@
 PAGE_EVALUATOR_VERSION := 1.1.0
-PAGE_CORRECTOR_VERSION := 1.9.0
+PAGE_CORRECTOR_VERSION := 1.10.0
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SRC_DIR := $(ROOT_DIR)/src
 LIB_DIR := $(ROOT_DIR)/lib
