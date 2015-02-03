@@ -110,3 +110,14 @@ def mock_proc_tuple(stdout, stderr, exitcode):
 def mock_results_tuple():
     results = collections.namedtuple('Results', ['stdout', 'stderr', 'exitcode'])
     return results
+
+
+def flatten_list(deep_list):
+    new_list = []
+    for i in deep_list:
+        if isinstance(i, list):
+            for j in i:
+                new_list.append(j)
+        else:
+            new_list.append(i)
+    return new_list
