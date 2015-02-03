@@ -56,6 +56,8 @@ max_transforms = 20
 noise_cutoff = 0.5
 ctx_min_match = 
 ctx_min_vol = 
+dump = False
+save = False
 timeout = -1
 
 [page-evaluator]
