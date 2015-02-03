@@ -60,7 +60,10 @@ class TestPageCorrector(TestCase):
         self.assertEqual(self.job.postproc_result.pp_health, stdout)
         self.assertTupleEqual(expected_results, retval)
 
-    def test_run_with_dump(self):
+    @mock.patch("emop.lib.processes.page_corrector.os.path.isfile")
+    def test_run_with_dump(self, mock_path_isfile):
+        mock_path_isfile.return_value = True
+
         expected_cmd = flatten_list([
             "java", "-Xms128M", "-Xmx512M", "-jar", self.executable,
             "--dbconf", self.dbconf, "-t", self.transformations,
@@ -76,7 +79,10 @@ class TestPageCorrector(TestCase):
 
         self.assertEqual(expected_cmd, args[0])
 
-    def test_run_with_save(self):
+    @mock.patch("emop.lib.processes.page_corrector.os.path.isfile")
+    def test_run_with_save(self, mock_path_isfile):
+        mock_path_isfile.return_value = True
+
         expected_cmd = flatten_list([
             "java", "-Xms128M", "-Xmx512M", "-jar", self.executable,
             "--dbconf", self.dbconf, "-t", self.transformations,
