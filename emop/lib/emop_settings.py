@@ -24,6 +24,8 @@ defaults = {
         "noise_cutoff": "0.5",
         "ctx_min_match": None,
         "ctx_min_vol": None,
+        "dump": False,
+        "save": False,
         "timeout": -1,
     },
     "page-evaluator": {

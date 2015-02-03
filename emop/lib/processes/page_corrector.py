@@ -20,6 +20,8 @@ class PageCorrector(ProcessesBase):
         self.noise_cutoff = self.job.settings.get_value('page-corrector', 'noise_cutoff')
         self.ctx_min_match = self.job.settings.get_value('page-corrector', 'ctx_min_match')
         self.ctx_min_vol = self.job.settings.get_value('page-corrector', 'ctx_min_vol')
+        self.dump = self.job.settings.get_bool_value('page-corrector', 'dump', default=False)
+        self.save = self.job.settings.get_bool_value('page-corrector', 'save', default=False)
         self.timeout = self.job.settings.page_corrector_timeout
 
     def should_run(self):
@@ -48,6 +50,10 @@ class PageCorrector(ProcessesBase):
         if self.ctx_min_vol:
             cmd.append("--ctx-min-vol")
             cmd.append(self.ctx_min_vol)
+        if self.dump:
+            cmd.append("--dump")
+        if self.save:
+            cmd.append("--save")
         cmd.append("--")
         cmd.append(self.job.xml_file)
         proc = exec_cmd(cmd, timeout=self.timeout)
