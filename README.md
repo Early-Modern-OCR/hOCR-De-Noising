@@ -6,6 +6,19 @@
 
 The Brazos Cluster controller process for the eMOP workflow.
 
+#### Table of Contents
+
+1. [Install](#install)
+2. [Build](#build)
+3. [Setup](#setup)
+4. [Usage](#usage)
+  * [Query](#query)
+  * [Submitting](#submitting)
+  * [Uploading](#uploading)
+  * [Test Run](#test-run)
+5. [Support](#support)
+6. [Development](#development)
+
 ## Install
 
 Clone this repository and merge in the submodules
@@ -163,6 +176,7 @@ Only the following versions of each dependency have been tested.
 
 * python-2.7.8
   * requests-2.5.0
+  * subprocess32-3.2.6
 * maven-3.2.1
 * java-1.7.0-67
 * tesseract - SVN revision 889
@@ -191,3 +205,11 @@ Running lint tests
 Build documentation using Sphinx
 
     make docs
+
+### System tests
+
+To run the test using background-4g partition:
+
+    sbatch -p background-4g tests/system/emop-ecco-test.slrm
+
+Check the output of `logs/emop-controller-test-JOBID.out` where JOBID is the value output when sbatch was executed.

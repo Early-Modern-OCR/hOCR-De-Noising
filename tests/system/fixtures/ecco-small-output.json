@@ -1,0 +1,211 @@
+{
+    "job_queues": {
+        "completed": [
+            63310, 
+            63311, 
+            63312, 
+            63313, 
+            63314, 
+            63315, 
+            63316, 
+            63317, 
+            63318, 
+            63319
+        ], 
+        "failed": []
+    }, 
+    "page_results": [
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/1_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/1_ALTO.xml", 
+            "juxta_change_index": 0.9010853, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/1.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/1.xml", 
+            "page_id": 2179368
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/2_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/2_ALTO.xml", 
+            "juxta_change_index": 0.58846515, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/2.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/2.xml", 
+            "page_id": 2179369
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/3_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/3_ALTO.xml", 
+            "juxta_change_index": 0.19740741, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/3.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/3.xml", 
+            "page_id": 2179370
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/4_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/4_ALTO.xml", 
+            "juxta_change_index": 0.8982782, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/4.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/4.xml", 
+            "page_id": 2179371
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/5_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/5_ALTO.xml", 
+            "juxta_change_index": 0.8832997, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/5.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/5.xml", 
+            "page_id": 2179372
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/6_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/6_ALTO.xml", 
+            "juxta_change_index": 0.8667377, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/6.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/6.xml", 
+            "page_id": 2179373
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/7_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/7_ALTO.xml", 
+            "juxta_change_index": 0.9133342, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/7.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/7.xml", 
+            "page_id": 2179374
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/8_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/8_ALTO.xml", 
+            "juxta_change_index": 0.8875465, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/8.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/8.xml", 
+            "page_id": 2179375
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/9_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/9_ALTO.xml", 
+            "juxta_change_index": 0.9222184, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/9.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/9.xml", 
+            "page_id": 2179376
+        }, 
+        {
+            "batch_id": 17, 
+            "corr_ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/10_ALTO.txt", 
+            "corr_ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/10_ALTO.xml", 
+            "juxta_change_index": 0.9125246, 
+            "ocr_text_path": "/tests/system/output/IDHMC-ocr/17/152141/10.txt", 
+            "ocr_xml_path": "/tests/system/output/IDHMC-ocr/17/152141/10.xml", 
+            "page_id": 2179377
+        }
+    ], 
+    "postproc_results": [
+        {
+            "batch_job_id": 17, 
+            "multicol": "-2080.00,-2080.00,-2080.00", 
+            "page_id": 2179368, 
+            "pp_ecorr": "0.984568", 
+            "pp_health": "{\"total\":407,\"ignored\":13,\"correct\":324,\"corrected\":42,\"unchanged\":28}", 
+            "pp_noisemsr": "0.0097", 
+            "pp_pg_quality": "0.779951", 
+            "skew_idx": "0.200000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-1984.00,-1984.00,-1984.00", 
+            "page_id": 2179369, 
+            "pp_ecorr": "0.954545", 
+            "pp_health": "{\"total\":36,\"ignored\":10,\"correct\":10,\"corrected\":3,\"unchanged\":13}", 
+            "pp_noisemsr": "0.3390", 
+            "pp_pg_quality": "0.500000", 
+            "skew_idx": "0.400000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-1920.00,-1920.00,-1920.00", 
+            "page_id": 2179370, 
+            "pp_ecorr": "0.500000", 
+            "pp_health": "{\"total\":14,\"ignored\":6,\"correct\":1,\"corrected\":3,\"unchanged\":4}", 
+            "pp_noisemsr": "0.5000", 
+            "pp_pg_quality": "0.192308", 
+            "skew_idx": "0.400000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-1888.00,-1888.00,-1888.00", 
+            "page_id": 2179371, 
+            "pp_ecorr": "0.993197", 
+            "pp_health": "{\"total\":182,\"ignored\":3,\"correct\":149,\"corrected\":18,\"unchanged\":12}", 
+            "pp_noisemsr": "0.0314", 
+            "pp_pg_quality": "0.784946", 
+            "skew_idx": "0.000000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-2048.00,-2048.00,-2048.00", 
+            "page_id": 2179372, 
+            "pp_ecorr": "0.975000", 
+            "pp_health": "{\"total\":99,\"ignored\":6,\"correct\":78,\"corrected\":7,\"unchanged\":8}", 
+            "pp_noisemsr": "0.0917", 
+            "pp_pg_quality": "0.728972", 
+            "skew_idx": "0.200000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-2016.00,-2016.00,-2016.00", 
+            "page_id": 2179373, 
+            "pp_ecorr": "0.979452", 
+            "pp_health": "{\"total\":175,\"ignored\":7,\"correct\":129,\"corrected\":17,\"unchanged\":22}", 
+            "pp_noisemsr": "0.0275", 
+            "pp_pg_quality": "0.794444", 
+            "skew_idx": "0.000000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-1952.00,-1952.00,-1952.00", 
+            "page_id": 2179374, 
+            "pp_ecorr": "0.986755", 
+            "pp_health": "{\"total\":178,\"ignored\":7,\"correct\":146,\"corrected\":18,\"unchanged\":7}", 
+            "pp_noisemsr": "0.0324", 
+            "pp_pg_quality": "0.809783", 
+            "skew_idx": "0.200000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-2048.00,-2048.00,-2048.00", 
+            "page_id": 2179375, 
+            "pp_ecorr": "0.985185", 
+            "pp_health": "{\"total\":164,\"ignored\":5,\"correct\":130,\"corrected\":18,\"unchanged\":11}", 
+            "pp_noisemsr": "0.0625", 
+            "pp_pg_quality": "0.764368", 
+            "skew_idx": "0.000000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-1952.00,-1952.00,-1952.00", 
+            "page_id": 2179376, 
+            "pp_ecorr": "0.972973", 
+            "pp_health": "{\"total\":182,\"ignored\":9,\"correct\":149,\"corrected\":14,\"unchanged\":10}", 
+            "pp_noisemsr": "0.0263", 
+            "pp_pg_quality": "0.770053", 
+            "skew_idx": "0.000000,"
+        }, 
+        {
+            "batch_job_id": 17, 
+            "multicol": "-2048.00,-2048.00,-2048.00", 
+            "page_id": 2179377, 
+            "pp_ecorr": "0.973333", 
+            "pp_health": "{\"total\":186,\"ignored\":8,\"correct\":146,\"corrected\":19,\"unchanged\":13}", 
+            "pp_noisemsr": "0.0311", 
+            "pp_pg_quality": "0.764398", 
+            "skew_idx": "0.000000,"
+        }
+    ]
+}

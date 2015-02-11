@@ -21,3 +21,6 @@ lib/retas/config.txt
 docs/_build/*
 
 .coverage
+
+tests/system/payload/output/
+tests/system/output/

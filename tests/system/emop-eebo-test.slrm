@@ -1,0 +1,74 @@
+#!/bin/bash
+#SBATCH -J emop-controller-test
+#SBATCH -o logs/test/emop-controller-test-%j.out
+#SBATCH --mem-per-cpu 4000
+#SBATCH --cpus-per-task 1
+#SBATCH --account idhmc
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=00:20:00
+#SBATCH --export=EMOP_HOME,EMOP_CONFIG_PATH
+
+if [ -z $EMOP_HOME ]; then
+    EMOP_HOME=${SLURM_SUBMIT_DIR}
+fi
+
+PROC_ID=eebo-small
+
+# load required modules
+module load gcc mariadb/10.0.15
+module use ${EMOP_HOME}/modulefiles
+module load emop
+
+export OPENBLAS_NUM_THREADS=$SLURM_JOB_CPUS_PER_NODE
+export OMP_NUM_THREADS=$SLURM_JOB_CPUS_PER_NODE
+
+if [ -z $EMOP_CONFIG_PATH ]; then
+    EMOP_CONFIG_PATH=${EMOP_HOME}/tests/system/config-idhmc-test.ini
+fi
+
+# Print out the starting time and host.
+echo "${SLURM_JOB_ID} started on $(hostname) at $(date)"
+echo "-=-"
+
+# Set umask so directories can be read/written by others
+umask 002
+
+# Bootstrap and start local MariaDB instance
+bootstrap_begin=$(date +"%s")
+${EMOP_HOME}/bootstrap_mariadb.sh
+if [ $? -ne 0 ]; then
+    echo "Error bootstrapping MariaDB"
+    exit 1
+fi
+bootstrap_end=$(date +"%s")
+bootstrap_duration=$(($bootstrap_end-$bootstrap_begin))
+echo "BOOTSTRAP TIME: ${bootstrap_duration}"
+
+start_mariadb_begin=$(date +"%s")
+${EMOP_HOME}/start_mariadb.sh
+if [ $? -ne 0 ]; then
+    echo "Error starting MariaDB"
+    exit 1
+fi
+start_mariadb_end=$(date +"%s")
+start_mariadb_duration=$(($start_mariadb_end-$start_mariadb_begin))
+echo "START MARIADB TIME: ${start_mariadb_duration}"
+
+# launch instance of the controller which runs until killed or no jobs remain
+RUN_CMD="srun python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} run --force-run --proc-id ${PROC_ID}"
+echo "Executing: ${RUN_CMD}"
+eval ${RUN_CMD}
+
+TEST_CMD="python -m unittest tests.system.test_emop_eebo"
+echo "Executing: ${TEST_CMD}"
+eval ${TEST_CMD}
+
+# Shutdown MariaDB instance
+mysqladmin --defaults-file=${TMPDIR}/my.cnf --protocol=tcp shutdown
+
+# Done; print the end time and host.
+echo "-=-"
+echo "${SLURM_JOB_ID} ended on $(hostname) at $(date)"
+ 
+exit 0
