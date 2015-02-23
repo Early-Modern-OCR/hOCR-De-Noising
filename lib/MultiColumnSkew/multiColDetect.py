@@ -122,6 +122,8 @@ def multiColumnDetect(inFile):
     # Page Splitting algorithm
     # 1. x_Intersection profile
     xPointsUp = (np.arange(min_x,max_x,((max_x-min_x)/1000)))#min_x:(max_x-min_x)/1000:max_x;
+    if np.size(xPointsUp)==0:
+        return "",""
     stepFromTop=(0.2*(max_y-min_y)) # range to consider. Removing top and bottom 20% bboxes
     indexToConsider = wordInfo[:,2]<((max_y-stepFromTop))
     indexToConsiderTemp = wordInfo[:,4]>((min_y+stepFromTop))
