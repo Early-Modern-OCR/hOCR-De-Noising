@@ -5,7 +5,9 @@ git:
   submodules: false
 install:
   - pip install -r .requirements.txt
+before_script:
+  - cp config.ini.example config.ini
 script:
-  - py.test --cov-report term-missing --cov emop -v tests/
+  - py.test --cov-report term-missing --cov emop -v -c config.ini tests/
 after_success:
   - coveralls

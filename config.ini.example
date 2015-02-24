@@ -94,3 +94,6 @@ datefmt=%Y-%m-%dT%H:%M:%S
 ignore = E501
 exclude = lib/denoise/deNoise_Post.py,lib/MultiColumnSkew/*.py,test.py,docs/conf.py
 max-complexity = 10
+
+[pytest]
+norecursedirs = tests/system
