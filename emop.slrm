@@ -16,6 +16,13 @@ if [ -z $EMOP_CONFIG_PATH ]; then
     EMOP_CONFIG_PATH=${EMOP_HOME}/config.ini
 fi
 
+# Use --force-run if this job was requeued
+if [ -n "$SLURM_RESTART_COUNT" ] && [ $SLURM_RESTART_COUNT -gt 0 ]; then
+    FORCE_RUN_ARG="--force-run"
+else
+    FORCE_RUN_ARG=""
+fi
+
 # Print out the starting time and host.
 echo "${SLURM_JOB_ID} started on $(hostname) at $(date)"
 echo "-=-"
@@ -45,7 +52,7 @@ start_mariadb_duration=$(($start_mariadb_end-$start_mariadb_begin))
 echo "START MARIADB TIME: ${start_mariadb_duration}"
 
 # launch instance of the controller which runs until killed or no jobs remain
-RUN_CMD="srun python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} run --proc-id ${PROC_ID}"
+RUN_CMD="srun python ${EMOP_HOME}/emop.py -c ${EMOP_CONFIG_PATH} run --proc-id ${PROC_ID} ${FORCE_RUN_ARG}"
 echo "Executing: ${RUN_CMD}"
 eval ${RUN_CMD}
 
