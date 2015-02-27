@@ -16,6 +16,7 @@ The Brazos Cluster controller process for the eMOP workflow.
   * [Submitting](#submitting)
   * [Uploading](#uploading)
   * [Test Run](#test-run)
+  * [Cron](#cron)
 5. [Support](#support)
 6. [Development](#development)
 
@@ -164,6 +165,17 @@ First set the PROC_ID to the value that was output during the testrun:
 Then use subcommand `run` with the PROC_ID of the previous run and `--force-run` to overwrite previous output.  This will read the input JSON file and allow the same page(s) to be processed
 
     ./emop.py run --force-run --proc-id ${PROC_ID}
+
+### Cron
+
+To submit jobs via cron a special wrapper script is provided
+
+Edit cron by using `crontab -e` and add something like the following:
+
+    EMOP_HOME=/path/to/emop-controller
+    0 * * * * $EMOP_HOME/cron.sh config-cron.ini ; $EMOP_HOME/cron.sh config-cron-background.ini
+
+The above example will execute two commands every hour.  The first launches `emop.py -c config-cron.ini submit` and the second launches `emop.py -c config-cron-background.ini submit`.
 
 ## Support
 
