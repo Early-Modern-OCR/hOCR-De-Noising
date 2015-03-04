@@ -34,7 +34,7 @@ class MultiColumnSkew(ProcessesBase):
         try:
             json_data = json.loads(out)
         except ValueError:
-            stderr = "MultiColumnSkew Error: output is not valid JSON"
+            stderr = "MultiColumnSkew Error: output is not valid JSON: %s" % out
             return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         self.job.postproc_result.multicol = json_data.get("multicol")

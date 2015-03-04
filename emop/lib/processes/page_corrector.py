@@ -72,7 +72,7 @@ class PageCorrector(ProcessesBase):
         try:
             json.loads(out)
         except ValueError:
-            stderr = "PageCorrector Error: output is not valid JSON"
+            stderr = "PageCorrector Error: output is not valid JSON: %s" % out
             return self.results(stdout=None, stderr=stderr, exitcode=1)
 
         self.job.postproc_result.pp_health = out
